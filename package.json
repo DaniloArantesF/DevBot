@@ -1,6 +1,6 @@
 {
-  "name": "DevBot",
-  "version": "0.0.0",
+  "name": "devbot",
+  "version": "1.0.0",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -9,13 +9,16 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "dev:bot": "turbo run dev --filter bot",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "eslint-config-custom": "*",
     "prettier": "latest",
-    "turbo": "latest"
+    "pretty-quick": "latest",
+    "turbo": "latest",
+    "husky": "latest"
   },
   "engines": {
     "node": ">=14.0.0"

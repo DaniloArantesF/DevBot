@@ -10,6 +10,16 @@
     },
     "dev": {
       "cache": false
+    },
+    "bot#build": {
+      "env": [
+        "NODE_ENV",
+        "DISCORD_TOKEN",
+        "DISCORD_CLIENT_ID",
+        "DISCORD_GUILD_ID",
+        "DISCORD_TEST_GUILD_ID"
+      ]
     }
-  }
+  },
+  "globalDependencies": [".env", "package.json", "tsconfig.json"]
 }
