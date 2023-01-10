@@ -1,7 +1,9 @@
 import DiscordClient from './DiscordClient';
+import DataProvider from './DataProvider';
 
-async function BotClient() {
-  const client = new DiscordClient();
+async function BotController() {
+  const client = await DiscordClient();
+  const dataProvider = await DataProvider();
 }
 
-BotClient();
+BotController();

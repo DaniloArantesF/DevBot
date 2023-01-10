@@ -38,4 +38,10 @@ class DiscordClient extends Client {
   }
 }
 
-export default DiscordClient;
+const DiscordClientSync = () =>
+  new Promise<DiscordClient>((resolve, reject) => {
+    const client = new DiscordClient();
+    client.on('ready', () => resolve(client));
+  });
+
+export default DiscordClientSync;

@@ -16,7 +16,8 @@
       "@services/*": ["src/services/*"],
       "@utils/*": ["src/utils/*"],
       "@api/*": ["src/api/*"],
-      "@config": ["src/utils/config.ts"]
+      "@config": ["src/utils/config.ts"],
+      "@models/*": ["src/models/*"]
     }
   },
   "include": ["src/**/*", "./src/"]

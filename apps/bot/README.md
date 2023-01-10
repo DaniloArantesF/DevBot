@@ -10,3 +10,4 @@
 - [ ] Language moderation
 - [ ] Webhooks support
 - [ ] Customizable command permissions
+- [ ] Collectors
