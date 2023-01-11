@@ -57,6 +57,16 @@ const GuildRepository = async (client: Client) => {
     return await guildRepository.save(entity);
   }
 
+  async function saveAll(guilds: discord.Guild[]) {
+    const ids = [];
+    for (const guild of guilds) {
+      const id = await create(guild);
+      ids.push(id);
+      cacheMap.set(guild.id, id);
+    }
+    return ids;
+  }
+
   async function getAll() {
     return await guildRepository.search().all();
   }
@@ -72,6 +82,7 @@ const GuildRepository = async (client: Client) => {
     getAll,
     removeAll,
     update,
+    saveAll,
   };
 };
 

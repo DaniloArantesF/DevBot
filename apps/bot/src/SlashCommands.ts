@@ -6,7 +6,6 @@ import { TOKEN, CLIENT_ID } from '@config';
 export async function setSlashCommands(commands: Command[], guildId?: string) {
   try {
     const rest = new REST({ version: '10' }).setToken(TOKEN);
-    console.log(TOKEN);
     const endpoint = guildId
       ? Routes.applicationGuildCommands(CLIENT_ID, guildId.toString())
       : Routes.applicationCommands(CLIENT_ID);

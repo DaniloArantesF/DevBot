@@ -6,6 +6,7 @@ dotenv.config();
 // Host configuration
 export const CLIENT_URL = 'http://localhost:3000';
 export const REDIS_URL = 'redis://localhost:6379';
+export const PORT = 8000;
 
 // Discord configuration
 export const PREFIX = '!';
