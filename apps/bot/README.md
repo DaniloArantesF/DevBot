@@ -11,3 +11,4 @@
 - [ ] Webhooks support
 - [ ] Customizable command permissions
 - [ ] Collectors
+- [ ] Logging levels

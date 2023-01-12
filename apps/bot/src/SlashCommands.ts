@@ -3,6 +3,7 @@ import { Routes } from 'discord-api-types/v10';
 import { Command, getCommands } from '@commands/index';
 import { TOKEN, CLIENT_ID } from '@config';
 
+// Registers slash commands globally or for a specific guild
 export async function setSlashCommands(commands: Command[], guildId?: string) {
   try {
     const rest = new REST({ version: '10' }).setToken(TOKEN);

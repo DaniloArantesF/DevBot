@@ -16,6 +16,7 @@
     "dotenv": "^16.0.3",
     "erlpack": "discord/erlpack",
     "express": "^4.18.2",
+    "node-fetch": "^3.3.0",
     "redis-om": "^0.3.6",
     "utf-8-validate": "^6.0.0",
     "zlib-sync": "^0.1.7"

@@ -1,10 +1,13 @@
 import fs from 'fs';
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 
+// Make some properties optional
+type CommandData = Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup"> & Partial<SlashCommandBuilder>;
+
 export interface Command {
   aliases?: string[];
   args?: boolean;
-  data: SlashCommandBuilder;
+  data: CommandData;
   execute: (interaction: CommandInteraction) => Promise<void>;
   permissions?: string[];
   usage?: string;

@@ -45,3 +45,4 @@ const DiscordClientSync = () =>
   });
 
 export default DiscordClientSync;
+export type { DiscordClient };

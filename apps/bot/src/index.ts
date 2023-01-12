@@ -12,7 +12,7 @@ async function BotController() {
   taskManager.processCommands(discordClient.commands);
 
   // Process API tasks
-  taskManager.processApiRequests();
+  taskManager.processApiRequests(discordClient);
 }
 
 console.clear();

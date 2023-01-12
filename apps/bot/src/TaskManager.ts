@@ -1,9 +1,13 @@
 import Queue from 'bee-queue';
 import { ChatInputCommandInteraction } from 'discord.js';
+import { Response } from 'express';
 import { Command } from './commands';
+import type { DiscordClient } from './DiscordClient';
 
-type apiHandler = () => Promise<void> | void;
-
+interface QueueTaskData {
+  id: string
+}
+type apiHandler = (client?: DiscordClient) => Promise<void | Response> | void;
 interface ApiTask {
   id: string;
   execute: apiHandler;
@@ -16,22 +20,20 @@ interface ApiTask {
  * Manages task execution
  */
 function TaskManager() {
-  // Command interactions
-  const commandQueue = new Queue('command-queue', {});
-  // Maps job ids to interactions
+  // Command tasks
+  const commandQueue = new Queue<QueueTaskData>('command-queue', {});
   const commandsMap = new Map<string, ChatInputCommandInteraction>();
 
   // Api tasks
-  const apiQueue = new Queue('api-queue', {});
-  // Maps job ids to api handlers
+  const apiQueue = new Queue<QueueTaskData>('api-queue', {});
   const requestMap = new Map<string, ApiTask['execute']>();
 
+  // Adds a task to the command queue
   async function addCommandInteraction(interaction: ChatInputCommandInteraction) {
-    // Add job id to interaction queue, save original interaction in map
     const job = commandQueue.createJob({ id: interaction.id });
     await job.timeout(2000).retries(2).save();
 
-    commandsMap.set(job.id, interaction);
+    commandsMap.set(job.id, interaction); // save interaction
 
     job.on('failed', (err) => {
       console.log(err);
@@ -41,7 +43,7 @@ function TaskManager() {
     return job;
   }
 
-  // Processes interactions from the interaction queue
+  // Execute interaction tasks from the queue
   function processCommands(commands: Map<string, Command>) {
     commandQueue.process(async (job) => {
       const interaction = commandsMap.get(job.id);
@@ -51,23 +53,16 @@ function TaskManager() {
       if (!command) return;
 
       await command.execute(interaction);
+
+      commandsMap.delete(job.id);
     });
   }
 
-  function processApiRequests() {
-    apiQueue.process(async (job) => {
-      const handler = requestMap.get(job.id);
-      if (!handler) return;
-
-      return await handler();
-    });
-  }
-
+  // Adds a task to the api queue
   async function addApiRequest({ id, execute }: ApiTask) {
     const job = apiQueue.createJob({ id });
     await job.timeout(2000).retries(2).save();
-
-    requestMap.set(job.id, execute);
+    requestMap.set(job.id, execute); // save request
 
     job.on('failed', (err) => {
       console.log(err);
@@ -75,6 +70,16 @@ function TaskManager() {
     job.on('succeeded', () => console.log(`${job.id} (${id}) succeeded`));
 
     return job;
+  }
+
+  // Execute api tasks from the queue
+  function processApiRequests(client: DiscordClient) {
+    apiQueue.process(async (job) => {
+      const handler = requestMap.get(job.id);
+      if (!handler) return;
+      await handler(client);
+      requestMap.delete(job.id);
+    });
   }
 
   //  Removes a task from its queue
