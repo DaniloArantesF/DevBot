@@ -5,7 +5,7 @@ import { Command } from './commands';
 import type { DiscordClient } from './DiscordClient';
 
 interface QueueTaskData {
-  id: string
+  id: string;
 }
 type apiHandler = (client?: DiscordClient) => Promise<void | Response> | void;
 interface ApiTask {
@@ -15,6 +15,7 @@ interface ApiTask {
 
 // TODO: Improve error handling
 // TODO: Add cooldowns using .delayUntil ?
+// TODO: Player queue
 
 /**
  * Manages task execution
