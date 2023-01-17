@@ -3,6 +3,7 @@ import type { VoiceConnection } from '@discordjs/voice';
 import { Command, getCommands } from './commands/';
 import { getEvents } from './events';
 import { TOKEN, INTENTS as intents } from '@config';
+import type { BotProvider } from './index';
 
 interface DiscordConnection {
   connection: VoiceConnection;
@@ -12,7 +13,7 @@ class DiscordClient extends Client {
   commands = new Collection<string, Command>();
   connections = new Map<string, DiscordConnection>();
 
-  constructor() {
+  constructor(provider: BotProvider) {
     super({
       intents,
     });
@@ -38,11 +39,4 @@ class DiscordClient extends Client {
   }
 }
 
-const DiscordClientSync = () =>
-  new Promise<DiscordClient>((resolve, reject) => {
-    const client = new DiscordClient();
-    client.on('ready', () => resolve(client));
-  });
-
-export default DiscordClientSync;
-export type { DiscordClient };
+export default DiscordClient;

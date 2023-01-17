@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
-import taskManager from '../TaskManager';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@utils/config';
 import fetch from 'node-fetch';
-const { addApiRequest } = taskManager;
+import { botProvider } from '../index';
 
 function AuthRouter() {
   const router = Router();
@@ -38,7 +37,9 @@ function AuthRouter() {
       }
     }
 
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   // Refreshes access token given a refresh token
@@ -70,7 +71,10 @@ function AuthRouter() {
         return res.status(500).send(error);
       }
     }
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   return router;

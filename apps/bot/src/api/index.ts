@@ -5,6 +5,7 @@ import AdminRouter from './adminRouter';
 import { CLIENT_URL, PORT } from '@config';
 import AuthRouter from './authRouter';
 import DiscordRouter from './discordRouter';
+import type { BotProvider } from '../index';
 
 // TODO:
 /**
@@ -12,7 +13,7 @@ import DiscordRouter from './discordRouter';
  * TwitchAPI
  */
 
-function API() {
+function API(provider: BotProvider) {
   const api = express();
   const server = http.createServer(api);
   const rootRouter = express.Router();
@@ -24,10 +25,7 @@ function API() {
     api.use('/discord', DiscordRouter());
 
     // Status route, does not go through task manager
-    rootRouter.get(
-      '/status',
-      async (req: Request, res: Response) => res.send('Online'),
-    );
+    rootRouter.get('/status', async (req: Request, res: Response) => res.send('Online'));
   }
 
   function setupMiddleware() {

@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import taskManager from '../TaskManager';
 import { DISCORD_API_BASE_URL } from '@utils/config';
 import fetch from 'node-fetch';
-import type { DiscordClient } from '../DiscordClient';
-const { addApiRequest } = taskManager;
+import type DiscordClient from '../DiscordClient';
+import { botProvider } from '../index';
 
 interface GuildData {
   id: string;
@@ -40,7 +39,9 @@ function DiscordRouter() {
       }
     }
 
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   router.get('/guilds', async (req: Request, res: Response) => {
@@ -71,8 +72,9 @@ function DiscordRouter() {
         return res.status(500).send(error);
       }
     }
-
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   return router;

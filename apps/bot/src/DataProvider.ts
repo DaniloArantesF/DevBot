@@ -1,8 +1,9 @@
 import { Client } from 'redis-om';
 import { REDIS_URL } from '@utils/config';
 import GuildRepository from './models/guild';
+import type { BotProvider } from './index';
 
-async function DataProvider() {
+async function DataProvider(provider: BotProvider) {
   const client = new Client();
   try {
     await connect();

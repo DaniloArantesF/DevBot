@@ -2,7 +2,8 @@ import Queue from 'bee-queue';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Response } from 'express';
 import { Command } from './commands';
-import type { DiscordClient } from './DiscordClient';
+import type DiscordClient from './DiscordClient';
+import type { BotProvider } from './index';
 
 interface QueueTaskData {
   id: string;
@@ -20,7 +21,7 @@ interface ApiTask {
 /**
  * Manages task execution
  */
-function TaskManager() {
+function TaskManager(provider: BotProvider) {
   // Command tasks
   const commandQueue = new Queue<QueueTaskData>('command-queue', {});
   const commandsMap = new Map<string, ChatInputCommandInteraction>();
@@ -28,6 +29,12 @@ function TaskManager() {
   // Api tasks
   const apiQueue = new Queue<QueueTaskData>('api-queue', {});
   const requestMap = new Map<string, ApiTask['execute']>();
+
+  // Process tasks
+  async function initProcessing() {
+    processCommands(provider.getService('discordClient').commands);
+    processApiRequests(provider.getService('discordClient'));
+  }
 
   // Adds a task to the command queue
   async function addCommandInteraction(interaction: ChatInputCommandInteraction) {
@@ -90,6 +97,7 @@ function TaskManager() {
   }
 
   return {
+    initProcessing,
     addApiRequest,
     addCommandInteraction,
     processApiRequests,
@@ -98,5 +106,4 @@ function TaskManager() {
   };
 }
 
-const taskManager = TaskManager();
-export default taskManager;
+export default TaskManager;

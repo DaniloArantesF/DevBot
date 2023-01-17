@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { registerGlobalSlashCommands, registerGuildSlashCommands, deleteGlobalSlashCommands, deleteGuildSlashCommands } from '../SlashCommands';
-import taskManager from '../TaskManager';
-
-const { addApiRequest } = taskManager;
+import {
+  registerGlobalSlashCommands,
+  registerGuildSlashCommands,
+  deleteGlobalSlashCommands,
+  deleteGuildSlashCommands,
+} from '../SlashCommands';
+import { botProvider } from '../index';
 
 function AdminRouter() {
   const router = Router();
@@ -25,7 +28,9 @@ function AdminRouter() {
       }
     }
 
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   // Removes all slash commands
@@ -46,7 +51,9 @@ function AdminRouter() {
       }
     }
 
-    await addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    (await botProvider)
+      .getService('taskManager')
+      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
   return router;
