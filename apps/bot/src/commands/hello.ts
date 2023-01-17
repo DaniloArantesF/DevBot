@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { Command } from '.';
+import { DiscordCommand } from '@utils/types';
 
-export const command: Command = {
+export const command: DiscordCommand = {
   data: new SlashCommandBuilder().setName('hello').setDescription('Friendly greeting'),
   async execute(interaction) {
     if (interaction.deferred) {

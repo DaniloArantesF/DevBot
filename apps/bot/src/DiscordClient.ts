@@ -1,16 +1,11 @@
 import { Client, Collection } from 'discord.js';
-import type { VoiceConnection } from '@discordjs/voice';
-import { Command, getCommands } from './commands/';
+import { getCommands } from './commands';
 import { getEvents } from './events';
 import { TOKEN, INTENTS as intents } from '@config';
-import type { BotProvider } from './index';
-
-interface DiscordConnection {
-  connection: VoiceConnection;
-}
+import type { BotProvider, DiscordCommand, DiscordConnection } from '@utils/types';
 
 class DiscordClient extends Client {
-  commands = new Collection<string, Command>();
+  commands = new Collection<string, DiscordCommand>();
   connections = new Map<string, DiscordConnection>();
 
   constructor(provider: BotProvider) {

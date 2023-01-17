@@ -36,11 +36,13 @@ export const INTENTS = [
   GatewayIntentBits.DirectMessageReactions,
 ];
 
-
 // Bot configuration
 export const ENVIRONMENT = process.env.NODE_ENV ?? 'dev';
 
 export const BOT_CONFIG = {
   // *Note* The discord api requires a reply within 3 seconds. If cooldown is greater than 3000, you need to defer reply and edit it later.
   cooldownMs: 2500,
-}
+};
+
+// Tasks configuration
+export const AUTO_PROCESS = true;

@@ -5,14 +5,12 @@ import AdminRouter from './adminRouter';
 import { CLIENT_URL, PORT } from '@config';
 import AuthRouter from './authRouter';
 import DiscordRouter from './discordRouter';
-import type { BotProvider } from '../index';
+import type { apiHandler, BotProvider } from '@utils/types';
 
-// TODO:
 /**
- * YoutubeAPI
- * TwitchAPI
+ * API
+ * @param provider BotProvider
  */
-
 function API(provider: BotProvider) {
   const api = express();
   const server = http.createServer(api);
@@ -39,6 +37,14 @@ function API(provider: BotProvider) {
         methods: ['GET', 'POST'],
       }),
     );
+  }
+
+  // TODO: integrate into routers instead of importing
+  function pushRequest(req: Request, execute: apiHandler) {
+    provider.getService('taskManager').addApiRequest({
+      id: `${Date.now()}:${req.rawHeaders.toString()}`,
+      execute,
+    });
   }
 
   // Setup server and listen for connections

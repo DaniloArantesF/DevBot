@@ -1,9 +1,9 @@
 import { Events } from 'discord.js';
-import { Event } from '.';
+import { DiscordEvent } from '@utils/types';
 
-export const event: Event<Events.ClientReady> = {
+export const event: DiscordEvent<Events.ClientReady> = {
   name: Events.ClientReady,
   async on() {
-    console.log('Discord Client is connected');
+    console.log('DiscordClient connected');
   },
 };

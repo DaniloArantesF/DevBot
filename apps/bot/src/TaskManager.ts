@@ -1,25 +1,12 @@
 import Queue from 'bee-queue';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Response } from 'express';
-import { Command } from './commands';
 import type DiscordClient from './DiscordClient';
-import type { BotProvider } from './index';
-
-interface QueueTaskData {
-  id: string;
-}
-type apiHandler = (client?: DiscordClient) => Promise<void | Response> | void;
-interface ApiTask {
-  id: string;
-  execute: apiHandler;
-}
-
-// TODO: Improve error handling
-// TODO: Add cooldowns using .delayUntil ?
-// TODO: Player queue
+import type { ApiTask, BotProvider, QueueTaskData, DiscordCommand } from '@utils/types';
+import { AUTO_PROCESS } from '@utils/config';
 
 /**
  * Manages task execution
+ * Depends on discordClient service to start processing tasks
  */
 function TaskManager(provider: BotProvider) {
   // Command tasks
@@ -29,6 +16,11 @@ function TaskManager(provider: BotProvider) {
   // Api tasks
   const apiQueue = new Queue<QueueTaskData>('api-queue', {});
   const requestMap = new Map<string, ApiTask['execute']>();
+
+  // Process tasks as soon as dependencies are ready
+  provider.getService('discordClient').on('ready', () => {
+    if (AUTO_PROCESS) initProcessing() && console.log('Processing tasks...');
+  });
 
   // Process tasks
   async function initProcessing() {
@@ -52,7 +44,7 @@ function TaskManager(provider: BotProvider) {
   }
 
   // Execute interaction tasks from the queue
-  function processCommands(commands: Map<string, Command>) {
+  function processCommands(commands: Map<string, DiscordCommand>) {
     commandQueue.process(async (job) => {
       const interaction = commandsMap.get(job.id);
       if (!interaction) return;
@@ -62,6 +54,7 @@ function TaskManager(provider: BotProvider) {
 
       await command.execute(interaction);
 
+      // TODO: update job data properly
       commandsMap.delete(job.id);
     });
   }

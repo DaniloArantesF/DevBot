@@ -2,17 +2,8 @@ import { Router, Request, Response } from 'express';
 import { DISCORD_API_BASE_URL } from '@utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '../DiscordClient';
-import { botProvider } from '../index';
-
-interface GuildData {
-  id: string;
-  name: string;
-  icon: string;
-  owner: boolean;
-  permissions: number;
-  features: string[];
-  permissions_new: string;
-}
+import botProvider from '../index';
+import type { GuildData, UserData } from '@utils/types';
 
 function DiscordRouter() {
   const router = Router();
@@ -23,14 +14,14 @@ function DiscordRouter() {
       const token = req.query.token as string;
       if (!token) return res.sendStatus(401);
       try {
-        const data = await (
+        const data = (await (
           await fetch(`${DISCORD_API_BASE_URL}/users/@me`, {
             method: 'GET',
             headers: {
               authorization: `Bearer ${token}`,
             },
           })
-        ).json();
+        ).json()) as UserData;
 
         return res.status(200).send(data);
       } catch (error) {
@@ -39,11 +30,13 @@ function DiscordRouter() {
       }
     }
 
+    // Push to request queue
     (await botProvider)
       .getService('taskManager')
       .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
   });
 
+  // Fetches user guilds from discord
   router.get('/guilds', async (req: Request, res: Response) => {
     async function handler(client: DiscordClient) {
       const token = req.query.token as string;
@@ -72,6 +65,8 @@ function DiscordRouter() {
         return res.status(500).send(error);
       }
     }
+
+    // Push to request queue
     (await botProvider)
       .getService('taskManager')
       .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });

@@ -1,8 +1,9 @@
+import { DiscordCommand } from '@utils/types';
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { Command, getCommands } from '.';
+import { getCommands } from '../commands';
 
 // Builds the full help embed
-const HelpEmbed = (commandsData: Command[]) => {
+const HelpEmbed = (commandsData: DiscordCommand[]) => {
   const fields = [];
   for (const command of commandsData) {
     fields.push({
@@ -22,7 +23,7 @@ const HelpEmbed = (commandsData: Command[]) => {
 };
 
 // Builds the help embed for a specific command
-export const CommandHelpEmbed = (command: Command) => {
+export const CommandHelpEmbed = (command: DiscordCommand) => {
   return new EmbedBuilder()
     .setColor('#b700ff')
     .setTitle(`/${command.data.name}`)
@@ -34,7 +35,7 @@ export const CommandHelpEmbed = (command: Command) => {
     );
 };
 
-export const command: Command = {
+export const command: DiscordCommand = {
   data: new SlashCommandBuilder()
     .setName('help')
     .setDescription('Displays help for all or a specific command')
@@ -47,8 +48,10 @@ export const command: Command = {
 
     let reply = { embeds: [HelpEmbed(commandsData)] };
     if (arg) {
-      const command = commandsData.find((c) => c.data.name === arg.value || c.aliases?.includes(arg.value as string));
-      reply = { embeds: [CommandHelpEmbed(command)]}
+      const command = commandsData.find(
+        (c) => c.data.name === arg.value || c.aliases?.includes(arg.value as string),
+      );
+      reply = { embeds: [CommandHelpEmbed(command)] };
     }
 
     if (interaction.deferred) {

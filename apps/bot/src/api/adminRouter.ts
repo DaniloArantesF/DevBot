@@ -4,8 +4,8 @@ import {
   registerGuildSlashCommands,
   deleteGlobalSlashCommands,
   deleteGuildSlashCommands,
-} from '../SlashCommands';
-import { botProvider } from '../index';
+} from '../commands';
+import botProvider from '../index';
 
 function AdminRouter() {
   const router = Router();
@@ -13,7 +13,7 @@ function AdminRouter() {
   // Register slash commands
   router.post('/register-commands', async (req: Request, res: Response) => {
     async function handler() {
-      const guildId = req.body?.guildId;
+      const guildId = req.body?.guildId as string;
       try {
         let data = {};
         if (guildId) {
@@ -34,6 +34,7 @@ function AdminRouter() {
   });
 
   // Removes all slash commands
+  // TODO: optionally remove all commands for all guilds individually
   router.post('/purge-commands', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.body?.guildId;

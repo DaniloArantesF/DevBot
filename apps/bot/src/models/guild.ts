@@ -1,6 +1,7 @@
 import discord from 'discord.js';
 import { Entity, Schema, Client } from 'redis-om';
 
+// Needed for types with redis-om
 interface Guild {
   id: string;
   data: string;

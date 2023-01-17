@@ -1,16 +1,10 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { ClientEvents } from 'discord.js';
+import { DiscordEvent } from '@utils/types';
 dotenv.config();
 
-export interface Event<K extends keyof ClientEvents = any> {
-  name: K;
-  on?: (...args: ClientEvents[K]) => void | Promise<void>;
-  once?: (...args: ClientEvents[K]) => void | Promise<void>;
-}
-
 export function getEvents() {
-  const events: Event[] = [];
+  const events: DiscordEvent[] = [];
   const eventFiles = fs
     .readdirSync(process.env.NODE_ENV === 'prod' ? 'dist/events/' : 'src/events/')
     .filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
