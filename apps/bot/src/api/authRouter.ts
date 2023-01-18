@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@utils/config';
 import fetch from 'node-fetch';
 import botProvider from '../index';
+import type { ApiAuthResponse, DiscordAuthResponse } from 'types';
 
 function AuthRouter() {
   const router = Router();
@@ -30,7 +31,16 @@ function AuthRouter() {
           })
         ).json();
 
-        return res.status(200).send(data);
+        const { access_token, refresh_token, expires_in, token_type, scope } =
+          data as DiscordAuthResponse;
+
+        return res.status(200).send({
+          accessToken: access_token,
+          refreshToken: refresh_token,
+          expiresAt: Date.now() + expires_in,
+          tokenType: token_type,
+          scope,
+        } as ApiAuthResponse);
       } catch (error) {
         console.error(`Error fetching access token w/ code ${code}`, error);
         return res.status(500).send(error);
@@ -65,7 +75,16 @@ function AuthRouter() {
           })
         ).json();
 
-        return res.status(200).send(data);
+        const { access_token, refresh_token, expires_in, token_type, scope } =
+          data as DiscordAuthResponse;
+
+        return res.status(200).send({
+          accessToken: access_token,
+          refreshToken: refresh_token,
+          expiresAt: Date.now() + expires_in,
+          tokenType: token_type,
+          scope,
+        } as ApiAuthResponse);
       } catch (error) {
         console.error(`Error refreshing tokens`, error);
         return res.status(500).send(error);

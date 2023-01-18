@@ -9,16 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "13.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "ui": "*",
+    "@radix-ui/colors": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-avatar": "latest",
     "@radix-ui/react-checkbox": "latest",
-    "@radix-ui/react-icons": "latest",
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-dropdown-menu": "latest",
+    "@radix-ui/react-icons": "latest",
     "@radix-ui/react-label": "latest",
     "@radix-ui/react-progress": "latest",
     "@radix-ui/react-radio-group": "latest",
@@ -28,16 +25,23 @@
     "@radix-ui/react-slider": "latest",
     "@radix-ui/react-switch": "latest",
     "@radix-ui/react-toast": "latest",
-    "@radix-ui/colors": "latest"
+    "iron-session": "^6.3.1",
+    "next": "13.0.0",
+    "next-auth": "^4.18.8",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "swr": "^2.0.0",
+    "types": "^0.1.1",
+    "ui": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
-    "eslint": "7.32.0",
-    "eslint-config-custom": "*",
-    "tsconfig": "*",
     "@types/node": "^17.0.12",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
+    "eslint": "7.32.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
     "typescript": "^4.5.3"
   }
 }

@@ -5,7 +5,8 @@
     "paths": {
       "@app/*": ["app/*"],
       "@lib/*": ["lib/*"],
-      "@components/*": ["app/(common)/*"],
+      "@api/*": ["pages/api/*"],
+      "@components/*": ["components/*"],
       "@store/*": ["lib/store/*"],
       "@assets/*": ["assets/*"],
       "@styles/*": ["assets/styles/*"]

@@ -3,7 +3,7 @@ import { DISCORD_API_BASE_URL } from '@utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '../DiscordClient';
 import botProvider from '../index';
-import type { GuildData, UserData } from '@utils/types';
+import type { GuildData, UserData } from 'types';
 
 function DiscordRouter() {
   const router = Router();

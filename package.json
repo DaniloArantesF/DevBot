@@ -9,8 +9,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
-    "dev:bot": "turbo run dev --filter bot",
-    "dev:web": "turbo run dev --filter web --filter ui",
+    "web": "yarn workspace web",
+    "bot": "yarn workspace bot",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

@@ -20,6 +20,9 @@
         "DISCORD_GUILD_ID",
         "DISCORD_TEST_GUILD_ID"
       ]
+    },
+    "web#build": {
+      "env": ["SECRET_COOKIE_PASSWORD"]
     }
   },
   "globalDependencies": [".env", "package.json", "tsconfig.json"]
