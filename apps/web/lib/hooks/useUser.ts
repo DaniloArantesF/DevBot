@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { User } from '@api/user';
 
 export default function useUser({ redirectTo = '', redirectIfFound = false } = {}) {
+  // TODO: refresh tokens
   const { data: user, mutate: mutateUser } = useSWR<User>('/api/user', {
     revalidateOnFocus: false,
   });

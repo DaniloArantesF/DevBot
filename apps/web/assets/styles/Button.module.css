@@ -1,0 +1,23 @@
+.container {
+  display: inline-block;
+  max-width: 400px;
+  max-height: 200px;
+  font-size: 1rem;
+}
+
+.button,
+.link {
+  font-size: inherit;
+}
+
+.button {
+  background: var(--blackA10);
+  border: none;
+  padding: 0.25rem 0.5rem;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0.25rem 0rem;
+}

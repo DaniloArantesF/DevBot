@@ -4,6 +4,8 @@ import type DiscordClient from './DiscordClient';
 import type { ApiTask, BotProvider, QueueTaskData, DiscordCommand } from '@utils/types';
 import { AUTO_PROCESS } from '@utils/config';
 
+const DEBUG = false;
+
 /**
  * Manages task execution
  * Depends on discordClient service to start processing tasks
@@ -38,7 +40,11 @@ function TaskManager(provider: BotProvider) {
     job.on('failed', (err) => {
       console.log(err);
     });
-    job.on('succeeded', () => console.log(`${job.id} (${interaction.commandName}) succeeded`));
+    job.on('succeeded', () => {
+      if (DEBUG) {
+        console.log(`${job.id} (${interaction.commandName}) succeeded`);
+      }
+    });
 
     return job;
   }
@@ -68,7 +74,11 @@ function TaskManager(provider: BotProvider) {
     job.on('failed', (err) => {
       console.log(err);
     });
-    job.on('succeeded', () => console.log(`${job.id} (${id}) succeeded`));
+    job.on('succeeded', () => {
+      if (DEBUG) {
+        console.log(`${job.id} (${id}) succeeded`);
+      }
+    });
 
     return job;
   }

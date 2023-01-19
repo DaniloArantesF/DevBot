@@ -1,33 +1,47 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--blackA1);
+  border-radius: 4px;
+  font-weight: 400;
+}
+
+/* radix ui */
 .root {
-  width: 200px;
-  height: 225px;
+  width: 100%;
+  height: 100%;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 10px var(--blackA7);
-  background-color: white;
+  box-shadow: var(--shadow-1);
   --scrollbar-size: 10px;
 }
 
 .viewport {
   width: 100%;
   height: 100%;
-  border-radius: inherit;
-  background: var(--blackA10);
+  border-radius: var(--border-radius);
 }
 
 .scrollbar {
   display: flex;
-  /* ensures no selection */
   user-select: none;
-  /* disable browser handling of all panning and zooming gestures on touch devices */
   touch-action: none;
   padding: 2px;
-  background: var(--blackA6);
+  background: var(--grayA6);
   transition: background 160ms ease-out;
 }
 
 .scrollbar:hover {
-  background: var(--blackA8);
+  background: var(--grayA8);
 }
 
 .scrollbar[data-orientation='vertical'] {
@@ -41,7 +55,7 @@
 
 .thumb {
   flex: 1;
-  background: var(--mauve10);
+  background: var(--slate10);
   border-radius: var(--scrollbar-size);
   position: relative;
 }

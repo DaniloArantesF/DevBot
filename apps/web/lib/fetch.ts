@@ -1,14 +1,45 @@
+interface FetchErrorProps {
+  message: string;
+  response: Response;
+  data?: {
+    message: string;
+  };
+}
+
+export class FetchError extends Error {
+  response: Response;
+  data: {
+    message: string;
+  };
+
+  constructor({ message, response, data }: FetchErrorProps) {
+    super(message);
+
+    // Maintain stack trace
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, FetchError);
+    }
+
+    this.name = 'FetchError';
+    this.response = response;
+    this.data = data ?? { message: message };
+  }
+}
+
 export default async function fetchJson<JSON = unknown>(
   input: RequestInfo,
   init?: RequestInit,
 ): Promise<JSON> {
-  try {
-    const res = await fetch(input, init);
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error('An unexpected error happened:', error);
-    throw new Error('Error fetching data.');
-    return {} as JSON;
+  const response = await fetch(input, init);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new FetchError({
+      message: `An error occurred while fetching ${input}`,
+      response,
+      data,
+    });
   }
+
+  return data;
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import useUser from '@lib/hooks/useUser';
-import Layout from 'Layouts';
+import Layout from 'layouts';
 import fetchJson from '@lib/fetch';
 import Router from 'next/router';
 

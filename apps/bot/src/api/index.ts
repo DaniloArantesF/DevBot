@@ -2,10 +2,12 @@ import express, { Request, Response } from 'express';
 import http from 'http';
 import cors from 'cors';
 import AdminRouter from './adminRouter';
-import { CLIENT_URL, PORT } from '@config';
+import { CLIENT_URL, ENVIRONMENT, PORT } from '@config';
 import AuthRouter from './authRouter';
 import DiscordRouter from './discordRouter';
 import type { apiHandler, BotProvider } from '@utils/types';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
 
 /**
  * API
@@ -35,6 +37,17 @@ function API(provider: BotProvider) {
       cors({
         origin: ['*'], //[CLIENT_URL],
         methods: ['GET', 'POST'],
+      }),
+    );
+    api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
+
+    // Rate limit requests - 10/sec
+    api.use(
+      rateLimit({
+        windowMs: 1000,
+        max: 10,
+        message: 'Too many requests',
+        headers: true,
       }),
     );
   }

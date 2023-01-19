@@ -2,13 +2,29 @@ import { withIronSessionApiRoute } from 'iron-session/next';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { sessionOptions } from '@lib/session';
 import { User } from '@api/user';
-import type { ApiAuthResponse, UserData } from 'types';
+import { ApiAuthResponse, UserData } from 'types';
+import fetchJson from '@lib/fetch';
+
+async function fetchAuth(code: string) {
+  return await fetchJson<ApiAuthResponse>('http://localhost:8000/auth/code', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+  });
+}
+
+async function fetchUser(token: string) {
+  return await fetchJson<UserData>(`http://localhost:8000/discord/user?token=${token}`);
+}
 
 async function handler(request: NextApiRequest, response: NextApiResponse) {
   if (request.method !== 'POST') {
     return response.status(405).json({ message: 'Method not allowed' });
   }
 
+  // Check code is present
   const { code } = request.body;
   if (!code) {
     return response.status(400).json({ message: 'Missing code' });
@@ -24,28 +40,8 @@ async function handler(request: NextApiRequest, response: NextApiResponse) {
   }
 
   try {
-    const tokenResponse = await fetch('http://localhost:8000/auth/code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ code }),
-    });
-
-    const authData = (await tokenResponse.json()) as ApiAuthResponse;
-
-    if (!tokenResponse.ok) {
-      return response.status(401).json({});
-    }
-
-    // Get user data
-    const userResponse = await fetch(
-      `http://localhost:8000/discord/user?token=${authData.accessToken}`,
-      {
-        method: 'GET',
-      },
-    );
-    const userData = (await userResponse.json()) as UserData;
+    const authData = await fetchAuth(code);
+    const userData = await fetchUser(authData.accessToken);
 
     const user = {
       ...authData,

@@ -1,8 +1,11 @@
-import Layout from 'Layouts';
+import Layout from 'layouts';
 import { withIronSessionSsr } from 'iron-session/next';
 import { sessionOptions } from '@lib/session';
 import { blankUser } from '@api/user';
 import { InferGetServerSidePropsType } from 'next';
+import Sidebar from '@components/Sidebar';
+import { fetchGuilds } from '@api/guilds';
+import classes from '@styles/Dashboard.module.css';
 
 export const getServerSideProps = withIronSessionSsr(async function ({ req, res }) {
   const user = req.session.user;
@@ -12,6 +15,7 @@ export const getServerSideProps = withIronSessionSsr(async function ({ req, res 
     return {
       props: {
         user: blankUser,
+        guilds: [],
       },
       redirect: {
         destination: '/login',
@@ -23,18 +27,18 @@ export const getServerSideProps = withIronSessionSsr(async function ({ req, res 
   return {
     props: {
       user,
+      guilds: await fetchGuilds(user.accessToken),
     },
   };
 }, sessionOptions);
 
 type DashboardProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
-export default function Dashboard({ user }: DashboardProps) {
+export default function Dashboard({ user, guilds }: DashboardProps) {
   return (
     <Layout>
-      <div>
-        <h1>Dashboard</h1>
-        <p>Hello {user.username}</p>
+      <div id="app-container" className={classes.container}>
+        <Sidebar guilds={guilds} />
       </div>
     </Layout>
   );
