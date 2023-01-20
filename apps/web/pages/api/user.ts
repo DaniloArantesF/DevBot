@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { withIronSessionApiRoute } from 'iron-session/next';
-import { sessionOptions } from '../../lib/session';
-import type { ApiAuthResponse, UserData } from 'types';
-
-export type User = ApiAuthResponse & UserData & { isLoggedIn: boolean };
+import { sessionOptions, User } from 'shared/session';
 
 export const blankUser: User = {
   accessToken: '',

@@ -11,7 +11,7 @@ export default function Layout({ title = 'WebBot', children }: LayoutProps) {
       <Head>
         <title>{title}</title>
       </Head>
-      <main>{children}</main>
+      <main style={{ height: '100vh', overflow: 'hidden' }}>{children}</main>
     </>
   );
 }

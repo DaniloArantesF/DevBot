@@ -1,4 +1,5 @@
 import classes from '@styles/Widget.module.css';
+import Separator from './Separator';
 
 type WidgetProps = React.ComponentProps<'div'> & {
   title: string;
@@ -15,6 +16,7 @@ function Widget({ title, children, rows = 1, cols = 1, style, ...props }: Widget
       className={`${classes.container} ${props.className}`}
     >
       <p className={classes.header}>{title}</p>
+      <Separator />
       <div className={classes.body}>{children}</div>
     </div>
   );

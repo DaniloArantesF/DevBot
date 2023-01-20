@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@utils/config';
 import fetch from 'node-fetch';
 import botProvider from '../index';
-import type { ApiAuthResponse, DiscordAuthResponse } from 'types';
+import type { ApiAuthResponse, DiscordAuthResponse } from '@utils/types';
 
 function AuthRouter() {
   const router = Router();

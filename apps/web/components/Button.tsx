@@ -1,9 +1,10 @@
 import classes from '@styles/Button.module.css';
 import { useMemo, useRef } from 'react';
 
-type ButtonProps = React.HTMLAttributes<HTMLButtonElement> & {
+type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
   label: string;
   onClick?: () => void;
+  href?: string;
   type?: 'button' | 'link';
 };
 
@@ -11,9 +12,10 @@ function Button(props: ButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const label = useMemo(() => props.label, [props.label]);
   const onClick = useMemo(() => props.onClick, [props.onClick]);
+  const href = useMemo(() => props.href, [props.href]);
   const type = useMemo(() => props.type || 'button', [props.type]);
 
-  return (
+  return onClick ? (
     <div className={classes.container}>
       <button
         ref={buttonRef}
@@ -22,6 +24,12 @@ function Button(props: ButtonProps) {
       >
         <span>{label}</span>
       </button>
+    </div>
+  ) : (
+    <div className={classes.container}>
+      <a className={type === 'button' ? classes.button : classes.link} href={href}>
+        <span>{label}</span>
+      </a>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState } from 'react';
-import { GuildData } from 'types';
+import { GuildData } from 'shared/types';
 
 type DashboardProviderProps = {
   children: React.ReactNode;

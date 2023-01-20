@@ -1,6 +1,7 @@
 import type { IronSessionOptions } from 'iron-session';
-import type { User } from '@api/user';
+import type { ApiAuthResponse, UserData } from './types';
 
+export type User = ApiAuthResponse & UserData & { isLoggedIn: boolean };
 export const sessionOptions: IronSessionOptions = {
   password:
     (process.env.SECRET_COOKIE_PASSWORD as string) ||

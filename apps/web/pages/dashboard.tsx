@@ -1,6 +1,6 @@
 import Layout from 'layouts';
 import { withIronSessionSsr } from 'iron-session/next';
-import { sessionOptions } from '@lib/session';
+import { sessionOptions } from 'shared/session';
 import { blankUser } from '@api/user';
 import { InferGetServerSidePropsType } from 'next';
 import Sidebar from '@components/Sidebar';
@@ -44,7 +44,9 @@ function Dashboard({ user, guilds }: DashboardProps) {
         <div id="app-container" className={classes.container}>
           <Sidebar guilds={guilds} />
           <section className={classes.body}>
-            <Widget className={classes.header} title={'Header'} rows={2} cols={3}></Widget>
+            <Widget className={classes.header} title={'Header'} cols={3}>
+              Hello {user.username}
+            </Widget>
 
             <Widget title={'Server logs'}>
               {[...Array(10)].map((_, i) => (

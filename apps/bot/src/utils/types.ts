@@ -8,6 +8,9 @@ import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
 import type { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 
+// Shared types
+export * from 'shared/types';
+
 export interface BotProvider {
   services: Partial<{
     [key: string]: any;

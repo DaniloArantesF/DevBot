@@ -1,5 +1,5 @@
 import { Client } from 'redis-om';
-import { REDIS_URL } from '@utils/config';
+import { REDIS_URL } from 'shared/config';
 import GuildRepository from './models/guild';
 import type { BotProvider } from '@utils/types';
 

@@ -1,9 +1,12 @@
 import Layout from 'layouts';
-import { DISCORD_AUTH_URL } from '@lib/config';
-import { sessionOptions } from '@lib/session';
+import { DISCORD_AUTH_URL } from 'shared/config';
+import { sessionOptions } from 'shared/session';
 import { InferGetServerSidePropsType } from 'next';
 import { withIronSessionSsr } from 'iron-session/next';
 import { fetchAuth, fetchUser } from '@api/auth/login';
+import Widget from '@components/Widget';
+import classes from '@styles/Login.module.css';
+import Button from '@components/Button';
 
 export const getServerSideProps = withIronSessionSsr(async function ({ req, res, query }) {
   const user = req.session.user;
@@ -60,11 +63,12 @@ type LoginProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 function Login({}: LoginProps) {
   return (
     <Layout>
-      <div>
-        <h1>Login</h1>
-        <a rel="noreferrer nofollow" href={DISCORD_AUTH_URL}>
-          Login on discord
-        </a>
+      <div className={classes.container}>
+        <section className={classes.body}>
+          <Widget title="Login" style={{ maxWidth: '300px' }}>
+            <Button label={'Discord Login'} href={DISCORD_AUTH_URL} />
+          </Widget>
+        </section>
       </div>
     </Layout>
   );

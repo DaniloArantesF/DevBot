@@ -21,7 +21,7 @@
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.0",
     "redis-om": "^0.3.6",
-    "types": "^0.1.1",
+    "shared": "*",
     "utf-8-validate": "^6.0.0",
     "zlib-sync": "^0.1.7"
   },

@@ -7,8 +7,13 @@
   user-select: none;
   width: 45px;
   height: 45px;
-  border-radius: 100%;
+  border-radius: calc(2 * var(--border-radius));
   background-color: var(--blackA3);
+  transition: border-radius 50ms ease-out;
+}
+
+.root:hover {
+  border-radius: var(--border-radius);
 }
 
 .image {

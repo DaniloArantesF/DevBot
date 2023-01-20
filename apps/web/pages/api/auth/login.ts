@@ -1,8 +1,7 @@
 import { withIronSessionApiRoute } from 'iron-session/next';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { sessionOptions } from '@lib/session';
-import { User } from '@api/user';
-import { ApiAuthResponse, UserData } from 'types';
+import { sessionOptions, User } from 'shared/session';
+import { ApiAuthResponse, UserData } from '@lib/types';
 import fetchJson from '@lib/fetch';
 
 export async function fetchAuth(code: string) {

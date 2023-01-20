@@ -1,0 +1,32 @@
+{
+  "name": "shared",
+  "version": "0.0.0",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "scripts": {},
+  "exports": {
+    "./types": "./src/types.ts",
+    "./config": "./src/config.ts",
+    "./session": "./src/session.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "types": [
+        "src/types.ts"
+      ],
+      "config": [
+        "src/config.ts"
+      ],
+      "session": [
+        "src/session.ts"
+      ]
+    }
+  },
+  "devDependencies": {
+    "iron-session": "^6.3.1",
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "typescript": "^4.5.2"
+  }
+}

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import Router from 'next/router';
 import useSWR from 'swr';
-import { User } from '@api/user';
+import { User } from 'shared/session';
 
 export default function useUser({ redirectTo = '', redirectIfFound = false } = {}) {
   // TODO: refresh tokens

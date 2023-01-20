@@ -1,0 +1,14 @@
+.root {
+  background-color: var(--gray11);
+  margin: 0.5rem 0;
+}
+
+.root[data-orientation='horizontal'] {
+  height: 1px;
+  width: 100%;
+}
+
+.root[data-orientation='vertical'] {
+  height: 100%;
+  width: 1px;
+}

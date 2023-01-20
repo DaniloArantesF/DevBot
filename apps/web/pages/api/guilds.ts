@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { withIronSessionApiRoute } from 'iron-session/next';
-import { sessionOptions } from '../../lib/session';
+import { sessionOptions } from 'shared/session';
 import fetchJson from '@lib/fetch';
-import { GuildData } from 'types';
-// import type { GuildData } from 'types'
+import { GuildData } from '@lib/types';
 
 export async function fetchGuilds(token: string) {
   const data = await fetchJson<GuildData[]>(`http://localhost:8000/discord/guilds?token=${token}`, {
