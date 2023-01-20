@@ -10,19 +10,18 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--blackA1);
+  box-shadow: var(--shadow-1);
   border-radius: 4px;
   font-weight: 400;
 }
 
 /* radix ui */
 .root {
+  --scrollbar-size: 10px;
   width: 100%;
   height: 100%;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: var(--shadow-1);
-  --scrollbar-size: 10px;
 }
 
 .viewport {

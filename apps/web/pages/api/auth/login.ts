@@ -5,7 +5,7 @@ import { User } from '@api/user';
 import { ApiAuthResponse, UserData } from 'types';
 import fetchJson from '@lib/fetch';
 
-async function fetchAuth(code: string) {
+export async function fetchAuth(code: string) {
   return await fetchJson<ApiAuthResponse>('http://localhost:8000/auth/code', {
     method: 'POST',
     headers: {
@@ -15,7 +15,7 @@ async function fetchAuth(code: string) {
   });
 }
 
-async function fetchUser(token: string) {
+export async function fetchUser(token: string) {
   return await fetchJson<UserData>(`http://localhost:8000/discord/user?token=${token}`);
 }
 

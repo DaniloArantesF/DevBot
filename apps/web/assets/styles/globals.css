@@ -14,8 +14,8 @@
 }
 
 :root {
-  --border-radius: 4px;
-  --shadow-1: 0 2px 10px var(--grayA7);
+  --border-radius: 8px;
+  --shadow-1: 0px 1px 3px 0px var(--grayA8);
 }
 
 html,
@@ -30,7 +30,7 @@ a {
 }
 
 body {
-  background: var(--slateA1);
+  background: var(--grayA1);
 }
 
 @media (prefers-color-scheme: dark) {

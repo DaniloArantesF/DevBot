@@ -51,6 +51,8 @@ function DiscordRouter() {
           })
         ).json()) as GuildData[];
 
+        if (!data) return res.status(500).send([]);
+
         // Allowed flag is true if the bot is in the guild
         const guilds = data.map((g) => {
           return {

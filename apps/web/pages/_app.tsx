@@ -3,7 +3,7 @@ import { SWRConfig } from 'swr';
 import '@styles/globals.css';
 import fetchJson from '@lib/fetch';
 
-export default function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   return (
     <SWRConfig
       value={{
@@ -17,3 +17,5 @@ export default function App({ Component, pageProps }: AppProps) {
     </SWRConfig>
   );
 }
+
+export default App;

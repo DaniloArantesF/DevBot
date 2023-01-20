@@ -7,7 +7,7 @@ type ButtonProps = React.HTMLAttributes<HTMLButtonElement> & {
   type?: 'button' | 'link';
 };
 
-export default function Button(props: ButtonProps) {
+function Button(props: ButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const label = useMemo(() => props.label, [props.label]);
   const onClick = useMemo(() => props.onClick, [props.onClick]);
@@ -25,3 +25,5 @@ export default function Button(props: ButtonProps) {
     </div>
   );
 }
+
+export default Button;

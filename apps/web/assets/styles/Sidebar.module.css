@@ -5,9 +5,9 @@
   height: 100%;
   width: var(--sidebar-width);
   background: var(--blackA9);
-  position: fixed;
-  left: calc(-1 * var(--sidebar-width));
-  transform: translateX(var(--sidebar-width));
+  /* position: fixed; */
+  /* left: calc(-1 * var(--sidebar-width)); */
+  /* transform: translateX(var(--sidebar-width)); */
   align-items: center;
   padding: 2rem 1rem;
 }

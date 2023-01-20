@@ -88,6 +88,8 @@ function TaskManager(provider: BotProvider) {
     apiQueue.process(async (job) => {
       const handler = requestMap.get(job.id);
       if (!handler) return;
+
+      // TODO: handle errors
       await handler(client);
       requestMap.delete(job.id);
     });
