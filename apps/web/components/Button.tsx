@@ -21,13 +21,18 @@ function Button(props: ButtonProps) {
         ref={buttonRef}
         className={type === 'button' ? classes.button : classes.link}
         onClick={onClick}
+        style={props.style}
       >
         <span>{label}</span>
       </button>
     </div>
   ) : (
     <div className={classes.container}>
-      <a className={type === 'button' ? classes.button : classes.link} href={href}>
+      <a
+        className={type === 'button' ? classes.button : classes.link}
+        href={href}
+        style={props.style}
+      >
         <span>{label}</span>
       </a>
     </div>

@@ -37,7 +37,7 @@ export interface DiscordCommand {
   aliases?: string[];
   args?: boolean;
   data: DiscordCommandData;
-  execute: (interaction: CommandInteraction) => Promise<void>;
+  execute: (interaction: CommandInteraction) => Promise<any>;
   permissions?: string[];
   usage?: string;
 }
@@ -51,8 +51,11 @@ export interface DiscordEvent<K extends keyof ClientEvents = any> {
 /*     TaskManager Types     */
 export interface QueueTaskData {
   id: string;
+  result?: any;
+  timestamp?: number;
 }
-export type apiHandler = (client?: DiscordClient) => Promise<void | Response> | void;
+
+export type apiHandler = (client?: DiscordClient) => Promise<void | any> | void;
 export interface ApiTask {
   id: string;
   execute: apiHandler;

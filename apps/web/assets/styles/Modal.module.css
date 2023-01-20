@@ -1,0 +1,119 @@
+.overlay {
+  background-color: var(--blackA8);
+  position: fixed;
+  inset: 0;
+  animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content {
+  border-radius: 6px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 450px;
+  max-height: 85vh;
+  padding: 25px;
+  background: var(--blackA12);
+  backdrop-filter: blur(12px);
+  animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content:focus {
+  outline: none;
+}
+
+.title {
+  margin: 0;
+  font-weight: 500;
+  color: var(--violet12);
+  font-size: 17px;
+}
+
+.description {
+  margin: 10px 0 20px;
+  color: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 0 15px;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 500;
+  height: 35px;
+  background-color: white;
+  color: var(--violet11);
+}
+
+.iconButton {
+  font-family: inherit;
+  border-radius: 100%;
+  height: 25px;
+  width: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--violet11);
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.fieldset {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.label {
+  font-size: 15px;
+  color: var(--violet11);
+  width: 90px;
+  text-align: right;
+}
+
+.input {
+  width: 100%;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--violet11);
+  box-shadow: 0 0 0 1px var(--violet7);
+  height: 2rem;
+}
+.input:focus {
+  box-shadow: 0 0 0 2px var(--violet8);
+}
+
+@keyframes overlayShow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contentShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

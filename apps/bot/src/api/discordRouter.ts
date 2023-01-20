@@ -2,10 +2,10 @@ import { Router, Request, Response } from 'express';
 import { DISCORD_API_BASE_URL } from '@utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '../DiscordClient';
-import botProvider from '../index';
 import type { GuildData, UserData } from 'shared/types';
+import { APIRouter } from '.';
 
-function DiscordRouter() {
+const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
   // Fetches user data from discord
@@ -22,18 +22,17 @@ function DiscordRouter() {
             },
           })
         ).json()) as UserData;
-
-        return res.status(200).send(data);
+        res.status(200).send(data);
+        return data;
       } catch (error) {
         console.error(`Error `, error);
-        return res.status(500).send(error);
+        res.status(500).send(error);
+        return { error };
       }
     }
 
     // Push to request queue
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   // Fetches user guilds from discord
@@ -61,20 +60,20 @@ function DiscordRouter() {
           };
         });
 
-        return res.send(guilds);
+        res.send(guilds);
+        return guilds;
       } catch (error) {
         console.error(`Error `, error);
-        return res.status(500).send(error);
+        res.status(500).send(error);
+        return { error };
       }
     }
 
     // Push to request queue
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   return router;
-}
+};
 
 export default DiscordRouter;

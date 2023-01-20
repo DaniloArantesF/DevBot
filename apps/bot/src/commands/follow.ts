@@ -9,11 +9,19 @@ export const command: DiscordCommand = {
   data: new SlashCommandBuilder().setName('follow').setDescription('Follows a user'),
   async execute(interaction) {
     const reply = 'TODO';
+
     if (interaction.deferred) {
       await interaction.editReply(reply);
-      return;
+    } else {
+      await interaction.reply(reply);
     }
-    await interaction.reply(reply);
+
+    return {
+      user: interaction.user.id,
+      command: interaction.commandName,
+      args: interaction.options.data,
+      result: reply,
+    };
   },
   usage: '/follow <username>',
   aliases: [],

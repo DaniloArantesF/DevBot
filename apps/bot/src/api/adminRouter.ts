@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
+import { APIRouter } from '.';
 import {
   registerGlobalSlashCommands,
   registerGuildSlashCommands,
   deleteGlobalSlashCommands,
   deleteGuildSlashCommands,
 } from '../commands';
-import botProvider from '../index';
 
-function AdminRouter() {
+const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
   // Register slash commands
@@ -22,15 +22,15 @@ function AdminRouter() {
           data = await registerGlobalSlashCommands();
         }
         res.send(data);
+        return data;
       } catch (error) {
         console.error('Error registering slash commands: ', error);
         res.status(500).send(error);
+        return {};
       }
     }
 
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   // Removes all slash commands
@@ -46,18 +46,18 @@ function AdminRouter() {
           data = await deleteGlobalSlashCommands();
         }
         res.send(data);
+        return data;
       } catch (error) {
         console.error('Error purging slash commands: ', error);
         res.status(500).send(error);
+        return { error };
       }
     }
 
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   return router;
-}
+};
 
 export default AdminRouter;

@@ -3,8 +3,12 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import type DiscordClient from './DiscordClient';
 import type { ApiTask, BotProvider, QueueTaskData, DiscordCommand } from '@utils/types';
 import { AUTO_PROCESS } from '@utils/config';
+import { stringifyCircular } from './utils';
 
 const DEBUG = false;
+const queueSettings: Queue.QueueSettings = {
+  prefix: 'bot',
+};
 
 /**
  * Manages task execution
@@ -12,11 +16,11 @@ const DEBUG = false;
  */
 function TaskManager(provider: BotProvider) {
   // Command tasks
-  const commandQueue = new Queue<QueueTaskData>('command-queue', {});
+  const commandQueue = new Queue<QueueTaskData>('command-queue', queueSettings);
   const commandsMap = new Map<string, ChatInputCommandInteraction>();
 
   // Api tasks
-  const apiQueue = new Queue<QueueTaskData>('api-queue', {});
+  const apiQueue = new Queue<QueueTaskData>('api-queue', queueSettings);
   const requestMap = new Map<string, ApiTask['execute']>();
 
   // Process tasks as soon as dependencies are ready
@@ -58,10 +62,14 @@ function TaskManager(provider: BotProvider) {
       const command = commands.get(interaction.commandName);
       if (!command) return;
 
-      await command.execute(interaction);
+      const data = await command.execute(interaction);
+      if (data) {
+        // Save result to redis
+        job.data.result = stringifyCircular(data);
+      }
 
-      // TODO: update job data properly
       commandsMap.delete(job.id);
+      return job.data;
     });
   }
 
@@ -89,9 +97,14 @@ function TaskManager(provider: BotProvider) {
       const handler = requestMap.get(job.id);
       if (!handler) return;
 
-      // TODO: handle errors
-      await handler(client);
+      const data = await handler(client);
       requestMap.delete(job.id);
+
+      if (data) {
+        // Save result to redis
+        job.data.result = stringifyCircular(data);
+      }
+      return job.data;
     });
   }
 

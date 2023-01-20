@@ -8,10 +8,12 @@ type DashboardProviderProps = {
 
 interface DashboardContext {
   currentGuild: GuildData | null;
+  modal: null | React.RefObject<HTMLDivElement>;
 }
 
 export const initialDashboardContext: DashboardContext = {
   currentGuild: null,
+  modal: null,
 };
 
 export const DashboardContext = createContext(initialDashboardContext);
@@ -23,6 +25,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     <DashboardContext.Provider
       value={{
         currentGuild: guild,
+        modal: null,
       }}
     >
       {children}

@@ -5,6 +5,7 @@ import { GuildData } from '@lib/types';
 import AvatarList from './AvatarList';
 import Button from './Button';
 import { logout } from '@api/auth/logout';
+import Modal from './Modal';
 
 interface SidebarProps {
   guilds: GuildData[];
@@ -33,8 +34,21 @@ function Sidebar({ guilds }: SidebarProps) {
       </div>
 
       <div className={classes.footer}>
-        <Button label="Help" type={'link'} onClick={toggleHelp} />
-        <Button label="Logout" type={'link'} onClick={logout} />
+        <Button
+          label="Help"
+          type={'link'}
+          onClick={toggleHelp}
+          style={{ textTransform: 'uppercase' }}
+        />
+        <Button
+          label="Logout"
+          type={'link'}
+          onClick={logout}
+          style={{ textTransform: 'uppercase' }}
+        />
+        <Modal heading="Help" description="Help" btnLabel="Help">
+          help
+        </Modal>
       </div>
     </div>
   );

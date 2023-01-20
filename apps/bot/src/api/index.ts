@@ -9,6 +9,12 @@ import type { apiHandler, BotProvider } from '@utils/types';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 
+export type APIRouter = (
+  pushRequest: (req: Request, execute: apiHandler) => void,
+) => express.Router;
+
+// TODO: improve API error handling
+
 /**
  * API
  * @param provider BotProvider
@@ -20,9 +26,9 @@ function API(provider: BotProvider) {
 
   function setupRoutes() {
     api.use('/', rootRouter);
-    api.use('/admin', AdminRouter());
-    api.use('/auth', AuthRouter());
-    api.use('/discord', DiscordRouter());
+    api.use('/admin', AdminRouter(pushRequest));
+    api.use('/auth', AuthRouter(pushRequest));
+    api.use('/discord', DiscordRouter(pushRequest));
 
     // Status route, does not go through task manager
     rootRouter.get('/status', async (req: Request, res: Response) => res.send('Online'));
@@ -52,10 +58,9 @@ function API(provider: BotProvider) {
     );
   }
 
-  // TODO: integrate into routers instead of importing
   function pushRequest(req: Request, execute: apiHandler) {
     provider.getService('taskManager').addApiRequest({
-      id: `${Date.now()}:${req.rawHeaders.toString()}`,
+      id: `API:${req.originalUrl}@${Date.now()}`,
       execute,
     });
   }

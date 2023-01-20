@@ -55,10 +55,17 @@ export const command: DiscordCommand = {
     }
 
     if (interaction.deferred) {
-      interaction.editReply(reply);
+      await interaction.editReply(reply);
     } else {
-      interaction.reply(reply);
+      await interaction.reply(reply);
     }
+
+    return {
+      user: interaction.user.id,
+      command: interaction.commandName,
+      args: interaction.options.data,
+      result: 'Success',
+    };
   },
   usage: '/help <command?>',
   aliases: ['h', 'halp'],

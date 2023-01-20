@@ -3,8 +3,9 @@ import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@uti
 import fetch from 'node-fetch';
 import botProvider from '../index';
 import type { ApiAuthResponse, DiscordAuthResponse } from '@utils/types';
+import { APIRouter } from '.';
 
-function AuthRouter() {
+const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
   // Fetches access token given a code
@@ -34,22 +35,23 @@ function AuthRouter() {
         const { access_token, refresh_token, expires_in, token_type, scope } =
           data as DiscordAuthResponse;
 
-        return res.status(200).send({
+        res.status(200).send({
           accessToken: access_token,
           refreshToken: refresh_token,
           expiresAt: Date.now() + expires_in,
           tokenType: token_type,
           scope,
         } as ApiAuthResponse);
+
+        return data;
       } catch (error) {
         console.error(`Error fetching access token w/ code ${code}`, error);
-        return res.status(500).send(error);
+        res.status(500).send(error);
+        return { error };
       }
     }
 
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   // Refreshes access token given a refresh token
@@ -78,25 +80,26 @@ function AuthRouter() {
         const { access_token, refresh_token, expires_in, token_type, scope } =
           data as DiscordAuthResponse;
 
-        return res.status(200).send({
+        res.status(200).send({
           accessToken: access_token,
           refreshToken: refresh_token,
           expiresAt: Date.now() + expires_in,
           tokenType: token_type,
           scope,
         } as ApiAuthResponse);
+
+        return data;
       } catch (error) {
         console.error(`Error refreshing tokens`, error);
-        return res.status(500).send(error);
+        res.status(500).send(error);
+        return { error };
       }
     }
 
-    (await botProvider)
-      .getService('taskManager')
-      .addApiRequest({ id: req.rawHeaders.toString(), execute: handler });
+    pushRequest(req, handler);
   });
 
   return router;
-}
+};
 
 export default AuthRouter;
