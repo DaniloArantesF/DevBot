@@ -26,7 +26,11 @@ async function DataProvider(provider: BotProvider) {
     await guildRepository.removeAll();
   }
 
-  return { client, cleanUp };
+  return {
+    client,
+    guild: guildRepository,
+    cleanUp
+  };
 }
 
 export default DataProvider;

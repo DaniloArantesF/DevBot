@@ -13,6 +13,18 @@ async function Bot() {
     getService(name) {
       return this.services[name];
     },
+    getDiscordClient() {
+      return this.services.discordClient as DiscordClient;
+    },
+    getTaskManager() {
+      return this.services.taskManager as typeof TaskManager;
+    },
+    getDataProvider() {
+      return this.services.dataProvider as typeof DataProvider;
+    },
+    getApi() {
+      return this.services.api as typeof API;
+    },
   };
 
   // Add services
@@ -23,10 +35,10 @@ async function Bot() {
 
   const discordClient = botProvider.getService('discordClient') as DiscordClient;
 
-  discordClient.on('ready', () => {
-    discordClient.guilds.cache.forEach((guild) => {
-      console.log(`Logged in as ${discordClient.user?.tag} on ${guild.name} (${guild.id})`);
-    });
+  discordClient.on('ready', async () => {
+    const guildRepository = (await (await botProvider.getService('dataProvider') as ReturnType<typeof DataProvider>)).guild;
+
+    guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
   });
 
   return botProvider;

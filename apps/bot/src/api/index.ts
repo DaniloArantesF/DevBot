@@ -8,6 +8,7 @@ import DiscordRouter from './discordRouter';
 import type { apiHandler, BotProvider } from '@utils/types';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
+import BotRouter from './botRouter';
 
 export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,
@@ -26,6 +27,7 @@ function API(provider: BotProvider) {
 
   function setupRoutes() {
     api.use('/', rootRouter);
+    api.use('/bot', BotRouter(pushRequest));
     api.use('/admin', AdminRouter(pushRequest));
     api.use('/auth', AuthRouter(pushRequest));
     api.use('/discord', DiscordRouter(pushRequest));

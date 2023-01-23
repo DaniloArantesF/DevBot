@@ -32,6 +32,28 @@ class DiscordClient extends Client {
       else this.on(event.name, event.on);
     });
   }
+
+  async addUserRole(userId: string, guildId: string, roleId: string) {
+    const guild = this.guilds.cache.get(guildId);
+    const member = guild.members.cache.get(userId);
+    const role = guild.roles.cache.get(roleId);
+
+    return await member.roles.add(role);
+  }
+
+  async removeUserRole(userId: string, guildId: string, roleId: string) {
+    const guild = this.guilds.cache.get(guildId);
+    const member = guild.members.cache.get(userId);
+    const role = guild.roles.cache.get(roleId);
+
+    await member.roles.remove(role);
+  }
+
+  async updateGuildRole() {}
+
+  async getGuild(guildId: string) {
+    return this.guilds.cache.get(guildId);
+  }
 }
 
 export default DiscordClient;

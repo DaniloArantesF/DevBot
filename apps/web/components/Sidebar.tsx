@@ -1,17 +1,19 @@
 import { getDiscordAvatar } from '@lib/utils';
 import classes from '@styles/Sidebar.module.css';
 import { useMemo } from 'react';
-import { GuildData } from '@lib/types';
+import { Command, GuildData } from '@lib/types';
 import AvatarList from './AvatarList';
 import Button from './Button';
 import { logout } from '@api/auth/logout';
 import Modal from './Modal';
+import Help from './Help';
 
 interface SidebarProps {
   guilds: GuildData[];
+  commands: Command[];
 }
 
-function Sidebar({ guilds }: SidebarProps) {
+function Sidebar({ guilds, commands }: SidebarProps) {
   const guildAvatars = useMemo(() => {
     return guilds.map((guild) => ({
       src: getDiscordAvatar('guild', guild.id, guild.icon),
@@ -34,21 +36,24 @@ function Sidebar({ guilds }: SidebarProps) {
       </div>
 
       <div className={classes.footer}>
-        <Button
-          label="Help"
-          type={'link'}
-          onClick={toggleHelp}
-          style={{ textTransform: 'uppercase' }}
-        />
+        <Modal
+          heading="Help"
+          description="Currently available commands"
+          btn={{
+            label: 'Help',
+            type: 'link',
+            style: { textTransform: 'uppercase' },
+            onClick: toggleHelp,
+          }}
+        >
+          <Help commands={commands} />
+        </Modal>
         <Button
           label="Logout"
           type={'link'}
           onClick={logout}
           style={{ textTransform: 'uppercase' }}
         />
-        <Modal heading="Help" description="Help" btnLabel="Help">
-          help
-        </Modal>
       </div>
     </div>
   );

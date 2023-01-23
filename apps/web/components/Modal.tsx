@@ -1,13 +1,12 @@
 import classes from '@styles/Modal.module.css';
 import * as Dialog from '@radix-ui/react-dialog';
-import Button from './Button';
+import Button, { ButtonProps } from './Button';
 
 interface ModalProps {
-  btnLabel: string;
+  btn?: ButtonProps;
   heading: string;
   description: string;
   children: React.ReactNode;
-  // TODO: btn props
 }
 
 function CloseButton() {
@@ -33,19 +32,30 @@ function CloseButton() {
   );
 }
 
-function Modal({ btnLabel, children, description, heading }: ModalProps) {
+function Modal({ btn, children, description, heading }: ModalProps) {
+  const btnLabel = btn?.label || 'Open';
+  const btnType = btn?.type || 'button';
+  const onClick = btn?.onClick;
+  const btnStyle = btn?.style || {};
+
   return (
     <div className={classes.root}>
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <Button label={btnLabel} type="button" />
+          <Button label={btnLabel} type={btnType} style={btnStyle} onClick={onClick} />
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className={classes.overlay} />
           <Dialog.Content className={classes.content}>
-            <Dialog.Title className={classes.title}>{heading}</Dialog.Title>
-            <Dialog.Description className={classes.description}>{description}</Dialog.Description>
-            <div className={classes.body}>{children}</div>
+            <Dialog.Title className={classes.title}>
+              <h4>{heading}</h4>
+            </Dialog.Title>
+            <Dialog.Description className={classes.description}>
+              {description}
+            </Dialog.Description>
+            <div className={classes.body}>
+              {children}
+            </div>
             <CloseButton />
           </Dialog.Content>
         </Dialog.Portal>

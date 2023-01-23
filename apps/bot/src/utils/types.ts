@@ -2,11 +2,9 @@ import type API from '../api/index';
 import type DataProvider from '../DataProvider';
 import type TaskManager from '../TaskManager';
 import type DiscordClient from '../DiscordClient';
-import type { Response } from 'express';
 import type { VoiceConnection } from '@discordjs/voice';
 import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
-import type { SlashCommandBuilder, CommandInteraction } from 'discord.js';
 
 // Shared types
 export * from 'shared/types';
@@ -21,25 +19,15 @@ export interface BotProvider {
   }>;
   addService: (name: string, service: any) => void;
   getService: (name: string) => any;
+  getDiscordClient: () => DiscordClient;
+  getTaskManager: () => typeof TaskManager;
+  getDataProvider: () => typeof DataProvider;
+  getApi: () => typeof API;
 }
 
 /*     DiscordClient Types     */
 export interface DiscordConnection {
   connection: VoiceConnection;
-}
-
-// Make some properties optional
-export type DiscordCommandData = Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> &
-  Partial<SlashCommandBuilder>;
-
-// TODO: add other command types e.g. context
-export interface DiscordCommand {
-  aliases?: string[];
-  args?: boolean;
-  data: DiscordCommandData;
-  execute: (interaction: CommandInteraction) => Promise<any>;
-  permissions?: string[];
-  usage?: string;
 }
 
 export interface DiscordEvent<K extends keyof ClientEvents = any> {

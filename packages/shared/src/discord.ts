@@ -1,4 +1,26 @@
 /*     Discord Data Types     */
+import type { SlashCommandBuilder, CommandInteraction, RoleData } from 'discord.js';
+
+export interface DiscordRoleData extends RoleData { };
+
+// Type containing data for a command
+export type Command = Omit<DiscordCommand, 'execute'>;
+
+// Type returned by discord.js builder
+export type DiscordCommandData = Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> &
+  Partial<SlashCommandBuilder>;
+
+  // TODO: add other command types e.g. context
+export interface DiscordCommand {
+  aliases?: string[];
+  args?: boolean;
+  data: DiscordCommandData;
+  execute: (interaction: CommandInteraction) => Promise<any>;
+  permissions?: string[];
+  usage?: string;
+}
+
+
 // Generally returned by APIs and used to store data
 // Discord returns snake_case, map to camelCase because this is the way?
 

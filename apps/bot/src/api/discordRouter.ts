@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import type DiscordClient from '../DiscordClient';
 import type { GuildData, UserData } from 'shared/types';
 import { APIRouter } from '.';
+import botProvider from '../index';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -24,6 +25,29 @@ const DiscordRouter: APIRouter = (pushRequest) => {
         ).json()) as UserData;
         res.status(200).send(data);
         return data;
+      } catch (error) {
+        console.error(`Error `, error);
+        res.status(500).send(error);
+        return { error };
+      }
+    }
+
+    // Push to request queue
+    pushRequest(req, handler);
+  });
+
+  // Fetches a single guild from discord
+  router.get('/guilds/:guildId', async (req: Request, res: Response) => {
+    async function handler(client: DiscordClient) {
+      const guildId = req.params.guildId;
+      const token = req.query.token as string;
+      if (!token) return res.sendStatus(401);
+      try {
+        const discordClient = (await botProvider).getDiscordClient();
+        const guild = await (await discordClient.getGuild(guildId)).toJSON();
+
+        res.send(guild);
+        return guild;
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);

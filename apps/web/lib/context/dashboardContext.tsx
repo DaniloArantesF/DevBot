@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState } from 'react';
-import { GuildData } from 'shared/types';
+import { DiscordCommandData, GuildData } from 'shared/types';
 
 type DashboardProviderProps = {
   children: React.ReactNode;
@@ -9,11 +9,13 @@ type DashboardProviderProps = {
 interface DashboardContext {
   currentGuild: GuildData | null;
   modal: null | React.RefObject<HTMLDivElement>;
+  commands: DiscordCommandData[];
 }
 
 export const initialDashboardContext: DashboardContext = {
   currentGuild: null,
   modal: null,
+  commands: [],
 };
 
 export const DashboardContext = createContext(initialDashboardContext);
@@ -24,8 +26,8 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
   return (
     <DashboardContext.Provider
       value={{
+        ...initialDashboardContext,
         currentGuild: guild,
-        modal: null,
       }}
     >
       {children}

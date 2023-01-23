@@ -1,7 +1,7 @@
 import classes from '@styles/Button.module.css';
 import { useMemo, useRef } from 'react';
 
-type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
+export type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
   label: string;
   onClick?: () => void;
   href?: string;
