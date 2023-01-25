@@ -8,6 +8,12 @@ import { stringifyCircular } from '@utils/index';
 const BotRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
+  /**
+   * Returns bot status
+   *
+   * @route GET /api/bot/status
+   * @apiresponse {200} OK
+   */
   router.get('/status', async (req: Request, res: Response) => {
     async function handler() {
       res.send('OK');
@@ -16,15 +22,30 @@ const BotRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
+  /**
+   * Returns bot commands
+   *
+   * @route GET /api/bot/commands
+   * @apiresponse {200} Command[]
+   */
   router.get('/commands', async (req: Request, res: Response) => {
     async function handler() {
-      const commands = getCommands().map(({execute, ...data}) => (data));
+      const commands = getCommands().map(({ execute, ...data }) => data);
       res.send(commands);
       return { commands };
     }
     pushRequest(req, handler);
   });
 
+  /**
+   * Returns bot roles
+   *
+   * @route GET /api/bot/roles
+   * @apiparam {string} guildId
+   * @apiresponse {200} Role[]
+   * @apiresponse {400} Missing guildId
+   * @apiresponse {404} Guild not found
+   */
   router.get('/roles', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.query.guildId;

@@ -14,16 +14,16 @@ async function Bot() {
       return this.services[name];
     },
     getDiscordClient() {
-      return this.services.discordClient as DiscordClient;
+      return this.services.discordClient;
     },
     getTaskManager() {
-      return this.services.taskManager as typeof TaskManager;
+      return this.services.taskManager;
     },
     getDataProvider() {
-      return this.services.dataProvider as typeof DataProvider;
+      return this.services.dataProvider;
     },
     getApi() {
-      return this.services.api as typeof API;
+      return this.services.api;
     },
   };
 
@@ -36,8 +36,7 @@ async function Bot() {
   const discordClient = botProvider.getService('discordClient') as DiscordClient;
 
   discordClient.on('ready', async () => {
-    const guildRepository = (await (await botProvider.getService('dataProvider') as ReturnType<typeof DataProvider>)).guild;
-
+    const guildRepository = (await botProvider.getDataProvider()).guild;
     guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
   });
 

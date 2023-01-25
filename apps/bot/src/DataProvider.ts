@@ -12,7 +12,8 @@ async function DataProvider(provider: BotProvider) {
     console.error(error);
   }
 
-  const guildRepository = await GuildRepository(client);
+  // Create repositories
+  const guildRepository = GuildRepository(client);
 
   // Create a connection to redis
   async function connect() {
@@ -29,7 +30,7 @@ async function DataProvider(provider: BotProvider) {
   return {
     client,
     guild: guildRepository,
-    cleanUp
+    cleanUp,
   };
 }
 

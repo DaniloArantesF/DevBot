@@ -1,14 +1,21 @@
 import { Router, Request, Response } from 'express';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@utils/config';
 import fetch from 'node-fetch';
-import botProvider from '../index';
 import type { ApiAuthResponse, DiscordAuthResponse } from '@utils/types';
 import { APIRouter } from '.';
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
-  // Fetches access token given a code
+  /**
+   * Fetches access token given an authorization code
+   *
+   * @route POST /api/auth/code
+   * @apiparam {string} code Discord authorization code
+   * @apiresponse {200} DiscordAuthResponse
+   * @apiresponse {401} Unauthorized (no code provided)
+   * @apiresponse {500} Internal Server Error (error fetching access token)
+   */
   router.post('/code', async (req: Request, res: Response) => {
     async function handler() {
       const code = req.body?.code;
@@ -54,7 +61,15 @@ const AuthRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
-  // Refreshes access token given a refresh token
+  /**
+   * Refreshes access token given a refresh token
+   *
+   * @route POST /api/auth/refresh
+   * @apiparam {string} refreshToken Discord refresh token
+   * @apiresponse {200} DiscordAuthResponse
+   * @apiresponse {401} Unauthorized (no refresh token provided)
+   * @apiresponse {500} Internal Server Error (error fetching access token)
+   */
   router.post('/refresh', async (req: Request, res: Response) => {
     async function handler() {
       const refreshToken = req.body?.refreshToken;

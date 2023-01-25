@@ -43,13 +43,13 @@ const schema = new Schema(
   { dataStructure: 'HASH' },
 );
 
-const GuildRepository = async (client: Client) => {
+const GuildRepository = (client: Client) => {
   let entityId = null;
   const cacheMap = new Map<string, string>();
   const guildRepository = client.fetchRepository(schema);
-  await guildRepository.createIndex();
 
   async function init(guilds: discord.Guild[]) {
+    await guildRepository.createIndex();
     // Remove old data TODO: Update data instead
     await removeAll();
 
@@ -97,7 +97,6 @@ const GuildRepository = async (client: Client) => {
     // if (!entity) {
     //   return await create(guild);
     // }
-
     // entity.id = guild.id;
     // entity.data = JSON.stringify(guild.toJSON())
     // return await guildRepository.save(entity);

@@ -9,7 +9,15 @@ import botProvider from '../index';
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
-  // Fetches user data from discord
+  /**
+   * Fetches user data from Discord
+   *
+   * @route GET /api/discord/user
+   * @apiparam {string} token
+   * @apiresponse {200} UserData
+   * @apiresponse {401} Unauthorized
+   * @apiresponse {500}
+   */
   router.get('/user', async (req: Request, res: Response) => {
     async function handler() {
       const token = req.query.token as string;
@@ -36,7 +44,15 @@ const DiscordRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
-  // Fetches a single guild from discord
+  /**
+   * Fetches guild data from Discord
+   *
+   * @route GET /api/discord/guilds/:guildId
+   * @apiparam {string} token
+   * @apiresponse {200} GuildData
+   * @apiresponse {401} Unauthorized
+   * @apiresponse {500}
+   */
   router.get('/guilds/:guildId', async (req: Request, res: Response) => {
     async function handler(client: DiscordClient) {
       const guildId = req.params.guildId;
@@ -59,7 +75,15 @@ const DiscordRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
-  // Fetches user guilds from discord
+  /**
+   * Fetches guilds data from Discord
+   *
+   * @route GET /api/discord/guilds
+   * @apiparam {string} token
+   * @apiresponse {200} GuildData[]
+   * @apiresponse {401} Unauthorized
+   * @apiresponse {500}
+   */
   router.get('/guilds', async (req: Request, res: Response) => {
     async function handler(client: DiscordClient) {
       const token = req.query.token as string;

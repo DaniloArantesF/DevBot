@@ -14,7 +14,7 @@ const AvatarIcon = ({ src, alt }: AvatarProps) => (
         {
           // get first letter of each word in alt and capitalize it
           alt
-            .split(' ')
+            ?.split(' ')
             .map((word) => word[0].toUpperCase())
             .join('')
         }

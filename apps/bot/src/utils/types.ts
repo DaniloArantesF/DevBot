@@ -20,8 +20,8 @@ export interface BotProvider {
   addService: (name: string, service: any) => void;
   getService: (name: string) => any;
   getDiscordClient: () => DiscordClient;
-  getTaskManager: () => typeof TaskManager;
-  getDataProvider: () => typeof DataProvider;
+  getTaskManager: () => ReturnType<typeof TaskManager>;
+  getDataProvider: () => ReturnType<typeof DataProvider>;
   getApi: () => typeof API;
 }
 

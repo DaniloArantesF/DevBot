@@ -14,12 +14,14 @@ export async function getBaseLayoutProps(user: User | null) {
   };
 }
 
-export type DashboardBaseProps = Awaited<typeof getBaseLayoutProps extends (user: infer U) => infer R ? R : never>;
+export type DashboardBaseProps = Awaited<
+  typeof getBaseLayoutProps extends (user: infer U) => infer R ? R : never
+>;
 
 type LayoutProps = DashboardBaseProps & {
   title?: string;
   children: React.ReactNode;
-}
+};
 
 function DashboardLayout({ guilds, commands, title = 'WebBot', children }: LayoutProps) {
   return (
@@ -27,13 +29,9 @@ function DashboardLayout({ guilds, commands, title = 'WebBot', children }: Layou
       <Head>
         <title>{title}</title>
       </Head>
-      <main style={{ height: '100vh', overflow: 'hidden' }}>
-      <div id="app-container" className={classes.container}>
-          <Sidebar guilds={guilds} commands={commands} />
-          <section className={classes.body}>
-            {children}
-          </section>
-      </div>
+      <main className={classes.container}>
+        <Sidebar guilds={guilds} commands={commands} />
+        <section className={classes.body}>{children}</section>
       </main>
     </>
   );

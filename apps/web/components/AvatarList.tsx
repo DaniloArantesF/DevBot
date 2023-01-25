@@ -1,30 +1,31 @@
-import * as ScrollArea from '@radix-ui/react-scroll-area';
+import ScrollArea from './ScrollArea';
 import classes from '@styles/AvatarList.module.css';
 import AvatarIcon from './Avatar';
+import Link from 'next/link';
 
 interface AvatarListProps {
   direction?: 'row' | 'column';
-  items: { src: string; alt: string }[];
+  items: { src: string; alt: string; href?: string }[];
 }
 
 function AvatarList({ items = [], direction = 'column' }: AvatarListProps) {
   return (
     <div className={classes.container}>
-      <ScrollArea.Root className={classes.root}>
-        <ScrollArea.Viewport className={classes.viewport}>
-          <div>
-            {items.map(({ alt, src }, index) => (
+      <ScrollArea>
+        <div>
+          {items.map(({ alt, src, href }, index) =>
+            href ? (
+              <Link key={index} className={classes.item} href={href}>
+                <AvatarIcon src={src} alt={alt} />
+              </Link>
+            ) : (
               <div key={index} className={classes.item}>
                 <AvatarIcon src={src} alt={alt} />
               </div>
-            ))}
-          </div>
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar className={classes.scrollbar} orientation="vertical">
-          <ScrollArea.Thumb className={classes.thumb} />
-        </ScrollArea.Scrollbar>
-        <ScrollArea.Corner className={classes.corner} />
-      </ScrollArea.Root>
+            ),
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }

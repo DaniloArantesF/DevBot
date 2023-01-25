@@ -10,7 +10,14 @@ import {
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
-  // Register slash commands
+  /**
+   * Registers slash commands globally or for a specific guild
+   *
+   * @route POST /api/admin/register-commands
+   * @apiparam {string} guildId
+   * @apiresponse {200} SlashCommandBuilder[]
+   * @apiresponse {500}
+   */
   router.post('/register-commands', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.body?.guildId as string;
@@ -33,7 +40,14 @@ const AdminRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
-  // Removes all slash commands
+  /**
+   * Removes slash commands globally or for a specific guild
+   *
+   * @route POST /api/admin/purge-commands
+   * @apiparam {string} guildId
+   * @apiresponse {200} SlashCommandBuilder[]
+   * @apiresponse {500}
+   */
   // TODO: optionally remove all commands for all guilds individually
   router.post('/purge-commands', async (req: Request, res: Response) => {
     async function handler() {

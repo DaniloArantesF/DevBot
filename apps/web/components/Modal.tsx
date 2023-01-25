@@ -50,12 +50,8 @@ function Modal({ btn, children, description, heading }: ModalProps) {
             <Dialog.Title className={classes.title}>
               <h4>{heading}</h4>
             </Dialog.Title>
-            <Dialog.Description className={classes.description}>
-              {description}
-            </Dialog.Description>
-            <div className={classes.body}>
-              {children}
-            </div>
+            <Dialog.Description className={classes.description}>{description}</Dialog.Description>
+            <>{children}</>
             <CloseButton />
           </Dialog.Content>
         </Dialog.Portal>

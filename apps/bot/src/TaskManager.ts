@@ -11,8 +11,10 @@ const queueSettings: Queue.QueueSettings = {
 };
 
 /**
- * Manages task execution
+ * Task execution module
  * Depends on discordClient service to start processing tasks
+ *
+ * @param {BotProvider} provider
  */
 function TaskManager(provider: BotProvider) {
   // Command tasks
@@ -53,7 +55,7 @@ function TaskManager(provider: BotProvider) {
     return job;
   }
 
-  // Execute interaction tasks from the queue
+  // Executes interaction tasks from the queue
   function processCommands(commands: Map<string, DiscordCommand>) {
     commandQueue.process(async (job) => {
       const interaction = commandsMap.get(job.id);
@@ -91,7 +93,7 @@ function TaskManager(provider: BotProvider) {
     return job;
   }
 
-  // Execute api tasks from the queue
+  // Executes api tasks from the queue
   function processApiRequests(client: DiscordClient) {
     apiQueue.process(async (job) => {
       const handler = requestMap.get(job.id);

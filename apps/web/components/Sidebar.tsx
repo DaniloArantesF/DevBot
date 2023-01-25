@@ -1,5 +1,4 @@
 import { getDiscordAvatar } from '@lib/utils';
-import classes from '@styles/Sidebar.module.css';
 import { useMemo } from 'react';
 import { Command, GuildData } from '@lib/types';
 import AvatarList from './AvatarList';
@@ -7,6 +6,8 @@ import Button from './Button';
 import { logout } from '@api/auth/logout';
 import Modal from './Modal';
 import Help from './Help';
+import Link from 'next/link';
+import classes from '@styles/Sidebar.module.css';
 
 interface SidebarProps {
   guilds: GuildData[];
@@ -16,6 +17,7 @@ interface SidebarProps {
 function Sidebar({ guilds, commands }: SidebarProps) {
   const guildAvatars = useMemo(() => {
     return guilds.map((guild) => ({
+      href: `/dashboard/${guild.id}`,
       src: getDiscordAvatar('guild', guild.id, guild.icon),
       alt: guild.name,
     }));
@@ -28,7 +30,9 @@ function Sidebar({ guilds, commands }: SidebarProps) {
   return (
     <div className={classes.container}>
       <div className={classes.header}>
-        <span id={classes.logo}>Bot Logo</span>
+        <Link id={classes.logo} href="/dashboard">
+          Bot Logo
+        </Link>
       </div>
 
       <div className={classes.body}>

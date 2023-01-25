@@ -13,7 +13,9 @@
   transform: translate(-50%, -50%);
   width: 90vw;
   max-width: 450px;
-  max-height: 85vh;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
   padding: 25px;
   background: var(--blackA12);
   backdrop-filter: blur(12px);
@@ -61,8 +63,8 @@
   justify-content: center;
   color: var(--violet11);
   position: absolute;
-  top: .75rem;
-  right: .75rem;
+  top: 0.75rem;
+  right: 0.75rem;
   background-color: var(--inherit);
   border: 1px solid var(--violet11);
   cursor: pointer;
@@ -91,4 +93,10 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }

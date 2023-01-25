@@ -1,14 +1,15 @@
-import classes from '@styles/Widget.module.css';
 import Separator from './Separator';
+import ScrollArea from '@components/ScrollArea';
+import classes from '@styles/Widget.module.css';
 
 type WidgetProps = React.ComponentProps<'div'> & {
   title: string;
   children: React.ReactNode;
-  rows?: number;
-  cols?: number;
+  rows?: number | 'auto';
+  cols?: number | 'auto';
 };
 
-function Widget({ title, children, rows = 1, cols = 1, style, ...props }: WidgetProps) {
+function Widget({ title, children, rows = 'auto', cols = 'auto', style, ...props }: WidgetProps) {
   return (
     <div
       {...props}
@@ -17,7 +18,10 @@ function Widget({ title, children, rows = 1, cols = 1, style, ...props }: Widget
     >
       <p className={classes.header}>{title}</p>
       <Separator />
-      <div className={classes.body}>{children}</div>
+
+      <ScrollArea>
+        <div className={classes.body}>{children}</div>
+      </ScrollArea>
     </div>
   );
 }

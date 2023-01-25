@@ -1,5 +1,6 @@
 import type { Command } from '@lib/types';
 import classes from '@styles/Help.module.css';
+import ScrollArea from './ScrollArea';
 import Separator from './Separator';
 
 interface HelpProps {
@@ -11,30 +12,23 @@ interface CommandCardProps {
 }
 
 function CommandCard({ command }: CommandCardProps) {
-
   return (
     <div className={classes.card}>
       <p>{command.data.name}</p>
       <Separator />
       <p>{command.data.description}</p>
-      <div>
-        {  command.usage }
-      </div>
+      <div>{command.usage}</div>
     </div>
   );
 }
 
 function Help({ commands }: HelpProps) {
-
   return (
-    <div>
-      {
-        commands.map((command) => {
-          return <CommandCard command={command} key={command.data.name} />;
-        })
-
-      }
-    </div>
+    <ScrollArea>
+      {commands.map((command) => {
+        return <CommandCard command={command} key={command.data.name} />;
+      })}
+    </ScrollArea>
   );
 }
 
