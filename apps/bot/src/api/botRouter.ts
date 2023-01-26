@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { getCommands } from '@/controllers/commands';
 import { APIRouter } from '@/api';
+import { RequestLog } from '@/controllers/logs';
 
 const BotRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -14,7 +15,7 @@ const BotRouter: APIRouter = (pushRequest) => {
   router.get('/status', async (req: Request, res: Response) => {
     async function handler() {
       res.send('OK');
-      return { status: 'OK' };
+      return RequestLog('get', req.url, 200, 'OK');
     }
     pushRequest(req, handler);
   });
@@ -29,7 +30,7 @@ const BotRouter: APIRouter = (pushRequest) => {
     async function handler() {
       const commands = (await getCommands()).map(({ execute, ...data }) => data);
       res.send(commands);
-      return { commands };
+      return RequestLog('get', req.url, 200, commands);
     }
     pushRequest(req, handler);
   });

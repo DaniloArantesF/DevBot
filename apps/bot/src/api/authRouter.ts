@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
 import type { ApiAuthResponse, DiscordAuthResponse } from '@/utils/types';
 import { APIRouter } from '@/api';
+import { RequestLog } from '@/controllers/logs';
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -19,7 +20,11 @@ const AuthRouter: APIRouter = (pushRequest) => {
   router.post('/code', async (req: Request, res: Response) => {
     async function handler() {
       const code = req.body?.code;
-      if (!code) return res.sendStatus(401);
+      if (!code) {
+        res.sendStatus(401);
+        return RequestLog('post', req.url, 401, 'No code provided');
+      }
+
       try {
         const data = await (
           await fetch(`${DISCORD_API_BASE_URL}/oauth2/token`, {
@@ -50,11 +55,11 @@ const AuthRouter: APIRouter = (pushRequest) => {
           scope,
         } as ApiAuthResponse);
 
-        return data;
+        return RequestLog('post', req.url, 200, data);
       } catch (error) {
         console.error(`Error fetching access token w/ code ${code}`, error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('post', req.url, 500, null, error);
       }
     }
 
@@ -73,7 +78,10 @@ const AuthRouter: APIRouter = (pushRequest) => {
   router.post('/refresh', async (req: Request, res: Response) => {
     async function handler() {
       const refreshToken = req.body?.refreshToken;
-      if (!refreshToken) return res.sendStatus(401);
+      if (!refreshToken) {
+        res.sendStatus(401);
+        return RequestLog('post', req.url, 401, 'No refresh token provided');
+      }
 
       try {
         const data = await (
@@ -103,11 +111,10 @@ const AuthRouter: APIRouter = (pushRequest) => {
           scope,
         } as ApiAuthResponse);
 
-        return data;
+        return RequestLog('post', req.url, 200, data);
       } catch (error) {
-        console.error(`Error refreshing tokens`, error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('post', req.url, 500, null, error);
       }
     }
 

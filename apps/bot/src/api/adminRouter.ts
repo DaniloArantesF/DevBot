@@ -6,6 +6,7 @@ import {
   deleteGlobalSlashCommands,
   deleteGuildSlashCommands,
 } from '@/controllers/commands';
+import { RequestLog } from '@/controllers/logs';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -29,11 +30,11 @@ const AdminRouter: APIRouter = (pushRequest) => {
           data = await registerGlobalSlashCommands();
         }
         res.send(data);
-        return data;
+        return RequestLog('post', req.url, 200, data);
       } catch (error) {
         console.error('Error registering slash commands: ', error);
         res.status(500).send(error);
-        return {};
+        return RequestLog('post', req.url, 500, null, error);
       }
     }
 
@@ -60,11 +61,11 @@ const AdminRouter: APIRouter = (pushRequest) => {
           data = await deleteGlobalSlashCommands();
         }
         res.send(data);
-        return data;
+        return RequestLog('post', req.url, 200, data);
       } catch (error) {
         console.error('Error purging slash commands: ', error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('post', req.url, 500, null, error);
       }
     }
 

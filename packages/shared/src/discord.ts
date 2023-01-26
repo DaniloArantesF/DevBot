@@ -15,17 +15,31 @@ export type Command = Omit<DiscordCommand, 'execute'>;
 export type DiscordCommandData = Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> &
   Partial<SlashCommandBuilder>;
 
-export interface CommandCacheData {
-  user: string;
+// Serializable data for caching
+interface BaseCacheData {
+  user?: string;
+  channel?: string;
+  guild?: string;
+  data?: string;
+  error?: string;
+}
+
+// TODO: add userId, channelId, guildId to cache data
+export type CommandCacheData = BaseCacheData & {
   command: string;
   args: string[] | CommandInteractionOption[];
   reply: string;
-}
+};
 
-export interface RequestCacheData {
-  id: string;
-  data: string; // stringified data sent to user
-}
+export type RequestCacheData = BaseCacheData & {
+  method: string;
+  status: number;
+  url: string;
+};
+
+export type EventCacheData = BaseCacheData & {
+  event: string;
+};
 
 // TODO: add other command types e.g. context
 export interface DiscordCommand {

@@ -5,6 +5,8 @@ import type DiscordClient from '@/DiscordClient';
 import type { VoiceConnection } from '@discordjs/voice';
 import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
+import type { EventCacheData } from '@/utils/types';
+import type { RequestCacheData } from 'shared/types';
 
 export interface BotProvider {
   services: Partial<{
@@ -29,22 +31,25 @@ export interface DiscordConnection {
 
 export interface DiscordEvent<K extends keyof ClientEvents = any> {
   name: K;
-  on?: (...args: ClientEvents[K]) => void | Promise<void>;
-  once?: (...args: ClientEvents[K]) => void | Promise<void>;
+  on?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
+  once?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
 }
 
 /*     TaskManager Types     */
 export interface QueueTaskData {
   id: string;
-  result?: any;
+  result?: string;
   timestamp?: number;
 }
 
-export type apiHandler = (client?: DiscordClient) => Promise<void | any> | void;
+export type apiHandler = (client?: DiscordClient) => Promise<void | RequestCacheData> | void;
 export interface ApiTask {
   id: string;
   execute: apiHandler;
 }
+export type EventTask = DiscordEvent & {
+  args: any[];
+};
 
 /*     DataProvider Models     */
 export interface ModelRepository<I, O> {

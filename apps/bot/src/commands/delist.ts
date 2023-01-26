@@ -30,6 +30,8 @@ export const command: DiscordCommand = {
 
     return {
       user: interaction.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
       command: interaction.commandName,
       args: [...interaction.options.data],
       reply: reply,

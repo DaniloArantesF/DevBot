@@ -7,6 +7,8 @@ import { APIRouter } from '.';
 import { getGuild } from '@/controllers/guild';
 import { getGuildRoles } from '@/controllers/roles';
 import { stringifyCircular } from '@/utils';
+import { getGuildChannels } from '@/controllers/channels';
+import { RequestLog } from '@/controllers/logs';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -23,7 +25,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/user', async (req: Request, res: Response) => {
     async function handler() {
       const token = req.query.token as string;
-      if (!token) return res.sendStatus(401);
+      if (!token) {
+        res.sendStatus(401);
+        return RequestLog('get', req.url, 401, 'No token provided');
+      }
+
       try {
         const data = (await (
           await fetch(`${DISCORD_API_BASE_URL}/users/@me`, {
@@ -34,11 +40,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           })
         ).json()) as UserData;
         res.status(200).send(data);
-        return data;
+        return RequestLog('get', req.url, 200, data);
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('get', req.url, 500, null, error);
       }
     }
 
@@ -58,7 +64,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/guilds', async (req: Request, res: Response) => {
     async function handler(client: DiscordClient) {
       const token = req.query.token as string;
-      if (!token) return res.sendStatus(401);
+      if (!token) {
+        res.sendStatus(401);
+        return RequestLog('get', req.url, 401, 'No token provided');
+      }
+
       try {
         const data = (await (
           await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
@@ -69,7 +79,10 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           })
         ).json()) as GuildData[];
 
-        if (!data) return res.status(500).send([]);
+        if (!data) {
+          res.sendStatus(500);
+          return RequestLog('get', req.url, 500, 'No guild data');
+        }
 
         // Allowed flag is true if the bot is in the guild
         const guilds = data.map((g) => {
@@ -80,11 +93,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
         });
 
         res.send(guilds);
-        return guilds;
+        return RequestLog('get', req.url, 200, guilds);
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('get', req.url, 500, null, error);
       }
     }
 
@@ -105,15 +118,19 @@ const DiscordRouter: APIRouter = (pushRequest) => {
     async function handler(client: DiscordClient) {
       const guildId = req.params.guildId;
       const token = req.query.token as string;
-      if (!token) return res.sendStatus(401);
+      if (!token) {
+        res.sendStatus(401);
+        return RequestLog('get', req.url, 401, 'No token provided');
+      }
+
       try {
         const guild = (await getGuild(guildId)).toJSON();
         res.send(guild);
-        return guild;
+        return RequestLog('get', req.url, 200, guild);
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);
-        return { error };
+        return RequestLog('get', req.url, 500, null, error);
       }
     }
 
@@ -127,23 +144,39 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @route GET /discord/guilds/:guildId/roles
    * @apiparam {string} guildId
    * @apiresponse {200} Role[]
-   * @apiresponse {400} Missing guildId
    */
   router.get('/guilds/:guildId/roles', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.params.guildId;
-      if (!guildId) return res.status(400).send('Missing guildId');
 
       // if (!guild) return res.status(404).send('Guild not found');
       const roles = (await getGuildRoles(guildId)).map((role) =>
         JSON.parse(stringifyCircular(role)),
       );
       res.send(roles);
-      return { roles };
+      return RequestLog('get', req.url, 200, roles);
     }
     pushRequest(req, handler);
   });
 
+  /**
+   * Returns guild channels
+   *
+   * @route GET /discord/guilds/:guildId/channels
+   * @apiparam {string} guildId
+   * @apiresponse {200} GuildChannelJSON[]
+   */
+  router.get('/guilds/:guildId/channels', async (req: Request, res: Response) => {
+    async function handler() {
+      const guildId = req.params.guildId;
+      const channels = (await getGuildChannels(guildId)).map((channel) =>
+        JSON.parse(stringifyCircular(channel)),
+      );
+      res.send(channels);
+      return RequestLog('get', req.url, 200, channels);
+    }
+    pushRequest(req, handler);
+  });
   return router;
 };
 

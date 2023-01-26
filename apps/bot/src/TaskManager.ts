@@ -1,7 +1,14 @@
 import Queue from 'bee-queue';
 import { ChatInputCommandInteraction } from 'discord.js';
 import type DiscordClient from './DiscordClient';
-import type { ApiTask, BotProvider, QueueTaskData, DiscordCommand } from '@utils/types';
+import type {
+  ApiTask,
+  BotProvider,
+  QueueTaskData,
+  DiscordCommand,
+  DiscordEvent,
+  EventTask,
+} from '@utils/types';
 import { AUTO_PROCESS } from '@utils/config';
 import { stringifyCircular } from './utils';
 
@@ -19,11 +26,15 @@ const queueSettings: Queue.QueueSettings = {
 function TaskManager(provider: BotProvider) {
   // Command tasks
   const commandQueue = new Queue<QueueTaskData>('command-queue', queueSettings);
-  const commandsMap = new Map<string, ChatInputCommandInteraction>();
+  const commandMap = new Map<string, ChatInputCommandInteraction>();
 
   // Api tasks
   const apiQueue = new Queue<QueueTaskData>('api-queue', queueSettings);
   const requestMap = new Map<string, ApiTask['execute']>();
+
+  // Event tasks
+  const eventQueue = new Queue<QueueTaskData>('event-queue', queueSettings);
+  const eventMap = new Map<string, EventTask>();
 
   // Process tasks as soon as dependencies are ready
   provider.getService('discordClient').on('ready', () => {
@@ -34,6 +45,40 @@ function TaskManager(provider: BotProvider) {
   async function initProcessing() {
     processCommands(provider.getService('discordClient').commands);
     processApiRequests(provider.getService('discordClient'));
+    processEvents();
+  }
+
+  async function addEvent(event: DiscordEvent, args: any[] = []) {
+    const job = eventQueue.createJob({ id: `${Date.now()}${event.name}` });
+    await job.timeout(2000).retries(2).save();
+    eventMap.set(job.id, { ...event, args });
+
+    job.on('failed', (err) => {
+      console.log(err);
+    });
+    job.on('succeeded', () => {
+      if (DEBUG) {
+        console.log(`${job.id} (${event.name}) succeeded`);
+      }
+    });
+
+    return job;
+  }
+
+  async function processEvents() {
+    eventQueue.process(async (job) => {
+      const event = eventMap.get(job.id);
+      if (!event) return;
+      const data = await event.on(...event.args);
+
+      if (data) {
+        // Save result to redis
+        job.data.result = stringifyCircular(data);
+      }
+
+      eventMap.delete(job.id);
+      return job.data;
+    });
   }
 
   // Adds a task to the command queue
@@ -41,7 +86,7 @@ function TaskManager(provider: BotProvider) {
     const job = commandQueue.createJob({ id: interaction.id });
     await job.timeout(2000).retries(2).save();
 
-    commandsMap.set(job.id, interaction); // save interaction
+    commandMap.set(job.id, interaction); // save interaction
 
     job.on('failed', (err) => {
       console.log(err);
@@ -58,7 +103,7 @@ function TaskManager(provider: BotProvider) {
   // Executes interaction tasks from the queue
   function processCommands(commands: Map<string, DiscordCommand>) {
     commandQueue.process(async (job) => {
-      const interaction = commandsMap.get(job.id);
+      const interaction = commandMap.get(job.id);
       if (!interaction) return;
 
       const command = commands.get(interaction.commandName);
@@ -70,7 +115,7 @@ function TaskManager(provider: BotProvider) {
         job.data.result = stringifyCircular(data);
       }
 
-      commandsMap.delete(job.id);
+      commandMap.delete(job.id);
       return job.data;
     });
   }
@@ -118,6 +163,8 @@ function TaskManager(provider: BotProvider) {
 
   return {
     initProcessing,
+    addEvent,
+    processEvents,
     addApiRequest,
     addCommandInteraction,
     processApiRequests,

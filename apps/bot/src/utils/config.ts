@@ -21,6 +21,7 @@ export const INTENTS = [
 
   // Privileged intents
   GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildPresences,
   GatewayIntentBits.MessageContent,
 
   // Direct messages

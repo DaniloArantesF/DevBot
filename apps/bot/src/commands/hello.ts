@@ -15,6 +15,8 @@ export const command: DiscordCommand = {
     // Return data to be logged
     return {
       user: interaction.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
       command: interaction.commandName,
       args: [...interaction.options.data],
       reply: reply,

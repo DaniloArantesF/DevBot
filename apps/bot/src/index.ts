@@ -3,6 +3,8 @@ import DataProvider from '@/DataProvider';
 import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@utils/types';
+import { getGuildNetwork } from './controllers/guild';
+import { getGuildChannelPresence } from './controllers/channels';
 
 async function Bot() {
   const botProvider: BotProvider = {
@@ -39,6 +41,7 @@ async function Bot() {
     discordClient.on('ready', async () => {
       const guildRepository = (await botProvider.getDataProvider()).guild;
       guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
+
       resolve(botProvider);
     });
   });
