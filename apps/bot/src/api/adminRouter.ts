@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { APIRouter } from '.';
+import { APIRouter } from '@/api';
 import {
   registerGlobalSlashCommands,
   registerGuildSlashCommands,
   deleteGlobalSlashCommands,
   deleteGuildSlashCommands,
-} from '../commands';
+} from '@/controllers/commands';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();

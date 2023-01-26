@@ -1,9 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { getCommands } from '../commands';
-import { APIRouter } from '.';
-import botProvider from '../index';
-import DiscordClient from '../DiscordClient';
-import { stringifyCircular } from '@utils/index';
+import { getCommands } from '@/controllers/commands';
+import { APIRouter } from '@/api';
 
 const BotRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -30,36 +27,9 @@ const BotRouter: APIRouter = (pushRequest) => {
    */
   router.get('/commands', async (req: Request, res: Response) => {
     async function handler() {
-      const commands = getCommands().map(({ execute, ...data }) => data);
+      const commands = (await getCommands()).map(({ execute, ...data }) => data);
       res.send(commands);
       return { commands };
-    }
-    pushRequest(req, handler);
-  });
-
-  /**
-   * Returns bot roles
-   *
-   * @route GET /api/bot/roles
-   * @apiparam {string} guildId
-   * @apiresponse {200} Role[]
-   * @apiresponse {400} Missing guildId
-   * @apiresponse {404} Guild not found
-   */
-  router.get('/roles', async (req: Request, res: Response) => {
-    async function handler() {
-      const guildId = req.query.guildId;
-      if (!guildId) return res.status(400).send('Missing guildId');
-
-      const discordClient = (await botProvider).getService('discordClient') as DiscordClient;
-
-      const guild = discordClient.guilds.cache.get(guildId as string);
-      if (!guild) return res.status(404).send('Guild not found');
-
-      const roles = guild.roles.cache.map((role) => JSON.parse(stringifyCircular(role)));
-
-      res.send(roles);
-      return { roles };
     }
     pushRequest(req, handler);
   });

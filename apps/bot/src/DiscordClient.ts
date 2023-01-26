@@ -1,8 +1,8 @@
 import { Client, Collection } from 'discord.js';
-import { getCommands } from './commands';
-import { getEvents } from './events';
+import { getCommands } from '@/controllers/commands';
+import { getEvents } from '@/events';
 import { TOKEN, INTENTS as intents } from '@config';
-import type { BotProvider, DiscordCommand, DiscordConnection } from '@utils/types';
+import type { BotProvider, DiscordCommand, DiscordConnection } from '@/utils/types';
 
 class DiscordClient extends Client {
   commands = new Collection<string, DiscordCommand>();
@@ -13,46 +13,24 @@ class DiscordClient extends Client {
       intents,
     });
 
-    this.login(TOKEN);
     this.registerEvents();
     this.registerCommands();
+    this.login(TOKEN);
   }
 
-  registerCommands() {
-    const commands = getCommands();
+  async registerCommands() {
+    const commands = await getCommands();
     commands.forEach((command) => {
       this.commands.set(command.data.name, command);
     });
   }
 
-  registerEvents() {
-    const events = getEvents();
+  async registerEvents() {
+    const events = await getEvents();
     events.forEach((event) => {
       if (event.once) this.once(event.name, event.on);
       else this.on(event.name, event.on);
     });
-  }
-
-  async addUserRole(userId: string, guildId: string, roleId: string) {
-    const guild = this.guilds.cache.get(guildId);
-    const member = guild.members.cache.get(userId);
-    const role = guild.roles.cache.get(roleId);
-
-    return await member.roles.add(role);
-  }
-
-  async removeUserRole(userId: string, guildId: string, roleId: string) {
-    const guild = this.guilds.cache.get(guildId);
-    const member = guild.members.cache.get(userId);
-    const role = guild.roles.cache.get(roleId);
-
-    await member.roles.remove(role);
-  }
-
-  async updateGuildRole() {}
-
-  async getGuild(guildId: string) {
-    return this.guilds.cache.get(guildId);
   }
 }
 

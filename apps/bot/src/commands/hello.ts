@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { DiscordCommand } from '@utils/types';
+import { DiscordCommand } from '@/utils/types';
 
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder().setName('hello').setDescription('Friendly greeting'),
@@ -16,8 +16,8 @@ export const command: DiscordCommand = {
     return {
       user: interaction.user.id,
       command: interaction.commandName,
-      args: interaction.options.data,
-      result: reply,
+      args: [...interaction.options.data],
+      reply: reply,
     };
   },
   usage: '/hello',

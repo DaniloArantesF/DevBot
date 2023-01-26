@@ -11,14 +11,17 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"],
+      "@/*": ["src/*"],
       "@commands/*": ["src/commands/*"],
       "@events/*": ["src/events/*"],
       "@services/*": ["src/services/*"],
       "@utils/*": ["src/utils/*"],
       "@api/*": ["src/api/*"],
       "@config": ["src/utils/config.ts"],
-      "@models/*": ["src/models/*"]
-    }
+      "@models/*": ["src/models/*"],
+      "@controllers/*": ["src/controllers/*"]
+    },
+    "types": ["vitest/globals"]
   },
   "include": ["src/**/*", "./src/"]
 }

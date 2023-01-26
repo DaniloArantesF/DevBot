@@ -1,17 +1,21 @@
 // Enlists a user into a guild role
 import { SlashCommandBuilder } from 'discord.js';
 import { DiscordCommand } from '@utils/types';
-import botProvider from '../index';
+import { addUserRole } from '@/controllers/roles';
 
 export const command: DiscordCommand = {
-  data: new SlashCommandBuilder().setName('enlist').setDescription('Enlists a user into a role on this guild').addRoleOption((option) => option.setName('role').setDescription('The role to enlist the user into').setRequired(true)),
+  data: new SlashCommandBuilder()
+    .setName('enlist')
+    .setDescription('Enlists a user into a role on this guild')
+    .addRoleOption((option) =>
+      option.setName('role').setDescription('The role to enlist the user into').setRequired(true),
+    ),
   async execute(interaction) {
     let reply = 'Error adding you to this role.';
     const roleOption = interaction.options.get('role');
-
+    // TODO: check if user has role
     try {
-      const discordClient = (await botProvider).getDiscordClient();
-      await discordClient.addUserRole(interaction.user.id, interaction.guildId, roleOption.role.id)
+      await addUserRole(interaction.user.id, interaction.guildId, roleOption.role.id);
       reply = `Successfully added you to ${roleOption.role.name}`;
     } catch (error) {
       console.log(interaction);
@@ -27,8 +31,8 @@ export const command: DiscordCommand = {
     return {
       user: interaction.user.id,
       command: interaction.commandName,
-      args: interaction.options.data,
-      result: reply,
+      args: [...interaction.options.data],
+      reply: reply,
     };
   },
   usage: '/enlist <role>',

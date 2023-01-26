@@ -1,6 +1,6 @@
 import { Events, Interaction } from 'discord.js';
 import { DiscordEvent } from '@utils/types';
-import botProvider from '../index';
+import botProvider from '@/index';
 
 const interactionRouter = {
   chatInput: (interaction: Interaction) => interaction.isChatInputCommand(),

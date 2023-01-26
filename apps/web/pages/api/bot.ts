@@ -1,5 +1,5 @@
-import fetchJson from "@lib/fetch";
-import { Command, DiscordRoleData } from "shared/types";
+import fetchJson from '@lib/fetch';
+import { Command, DiscordRoleData } from 'shared/types';
 
 export async function fetchCommands() {
   const data = await fetchJson<Command[]>(`http://localhost:8000/bot/commands`, {
@@ -9,9 +9,8 @@ export async function fetchCommands() {
 }
 
 export async function fetchRoles(guildId: string) {
-  const data = await fetchJson<DiscordRoleData[]>(`http://localhost:8000/bot/roles?guildId=${guildId}`, {
+  const data = await fetchJson<DiscordRoleData[]>(`http://localhost:8000/guilds/${guildId}/roles`, {
     method: 'GET',
   });
-  console.log(data);
   return data;
 }

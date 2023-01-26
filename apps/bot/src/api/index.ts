@@ -1,14 +1,14 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
 import cors from 'cors';
-import AdminRouter from './adminRouter';
-import { CLIENT_URL, ENVIRONMENT, PORT } from '@config';
-import AuthRouter from './authRouter';
-import DiscordRouter from './discordRouter';
-import type { apiHandler, BotProvider } from '@utils/types';
-import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
-import BotRouter from './botRouter';
+import rateLimit from 'express-rate-limit';
+import AdminRouter from '@/api/adminRouter';
+import { CLIENT_URL, ENVIRONMENT, PORT } from '@config';
+import AuthRouter from '@/api/authRouter';
+import DiscordRouter from '@/api/discordRouter';
+import type { apiHandler, BotProvider } from '@/utils/types';
+import BotRouter from '@/api/botRouter';
 
 export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,

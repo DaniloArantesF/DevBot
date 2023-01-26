@@ -1,7 +1,7 @@
-import DiscordClient from './DiscordClient';
-import DataProvider from './DataProvider';
-import API from './api';
-import TaskManager from './TaskManager';
+import DiscordClient from '@/DiscordClient';
+import DataProvider from '@/DataProvider';
+import API from '@/api';
+import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@utils/types';
 
 async function Bot() {
@@ -35,12 +35,13 @@ async function Bot() {
 
   const discordClient = botProvider.getService('discordClient') as DiscordClient;
 
-  discordClient.on('ready', async () => {
-    const guildRepository = (await botProvider.getDataProvider()).guild;
-    guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
+  return new Promise<BotProvider>((resolve) => {
+    discordClient.on('ready', async () => {
+      const guildRepository = (await botProvider.getDataProvider()).guild;
+      guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
+      resolve(botProvider);
+    });
   });
-
-  return botProvider;
 }
 
 console.clear();

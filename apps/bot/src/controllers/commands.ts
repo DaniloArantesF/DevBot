@@ -4,7 +4,7 @@ import { TOKEN, CLIENT_ID } from '@config';
 import { DiscordCommand } from '@utils/types';
 import fs from 'fs';
 
-export function getCommands(all = false) {
+export async function getCommands(all = false) {
   const commands: DiscordCommand[] = [];
   const commandFiles = fs
     .readdirSync(process.env.NODE_ENV === 'prod' ? 'dist/commands' : 'src/commands/')
@@ -12,8 +12,7 @@ export function getCommands(all = false) {
 
   for (const file of commandFiles) {
     if (file === 'index.ts') continue;
-
-    const command = require(`@commands/${file}`); //TODO: double check NODE_ENV
+    const command = await import(`@commands/${file}`);
     const slashCommand = command.command;
     const contextCommand = command.contextCommand;
 
@@ -47,12 +46,12 @@ export async function setSlashCommands(commands: DiscordCommand[], guildId?: str
 }
 
 export async function registerGlobalSlashCommands() {
-  let commands = getCommands(true);
+  let commands = await getCommands(true);
   return await setSlashCommands(commands);
 }
 
 export async function registerGuildSlashCommands(guildId: string) {
-  let commands = getCommands(true);
+  let commands = await getCommands(true);
   return await setSlashCommands(commands, guildId);
 }
 

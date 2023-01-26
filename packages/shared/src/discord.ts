@@ -1,7 +1,12 @@
 /*     Discord Data Types     */
-import type { SlashCommandBuilder, CommandInteraction, RoleData } from 'discord.js';
+import type {
+  SlashCommandBuilder,
+  CommandInteraction,
+  RoleData,
+  CommandInteractionOption,
+} from 'discord.js';
 
-export interface DiscordRoleData extends RoleData { };
+export interface DiscordRoleData extends RoleData {}
 
 // Type containing data for a command
 export type Command = Omit<DiscordCommand, 'execute'>;
@@ -10,16 +15,27 @@ export type Command = Omit<DiscordCommand, 'execute'>;
 export type DiscordCommandData = Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> &
   Partial<SlashCommandBuilder>;
 
-  // TODO: add other command types e.g. context
+export interface CommandCacheData {
+  user: string;
+  command: string;
+  args: string[] | CommandInteractionOption[];
+  reply: string;
+}
+
+export interface RequestCacheData {
+  id: string;
+  data: string; // stringified data sent to user
+}
+
+// TODO: add other command types e.g. context
 export interface DiscordCommand {
   aliases?: string[];
   args?: boolean;
   data: DiscordCommandData;
-  execute: (interaction: CommandInteraction) => Promise<any>;
+  execute: (interaction: CommandInteraction) => Promise<void | CommandCacheData>;
   permissions?: string[];
   usage?: string;
 }
-
 
 // Generally returned by APIs and used to store data
 // Discord returns snake_case, map to camelCase because this is the way?

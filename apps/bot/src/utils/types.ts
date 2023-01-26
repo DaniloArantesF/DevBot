@@ -1,13 +1,10 @@
-import type API from '../api/index';
-import type DataProvider from '../DataProvider';
-import type TaskManager from '../TaskManager';
-import type DiscordClient from '../DiscordClient';
+import type API from '@/api/index';
+import type DataProvider from '@/DataProvider';
+import type TaskManager from '@/TaskManager';
+import type DiscordClient from '@/DiscordClient';
 import type { VoiceConnection } from '@discordjs/voice';
 import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
-
-// Shared types
-export * from 'shared/types';
 
 export interface BotProvider {
   services: Partial<{
@@ -57,3 +54,6 @@ export interface ModelRepository<I, O> {
 }
 
 export type RepositoryBuilder = (client: Client) => Promise<Partial<ModelRepository<any, any>>>;
+
+// Shared types
+export * from 'shared/types';

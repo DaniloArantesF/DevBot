@@ -1,7 +1,7 @@
-// Delists a user into a guild role
+// Delists a user from a guild role
 import { SlashCommandBuilder } from 'discord.js';
-import { DiscordCommand } from '@utils/types';
-import botProvider from '../index';
+import { DiscordCommand } from '@/utils/types';
+import { removeUserRole } from '@/controllers/roles';
 
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder()
@@ -13,15 +13,9 @@ export const command: DiscordCommand = {
   async execute(interaction) {
     let reply = 'Error removing you from this role.';
     const roleOption = interaction.options.get('role');
-
+    // TODO: check if user has role
     try {
-      const discordClient = (await botProvider).getDiscordClient();
-      await discordClient.removeUserRole(
-        interaction.user.id,
-        interaction.guildId,
-        roleOption.role.id,
-      );
-
+      await removeUserRole(interaction.user.id, interaction.guildId, roleOption.role.id);
       reply = `Successfully removed you from ${roleOption.role.name}`;
     } catch (error) {
       console.log(interaction);
@@ -37,8 +31,8 @@ export const command: DiscordCommand = {
     return {
       user: interaction.user.id,
       command: interaction.commandName,
-      args: interaction.options.data,
-      result: reply,
+      args: [...interaction.options.data],
+      reply: reply,
     };
   },
   usage: '/delist <role>',

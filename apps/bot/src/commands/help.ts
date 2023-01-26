@@ -1,6 +1,6 @@
-import { DiscordCommand } from '@utils/types';
+import { DiscordCommand } from '@/utils/types';
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { getCommands } from '../commands';
+import { getCommands } from '@/controllers/commands';
 
 // Builds the full help embed
 const HelpEmbed = (commandsData: DiscordCommand[]) => {
@@ -43,8 +43,8 @@ export const command: DiscordCommand = {
       option.setName('command').setDescription('The command to get help for').setRequired(false),
     ),
   async execute(interaction) {
-    const arg = interaction.options.get('command', false); // getString type error ?
-    const commandsData = getCommands(); // TODO: store this somewhere else
+    const arg = interaction.options.get('command', false);
+    const commandsData = await getCommands();
 
     let reply = { embeds: [HelpEmbed(commandsData)] };
     if (arg) {
@@ -63,8 +63,8 @@ export const command: DiscordCommand = {
     return {
       user: interaction.user.id,
       command: interaction.commandName,
-      args: interaction.options.data,
-      result: 'Success',
+      args: [...interaction.options.data],
+      reply: 'Success',
     };
   },
   usage: '/help <command?>',
