@@ -14,8 +14,6 @@ export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,
 ) => express.Router;
 
-// TODO: improve API error handling
-
 /**
  * API
  * @param provider BotProvider
@@ -24,6 +22,7 @@ function API(provider: BotProvider) {
   const api = express();
   const server = http.createServer(api);
   const rootRouter = express.Router();
+  const apiController = provider.getTaskManager().apiController;
 
   function setupRoutes() {
     api.use('/', rootRouter);
@@ -61,7 +60,7 @@ function API(provider: BotProvider) {
   }
 
   function pushRequest(req: Request, execute: apiHandler) {
-    provider.getService('taskManager').addApiRequest({
+    apiController.addTask({
       id: `API:${req.originalUrl}@${Date.now()}`,
       execute,
     });

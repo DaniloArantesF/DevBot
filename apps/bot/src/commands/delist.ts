@@ -1,7 +1,7 @@
 // Delists a user from a guild role
 import { SlashCommandBuilder } from 'discord.js';
 import { DiscordCommand } from '@/utils/types';
-import { removeUserRole } from '@/controllers/roles';
+import { removeUserRole } from '@/tasks/roles';
 
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder()

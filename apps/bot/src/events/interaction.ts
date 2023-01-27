@@ -7,7 +7,7 @@ const interactionRouter = {
   contextMenu: (interaction: Interaction) => interaction.isContextMenuCommand(),
 };
 
-export const event: DiscordEvent<Events.InteractionCreate> = {
+export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
   name: Events.InteractionCreate,
   async on(interaction) {
     if (interaction.isRepliable()) {
@@ -15,7 +15,10 @@ export const event: DiscordEvent<Events.InteractionCreate> = {
       await interaction.deferReply();
     }
 
-    // Push interactions to task queue
-    (await botProvider).getService('taskManager').addCommandInteraction(interaction);
+    if (interaction.isChatInputCommand()) {
+      // Push interactions to task queue
+      (await botProvider).getTaskManager().commandController.addTask(interaction);
+    }
+    // TODO: other commands types
   },
 };

@@ -1,6 +1,6 @@
 import { DiscordCommand } from '@/utils/types';
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { getCommands } from '@/controllers/commands';
+import { getCommands } from '@/tasks/commands';
 
 // Builds the full help embed
 const HelpEmbed = (commandsData: DiscordCommand[]) => {

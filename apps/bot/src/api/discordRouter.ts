@@ -3,12 +3,12 @@ import { DISCORD_API_BASE_URL } from '@/utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '@/DiscordClient';
 import type { GuildData, UserData } from '@/utils/types';
-import { APIRouter } from '.';
-import { getGuild } from '@/controllers/guild';
-import { getGuildRoles } from '@/controllers/roles';
+import { APIRouter } from '@/api';
+import { getGuild } from '@/tasks/guild';
+import { getGuildRoles } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
-import { getGuildChannels } from '@/controllers/channels';
-import { RequestLog } from '@/controllers/logs';
+import { getGuildChannels } from '@/tasks/channels';
+import { RequestLog } from '@/tasks/logs';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();

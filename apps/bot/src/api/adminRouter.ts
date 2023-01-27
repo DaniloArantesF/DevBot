@@ -5,8 +5,8 @@ import {
   registerGuildSlashCommands,
   deleteGlobalSlashCommands,
   deleteGuildSlashCommands,
-} from '@/controllers/commands';
-import { RequestLog } from '@/controllers/logs';
+} from '@/tasks/commands';
+import { RequestLog } from '@/tasks/logs';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();

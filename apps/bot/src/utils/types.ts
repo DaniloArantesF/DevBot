@@ -7,6 +7,7 @@ import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
 import type { EventCacheData } from '@/utils/types';
 import type { RequestCacheData } from 'shared/types';
+import type Queue from 'bee-queue';
 
 export interface BotProvider {
   services: Partial<{
@@ -31,11 +32,21 @@ export interface DiscordConnection {
 
 export interface DiscordEvent<K extends keyof ClientEvents = any> {
   name: K;
+  active?: boolean;
+
   on?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
   once?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
 }
 
 /*     TaskManager Types     */
+export interface Controller<T, E> {
+  queue: Queue<T>;
+  taskMap: Map<string, E>;
+  addTask: (...args: any) => Promise<Queue.Job<T>>;
+  processTasks: (...args: any) => void;
+  removeTask(id: string): Promise<void>;
+}
+
 export interface QueueTaskData {
   id: string;
   result?: string;

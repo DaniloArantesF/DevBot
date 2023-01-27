@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { getCommands } from '@/controllers/commands';
+import { getCommands } from '@/tasks/commands';
 import { APIRouter } from '@/api';
-import { RequestLog } from '@/controllers/logs';
+import { RequestLog } from '@/tasks/logs';
 
 const BotRouter: APIRouter = (pushRequest) => {
   const router = Router();

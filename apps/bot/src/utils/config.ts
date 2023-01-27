@@ -18,11 +18,17 @@ export const INTENTS = [
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.GuildScheduledEvents,
 
   // Privileged intents
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildPresences,
   GatewayIntentBits.MessageContent,
+
+  // Moderation
+  GatewayIntentBits.GuildBans,
+  GatewayIntentBits.AutoModerationConfiguration,
+  GatewayIntentBits.AutoModerationExecution,
 
   // Direct messages
   GatewayIntentBits.DirectMessages,

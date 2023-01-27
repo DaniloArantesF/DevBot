@@ -19,7 +19,7 @@
       "@api/*": ["src/api/*"],
       "@config": ["src/utils/config.ts"],
       "@models/*": ["src/models/*"],
-      "@controllers/*": ["src/controllers/*"]
+      "@controllers/*": ["src/tasks/*"]
     },
     "types": ["vitest/globals"]
   },

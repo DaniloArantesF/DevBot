@@ -1,6 +1,6 @@
 import { Client, Collection } from 'discord.js';
-import { getCommands } from '@/controllers/commands';
-import { getEvents } from '@/events';
+import { getCommands } from '@/tasks/commands';
+import { getEvents } from '@/tasks/event';
 import { TOKEN, INTENTS as intents } from '@config';
 import type { BotProvider, DiscordCommand, DiscordConnection, DiscordEvent } from '@/utils/types';
 
@@ -31,15 +31,16 @@ class DiscordClient extends Client {
   async registerEvents() {
     const events = await getEvents();
     const taskManager = this.provider.getTaskManager();
+    const eventController = taskManager.eventController;
     events.forEach((event) => {
       this.events.set(event.name, event);
       if (event.on) {
         this.on(event.name, async (...args) => {
-          await taskManager.addEvent(event, args);
+          await eventController.addTask(event, args);
         });
       } else {
         this.once(event.name, async (...args) => {
-          await taskManager.addEvent(event, args);
+          await eventController.addTask(event, args);
         });
       }
     });

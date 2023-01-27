@@ -1,4 +1,4 @@
-import { getGuild } from '@/controllers/guild';
+import { getGuild } from '@/tasks/guild';
 
 // Returns all channels of a guild
 export async function getGuildChannels(guildId: string) {

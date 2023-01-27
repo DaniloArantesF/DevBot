@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
 import type { ApiAuthResponse, DiscordAuthResponse } from '@/utils/types';
 import { APIRouter } from '@/api';
-import { RequestLog } from '@/controllers/logs';
+import { RequestLog } from '@/tasks/logs';
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();

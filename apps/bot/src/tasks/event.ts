@@ -29,9 +29,14 @@ export async function getEvents() {
   eventFiles = eventFiles.filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
 
   for (const file of eventFiles) {
-    const event = (await import(`./${file}`)).event;
-    if (!event?.name || file.match(/index\.(ts|js)/)) continue;
-    events.push(event);
+    const exports = await import(`@/events/${file}`);
+
+    // Add all exported events
+    for (const eventName in exports) {
+      const event = exports[eventName];
+      if (!event?.name || file.match(/index\.(ts|js)/)) continue;
+      events.push(event);
+    }
   }
 
   return events;

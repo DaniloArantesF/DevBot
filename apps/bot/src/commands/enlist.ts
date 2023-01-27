@@ -1,7 +1,7 @@
 // Enlists a user into a guild role
 import { SlashCommandBuilder } from 'discord.js';
 import { DiscordCommand } from '@utils/types';
-import { addUserRole } from '@/controllers/roles';
+import { addUserRole } from '@/tasks/roles';
 
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder()
