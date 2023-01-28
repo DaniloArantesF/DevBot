@@ -18,7 +18,10 @@
         "DISCORD_CLIENT_ID",
         "DISCORD_CLIENT_SECRET",
         "DISCORD_GUILD_ID",
-        "DISCORD_TEST_GUILD_ID"
+        "DISCORD_TEST_GUILD_ID",
+        "TWITTER_API_KEY",
+        "TWITTER_KEY_SECRET",
+        "TWITTER_BEARER_TOKEN"
       ]
     },
     "web#build": {

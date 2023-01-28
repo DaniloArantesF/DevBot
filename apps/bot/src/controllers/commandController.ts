@@ -5,13 +5,11 @@ import Queue from 'bee-queue';
 import { ChatInputCommandInteraction } from 'discord.js';
 
 class CommandController implements Controller<QueueTaskData, ChatInputCommandInteraction> {
-  queue: Queue<QueueTaskData>;
-  taskMap: Map<string, ChatInputCommandInteraction>;
+  queue = new Queue<QueueTaskData>('command-queue', queueSettings);
+  taskMap = new Map<string, ChatInputCommandInteraction>();
 
-  constructor() {
-    this.queue = new Queue<QueueTaskData>('command-queue', queueSettings);
-    this.taskMap = new Map<string, ChatInputCommandInteraction>();
-  }
+  constructor() {}
+
   async addTask(interaction: ChatInputCommandInteraction) {
     const job = this.queue.createJob({ id: interaction.id });
     await job.timeout(2000).retries(2).save();

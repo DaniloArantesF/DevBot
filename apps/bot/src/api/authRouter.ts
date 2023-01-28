@@ -39,7 +39,8 @@ const AuthRouter: APIRouter = (pushRequest) => {
               code,
               grant_type: 'authorization_code',
               redirect_uri: `${CLIENT_URL}/login`,
-              scope: 'identify',
+              scope:
+                'identify connections activities.read applications.commands.permissions.update guilds guilds.members.read applications.commands role_connections.write',
             }),
           })
         ).json();

@@ -4,13 +4,11 @@ import { Controller, DiscordEvent, EventTask, QueueTaskData } from '@/utils/type
 import Queue from 'bee-queue';
 
 class EventController implements Controller<QueueTaskData, EventTask> {
-  queue: Queue<QueueTaskData>;
-  taskMap: Map<string, EventTask>;
+  queue = new Queue<QueueTaskData>('event-queue', queueSettings);
+  taskMap = new Map<string, EventTask>();
 
-  constructor() {
-    this.queue = new Queue<QueueTaskData>('event-queue', queueSettings);
-    this.taskMap = new Map<string, EventTask>();
-  }
+  constructor() {}
+
   async addTask(event: DiscordEvent, args: any[] = []) {
     const job = this.queue.createJob({ id: `${Date.now()}${event.name}` });
     await job.timeout(2000).retries(2).save();

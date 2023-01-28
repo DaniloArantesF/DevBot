@@ -2,13 +2,16 @@ import { Router, Request, Response } from 'express';
 import { DISCORD_API_BASE_URL } from '@/utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '@/DiscordClient';
-import type { GuildData, UserData } from '@/utils/types';
+import type { GuildData, UserConnectionData, UserData } from '@/utils/types';
 import { APIRouter } from '@/api';
 import { getGuild } from '@/tasks/guild';
 import { getGuildRoles } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
 import { getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
+import { APIConnection } from 'discord.js';
+
+// TODO: properly handle errors from Discord API
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -41,6 +44,58 @@ const DiscordRouter: APIRouter = (pushRequest) => {
         ).json()) as UserData;
         res.status(200).send(data);
         return RequestLog('get', req.url, 200, data);
+      } catch (error) {
+        console.error(`Error `, error);
+        res.status(500).send(error);
+        return RequestLog('get', req.url, 500, null, error);
+      }
+    }
+
+    // Push to request queue
+    pushRequest(req, handler);
+  });
+
+  /**
+   * Fetches user connections data from Discord
+   *
+   * @route GET /api/discord/user/connections
+   * @apiparam {string} token
+   * @apiresponse {200} UserConnectionData[]
+   * @apiresponse {401} Unauthorized
+   * @apiresponse {500}
+   */
+  router.get('/user/connections', async (req: Request, res: Response) => {
+    async function handler() {
+      const token = req.query.token as string;
+      if (!token) {
+        res.sendStatus(401);
+        return RequestLog('get', req.url, 401, 'No token provided');
+      }
+
+      try {
+        const data = (await (
+          await fetch(`${DISCORD_API_BASE_URL}/users/@me/connections`, {
+            method: 'GET',
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          })
+        ).json()) as APIConnection[];
+
+        const payload = data.map(
+          ({ id, type, name, visibility, verified, friend_sync, show_activity }) =>
+            ({
+              id,
+              type,
+              name,
+              visibility,
+              verified,
+              friendSync: friend_sync,
+              showActivity: show_activity,
+            } as UserConnectionData),
+        );
+        res.status(200).send(payload);
+        return RequestLog('get', req.url, 200, payload);
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);

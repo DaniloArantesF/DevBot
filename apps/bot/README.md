@@ -15,7 +15,7 @@
 
 ### API
 
-- [ ] Secure client sessions w/ cookies
+- [x] Secure client sessions w/ cookies
 
 ### Discord
 
@@ -27,7 +27,7 @@
 
 - [ ] Throttling and cooldown
 - [ ] Save and load config and state from storage
-- [ ] Save task results to storage and log interactions
+- [x] Save task results to storage and log interactions
 - [ ] Implement caching strategy at some level
 
 ---

@@ -104,6 +104,16 @@ export type UserData = Omit<
   publicFlags: number;
 };
 
+export interface UserConnectionData {
+  id: string;
+  type: string;
+  name: string;
+  visibility: number;
+  friendSync: boolean;
+  showActivity: boolean;
+  verified: boolean;
+}
+
 export interface GuildDiscordData {
   allowed?: boolean;
   id: string;

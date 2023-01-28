@@ -41,3 +41,9 @@ export async function getEvents() {
 
   return events;
 }
+
+export async function getScheduledEvents(userId: string) {}
+
+export async function getUserScheduledEvents(userId: string) {}
+
+export async function getGuildScheduledEvents() {}

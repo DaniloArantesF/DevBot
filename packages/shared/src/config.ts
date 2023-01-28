@@ -17,4 +17,5 @@ export const redirectURI = encodeURIComponent(`${CLIENT_URL}/login`);
 // Discord configuration
 export const PREFIX = '!';
 export const DISCORD_API_BASE_URL = 'https://discord.com/api';
-export const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&permissions=8&redirect_uri=${redirectURI}&response_type=code&scope=identify%20guilds`;
+export const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=${redirectURI}&response_type=code&scope=identify%20connections%20guilds`;
+// https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code&scope=identify%20connections%20guilds%20activities.read%20applications.commands%20applications.commands.permissions.update%20guilds.members.read%20role_connections.write

@@ -5,13 +5,10 @@ import { ApiTask, Controller, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
 
 class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
-  queue: Queue<QueueTaskData>;
-  taskMap: Map<string, ApiTask['execute']>;
+  queue = new Queue<QueueTaskData>('api-queue', queueSettings);
+  taskMap = new Map<string, ApiTask['execute']>();
 
-  constructor() {
-    this.queue = new Queue<QueueTaskData>('api-queue', queueSettings);
-    this.taskMap = new Map<string, ApiTask['execute']>();
-  }
+  constructor() {}
 
   async addTask({ id, execute }: ApiTask) {
     const job = this.queue.createJob({ id });
