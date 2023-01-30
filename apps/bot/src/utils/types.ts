@@ -17,6 +17,7 @@ export interface BotProvider {
     dataProvider: typeof DataProvider;
     taskManager: typeof TaskManager;
   }>;
+  userCooldown: Map<string, number>;
   addService: (name: string, service: any) => void;
   getService: (name: string) => any;
   getDiscordClient: () => DiscordClient;

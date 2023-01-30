@@ -17,7 +17,7 @@
   width: var(--item-size);
   height: var(--item-size);
   border-radius: 100%;
-  box-shadow: 0 0px 0 1px var(--blackA10);
+  /* box-shadow: 0 0px 0 1px var(--blackA10); */
   user-select: none;
   display: flex;
   align-items: center;
@@ -32,7 +32,7 @@
 }
 
 .item:focus {
-  box-shadow: 0 0 0 1px black;
+  /* box-shadow: 0 0 0 1px black; */
 }
 
 .indicator {

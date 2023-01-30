@@ -1,4 +1,5 @@
 import botProvider from '../index';
+import { Role } from 'discord.js';
 
 export async function getUserRoles(userId: string, guildId: string) {
   const client = (await botProvider).getDiscordClient();
@@ -39,7 +40,7 @@ export async function removeUserRole(userId: string, guildId: string, roleId: st
 export async function getGuildRole(guildId: string, roleId?: string, roleName?: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  if (roleName) return guild.roles.cache.find((role) => role.name === roleName).toJSON();
+  if (roleName) return guild.roles.cache.find((role) => role.name === roleName);
   return guild.roles.cache.get(roleId);
 }
 

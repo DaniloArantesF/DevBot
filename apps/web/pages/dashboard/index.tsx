@@ -37,31 +37,14 @@ function Dashboard({ user, guilds, commands }: DashboardProps) {
   return (
     <DashboardLayout title={''} user={user} guilds={guilds} commands={commands}>
       <Widget className={classes.header} title={''}>
-        Hello {user.username}
+        <h2>
+          Hello <span>{user.username}</span>
+        </h2>
       </Widget>
 
-      <Widget title={'Server logs'}>
-        {[...Array(20)].map((_, i) => (
-          <Card key={i} title={`Guild ${i}`}>
-            {`Log ${i}`}
-          </Card>
-        ))}
-      </Widget>
+      <Widget title={'Scheduled Events'}></Widget>
 
-      <Widget title={'Managed Guilds'}>
-        {guilds
-          .filter((g) => g.allowed)
-          .map((g, i) => (
-            <Card key={i} title={`Guild ${i}`}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <AvatarIcon alt={g.name} src={getDiscordAvatar('guild', g.id, g.icon)} />
-                <div>
-                  <p>{g.name}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-      </Widget>
+      <Widget title={'Managed Guilds'}></Widget>
     </DashboardLayout>
   );
 }

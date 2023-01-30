@@ -7,6 +7,7 @@ import type { BotProvider } from '@utils/types';
 async function Bot() {
   const botProvider: BotProvider = {
     services: {},
+    userCooldown: new Map(),
     addService(name, service) {
       this.services[name] = service;
     },

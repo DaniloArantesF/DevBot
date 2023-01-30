@@ -8,6 +8,7 @@ import Twitter from '@/controllers/services/twitter';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',
+  activateDelayedJobs: true,
 };
 
 /**

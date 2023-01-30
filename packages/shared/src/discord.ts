@@ -2,6 +2,7 @@
 import type {
   SlashCommandBuilder,
   CommandInteraction,
+  Message,
   RoleData,
   CommandInteractionOption,
 } from 'discord.js';
@@ -46,7 +47,7 @@ export interface DiscordCommand {
   aliases?: string[];
   args?: boolean;
   data: DiscordCommandData;
-  execute: (interaction: CommandInteraction) => Promise<void | CommandCacheData>;
+  execute: (interaction: CommandInteraction | Message) => Promise<void | CommandCacheData>;
   permissions?: string[];
   usage?: string;
 }

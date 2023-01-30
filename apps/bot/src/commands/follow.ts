@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, ContextMenuCommandBuilder, ApplicationCommandType } from 'discord.js';
 import { DiscordCommand } from '@/utils/types';
+import { replyInteraction } from '@/tasks/commands';
 
 export const contextCommand = new ContextMenuCommandBuilder()
   .setName('follow')
@@ -9,19 +10,14 @@ export const command: DiscordCommand = {
   data: new SlashCommandBuilder().setName('follow').setDescription('Follows a user'),
   async execute(interaction) {
     const reply = 'TODO';
-
-    if (interaction.deferred) {
-      await interaction.editReply(reply);
-    } else {
-      await interaction.reply(reply);
-    }
+    await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.user.id,
+      user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: interaction.commandName,
-      args: [...interaction.options.data],
+      command: (this.data.name as string) ?? '',
+      args: [],
       reply: reply,
     };
   },

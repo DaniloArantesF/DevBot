@@ -1,7 +1,8 @@
 // Delists a user from a guild role
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, Message } from 'discord.js';
 import { DiscordCommand } from '@/utils/types';
-import { removeUserRole } from '@/tasks/roles';
+import { getGuildRole, removeUserRole } from '@/tasks/roles';
+import { replyInteraction } from '@/tasks/commands';
 
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder()
@@ -12,28 +13,39 @@ export const command: DiscordCommand = {
     ),
   async execute(interaction) {
     let reply = 'Error removing you from this role.';
-    const roleOption = interaction.options.get('role');
+    let role = null;
+    const isMessage = interaction instanceof Message;
+
+    if (isMessage) {
+      role = interaction.mentions.roles.first();
+    } else {
+      role = interaction.options.get('role').role;
+    }
+
+    // Role not found
+    if (!role) {
+      reply = 'Inexistent or invalid role option.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
+
     // TODO: check if user has role
     try {
-      await removeUserRole(interaction.user.id, interaction.guildId, roleOption.role.id);
-      reply = `Successfully removed you from ${roleOption.role.name}`;
+      await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      reply = `Successfully removed you from ${role.name}`;
     } catch (error) {
       console.log(interaction);
       console.log(error);
     }
 
-    if (interaction.deferred) {
-      await interaction.editReply(reply);
-    } else {
-      await interaction.reply(reply);
-    }
+    await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.user.id,
+      user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: interaction.commandName,
-      args: [...interaction.options.data],
+      command: (this.data.name as string) ?? '',
+      args: isMessage ? [role.name] : [...interaction.options.data],
       reply: reply,
     };
   },

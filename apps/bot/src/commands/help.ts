@@ -1,6 +1,6 @@
 import { DiscordCommand } from '@/utils/types';
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { getCommands } from '@/tasks/commands';
+import { SlashCommandBuilder, EmbedBuilder, Message } from 'discord.js';
+import { getCommands, replyInteraction } from '@/tasks/commands';
 
 // Builds the full help embed
 const HelpEmbed = (commandsData: DiscordCommand[]) => {
@@ -43,29 +43,33 @@ export const command: DiscordCommand = {
       option.setName('command').setDescription('The command to get help for').setRequired(false),
     ),
   async execute(interaction) {
-    const arg = interaction.options.get('command', false);
+    const isMessage = interaction instanceof Message;
     const commandsData = await getCommands();
 
+    const arg = isMessage
+      ? interaction.content.split(' ')[1]
+      : interaction.options.get('command', false)?.value;
     let reply = { embeds: [HelpEmbed(commandsData)] };
+    let command = null;
+
     if (arg) {
-      const command = commandsData.find(
-        (c) => c.data.name === arg.value || c.aliases?.includes(arg.value as string),
-      );
+      command = commandsData.find((c) => c.data.name === arg || c.aliases?.includes(arg as string));
+
+      if (!command) {
+        await replyInteraction(interaction, `Command ${arg} not found`);
+        return;
+      }
       reply = { embeds: [CommandHelpEmbed(command)] };
     }
 
-    if (interaction.deferred) {
-      await interaction.editReply(reply);
-    } else {
-      await interaction.reply(reply);
-    }
+    await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.user.id,
+      user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: interaction.commandName,
-      args: [...interaction.options.data],
+      command: (this.data.name as string) ?? '',
+      args: command ? [command.data.name] : [],
       reply: 'Success',
     };
   },
