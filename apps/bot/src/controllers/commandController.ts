@@ -1,16 +1,24 @@
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
-import { Controller, DiscordCommand, QueueTaskData } from '@/utils/types';
+import { Controller, DiscordCommand, DiscordCommandHandler, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
-import { ChatInputCommandInteraction, Message, MessageType } from 'discord.js';
-// TODO: change this later
+import {
+  ChatInputCommandInteraction,
+  Message,
+  MessageComponentInteraction,
+  ContextMenuCommandInteraction,
+} from 'discord.js';
 import botProvider from '@/index';
 import { BOT_CONFIG } from 'shared/config';
 
 const COOLDOWN_MS = BOT_CONFIG.cooldownMs;
 const PREFIX = BOT_CONFIG.prefix;
 
-type CommandInteraction = ChatInputCommandInteraction | Message;
+export type CommandInteraction =
+  | ChatInputCommandInteraction
+  | Message
+  | MessageComponentInteraction
+  | ContextMenuCommandInteraction;
 
 class CommandController implements Controller<QueueTaskData, CommandInteraction> {
   queue = new Queue<QueueTaskData>('command-queue', queueSettings);
@@ -49,7 +57,9 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
       const interaction = this.taskMap.get(job.id);
       if (!interaction) return;
 
-      let command = null;
+      let command: DiscordCommand;
+      let execute: DiscordCommandHandler;
+
       if (interaction instanceof Message) {
         const commandToken = interaction.content
           .split(' ')[0]
@@ -61,12 +71,27 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
           // Check aliases
           command = [...commands.values()].find((c) => c.aliases?.includes(commandToken));
         }
+        execute = command?.messageHandler;
+      } else if (interaction.isButton() || interaction.isMessageComponent()) {
+        const commandToken = interaction.customId.split(':')[0];
+        command = commands.get(commandToken);
+        execute = command?.buttonHandler;
       } else {
         command = commands.get(interaction.commandName);
+        execute = command.execute;
       }
 
-      if (!command) return;
-      const data = await command.execute(interaction);
+      if (!command || !execute) return;
+
+      let data;
+
+      try {
+        data = await execute(interaction as any); //??
+      } catch (error) {
+        console.log(error);
+        data = error;
+      }
+
       if (data) {
         job.data.result = stringifyCircular(data);
       }

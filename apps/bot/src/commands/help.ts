@@ -1,5 +1,5 @@
 import { DiscordCommand } from '@/utils/types';
-import { SlashCommandBuilder, EmbedBuilder, Message } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { getCommands, replyInteraction } from '@/tasks/commands';
 
 // Builds the full help embed
@@ -42,13 +42,38 @@ export const command: DiscordCommand = {
     .addStringOption((option) =>
       option.setName('command').setDescription('The command to get help for').setRequired(false),
     ),
+  async messageHandler(interaction) {
+    const commandsData = await getCommands();
+    const arg = interaction.content.split(' ')[1];
+
+    let reply = { embeds: [HelpEmbed(commandsData)] };
+    let command = null;
+    if (arg) {
+      command = commandsData.find((c) => c.data.name === arg || c.aliases?.includes(arg as string));
+
+      if (!command) {
+        await replyInteraction(interaction, `Command ${arg} not found`);
+        return;
+      }
+      reply = { embeds: [CommandHelpEmbed(command)] };
+    }
+
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'help',
+      args: command ? [command.data?.name] : [],
+      reply: 'Success',
+    };
+  },
   async execute(interaction) {
-    const isMessage = interaction instanceof Message;
     const commandsData = await getCommands();
 
-    const arg = isMessage
-      ? interaction.content.split(' ')[1]
-      : interaction.options.get('command', false)?.value;
+    const arg = interaction.options.get('command', false)?.value;
+
     let reply = { embeds: [HelpEmbed(commandsData)] };
     let command = null;
 
@@ -68,7 +93,7 @@ export const command: DiscordCommand = {
       user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: (this.data.name as string) ?? '',
+      command: 'help',
       args: command ? [command.data.name] : [],
       reply: 'Success',
     };

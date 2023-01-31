@@ -11,16 +11,39 @@ export const command: DiscordCommand = {
     .addRoleOption((option) =>
       option.setName('role').setDescription('The role to delist the user from').setRequired(true),
     ),
+  async messageHandler(interaction) {
+    let reply = 'Error removing you from this role.';
+    const role = interaction.mentions.roles.first();
+
+    // Role not found
+    if (!role) {
+      reply = 'Inexistent or invalid role option.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
+
+    try {
+      await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      reply = `Successfully removed you from ${role.name}`;
+    } catch (error) {
+      console.log(interaction);
+      console.log(error);
+    }
+
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'enlist',
+      args: [role.name],
+      reply: reply,
+    };
+  },
   async execute(interaction) {
     let reply = 'Error removing you from this role.';
-    let role = null;
-    const isMessage = interaction instanceof Message;
-
-    if (isMessage) {
-      role = interaction.mentions.roles.first();
-    } else {
-      role = interaction.options.get('role').role;
-    }
+    let role = interaction.options.get('role').role;
 
     // Role not found
     if (!role) {
@@ -45,7 +68,7 @@ export const command: DiscordCommand = {
       guild: interaction.guildId,
       channel: interaction.channelId,
       command: (this.data.name as string) ?? '',
-      args: isMessage ? [role.name] : [...interaction.options.data],
+      args: [...interaction.options.data],
       reply: reply,
     };
   },

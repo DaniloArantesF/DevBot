@@ -7,6 +7,7 @@ import {
   deleteGuildSlashCommands,
 } from '@/tasks/commands';
 import { RequestLog } from '@/tasks/logs';
+import { setRolesMessage } from '@/tasks/roles';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -64,6 +65,39 @@ const AdminRouter: APIRouter = (pushRequest) => {
         return RequestLog('post', req.url, 200, data);
       } catch (error) {
         console.error('Error purging slash commands: ', error);
+        res.status(500).send(error);
+        return RequestLog('post', req.url, 500, null, error);
+      }
+    }
+
+    pushRequest(req, handler);
+  });
+
+  /**
+   * Sets or updates the roles message for a guild
+   *
+   * @route POST /api/admin/roles/message
+   * @apiparam {string} guildId
+   * @apiresponse {200}
+   * @apiresponse {400} Missing guildId or channelId
+   * @apiresponse {500}
+   */
+  router.post('/roles/message', async (req: Request, res: Response) => {
+    async function handler() {
+      const guildId = req.body?.guildId;
+      const channelId = req.body?.channelId;
+
+      if (!guildId || !channelId) {
+        res.status(400).send('Missing guildId or channelId');
+        return RequestLog('post', req.url, 400, null, 'Missing guildId or channelId');
+      }
+
+      try {
+        const data = await setRolesMessage(guildId, channelId);
+        res.sendStatus(200);
+        return RequestLog('post', req.url, 200, data);
+      } catch (error) {
+        console.error('Error setting roles message', error);
         res.status(500).send(error);
         return RequestLog('post', req.url, 500, null, error);
       }

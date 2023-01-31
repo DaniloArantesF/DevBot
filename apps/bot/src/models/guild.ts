@@ -1,82 +1,46 @@
-import discord, { RoleData } from 'discord.js';
+import discord from 'discord.js';
 import { Entity, Schema, Client } from 'redis-om';
 
-interface GuildChannelJSON {
-  type: number;
-  guild?: string;
-  guildId: string;
-  parentId: null | string;
-  permissionOverwrites: string[];
-  messages: string[];
-  threads: string[];
-  nsfw: boolean;
-  flags: number;
+interface GuildCacheData {
   id: string;
-  name: string;
-  rawPosition: number;
-  topic: null | string;
-  lastMessageId: string | null;
-  rateLimitPerUser: number;
-  createdTimestamp: number;
-}
-
-interface GuildDataItem {
-  id: string;
-  announcementsChannelId?: string;
-  rolesChannelId?: string;
-  eventsChannelId?: string;
-  channels: GuildChannelJSON[];
-  roles: RoleData[];
+  rolesChannelId: string;
+  rolesMessageId: string;
 }
 
 // Needed for types with redis-om
-interface GuildCache {
-  guilds: string[];
-}
-
+interface GuildCache extends GuildCacheData {}
 class GuildCache extends Entity {}
 const schema = new Schema(
   GuildCache,
   {
-    guilds: { type: 'string[]' },
+    id: { type: 'string' },
+    rolesChannelId: { type: 'string' },
+    rolesMessageId: { type: 'string' },
   },
-  { dataStructure: 'HASH' },
+  { dataStructure: 'JSON' },
 );
 
 const GuildRepository = (client: Client) => {
-  let entityId = null;
-  const cacheMap = new Map<string, string>();
+  const cacheMap = new Map<string, string>(); // guildId -> entityId
   const guildRepository = client.fetchRepository(schema);
 
   async function init(guilds: discord.Guild[]) {
     await guildRepository.createIndex();
-    // Remove old data TODO: Update data instead
-    await removeAll();
-
-    entityId = await create(guilds);
-    return entityId;
+    await saveAll(guilds);
   }
 
-  async function create(guilds: discord.Guild[]) {
-    const guildsData = guilds.map((guild) => {
-      const guildData: GuildDataItem = {
-        id: guild.id,
-        channels: guild.channels.cache.map((channel) => channel.toJSON()) as GuildChannelJSON[],
-        roles: guild.roles.cache.map((role) => role.toJSON()),
-      };
-      return JSON.stringify(guildData);
-    });
-
+  async function create(guild: GuildCacheData) {
     const entity = guildRepository.createEntity({
-      guilds: guildsData,
+      id: guild.id,
+      rolesChannelId: '',
+      rolesMessageId: '',
     });
 
     const id = await guildRepository.save(entity);
-    // cacheMap.set(guild.id, id);
 
     // Set ttl
-    const ttlInSeconds = 1 * 60 * 60; // 1 hour
-    await guildRepository.expire(id, ttlInSeconds);
+    // const ttlInSeconds = 1 * 60 * 60; // 1 hour
+    // await guildRepository.expire(id, ttlInSeconds);
     return id;
   }
 
@@ -86,30 +50,36 @@ const GuildRepository = (client: Client) => {
     if (id) {
       return await guildRepository.fetch(id);
     }
-
     // Search
     return (await guildRepository.search().where('id').eq(guildId).return.all())[0];
   }
 
-  // TODO
-  async function update(guild: discord.Guild) {
-    // let entity = await getByGuildId(guild.id);
-    // if (!entity) {
-    //   return await create(guild);
-    // }
-    // entity.id = guild.id;
-    // entity.data = JSON.stringify(guild.toJSON())
-    // return await guildRepository.save(entity);
+  async function update(guild: GuildCacheData) {
+    let entity = await getByGuildId(guild.id);
+
+    if (!entity) {
+      return await create(guild);
+    }
+
+    entity.rolesChannelId = guild.rolesChannelId;
+    entity.rolesMessageId = guild.rolesMessageId;
+
+    return await guildRepository.save(entity);
   }
 
   async function saveAll(guilds: discord.Guild[]) {
-    // const ids = [];
-    // for (const guild of guilds) {
-    //   const id = await create(guild);
-    //   ids.push(id);
-    //   cacheMap.set(guild.id, id);
-    // }
-    // return ids;
+    const cacheGuilds = await getAll();
+    return guilds.map(async (guild) => {
+      let cache = cacheGuilds.find((cacheGuild) => cacheGuild.id === guild.id);
+      let id;
+      if (cache) {
+        id = cache.entityId;
+      } else {
+        console.log('Creating guild cache for ' + guild.id);
+        id = await create({ id: guild.id, rolesChannelId: '', rolesMessageId: '' });
+      }
+      cacheMap.set(guild.id, id);
+    });
   }
 
   async function getAll() {

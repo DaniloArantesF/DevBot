@@ -19,16 +19,15 @@
 
 ### Discord
 
-- [ ] Command aliases
+- [x] Command aliases
 - [ ] Command permissions
 - [ ] Webhook support
 
 ### Task Queue & Storage
 
-- [ ] Throttling and cooldown
-- [ ] Save and load config and state from storage
+- [x] Throttling and cooldown
 - [x] Save task results to storage and log interactions
-- [ ] Implement caching strategy at some level
+- [ ] Save and load config and state from storage
 
 ---
 

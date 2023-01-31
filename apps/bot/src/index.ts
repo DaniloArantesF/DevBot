@@ -3,6 +3,8 @@ import DataProvider from '@/DataProvider';
 import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@utils/types';
+import { getGuildChannel } from './tasks/channels';
+import { TextChannel } from 'discord.js';
 
 async function Bot() {
   const botProvider: BotProvider = {
@@ -50,3 +52,10 @@ async function Bot() {
 console.clear();
 const botProvider = Bot();
 export default botProvider;
+
+botProvider.then(async () => {
+  const guildId = '817654492782657566';
+  const rolesChannel = (await getGuildChannel(guildId, '1064934793877397585')) as TextChannel;
+  // const rolesMessage = await getRoleMessage('817654492782657566')
+  // rolesChannel.send({ content: 'hello friends', components: [rolesMessage] })
+});

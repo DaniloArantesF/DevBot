@@ -61,7 +61,7 @@ function API(provider: BotProvider) {
 
   function pushRequest(req: Request, execute: apiHandler) {
     apiController.addTask({
-      id: `API:${req.originalUrl}@${Date.now()}`,
+      id: `${req.method}:${req.originalUrl}@${new Date().toISOString()}`,
       execute,
     });
   }

@@ -10,7 +10,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   constructor() {}
 
   async addTask(event: DiscordEvent, args: any[] = []) {
-    const job = this.queue.createJob({ id: `${Date.now()}${event.name}` });
+    const job = this.queue.createJob({ id: `${event.name}@${new Date().toISOString()}` });
     await job.timeout(2000).retries(2).save();
     this.taskMap.set(job.id, { ...event, args });
     return job;

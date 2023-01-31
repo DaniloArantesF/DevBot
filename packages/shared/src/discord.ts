@@ -5,7 +5,34 @@ import type {
   Message,
   RoleData,
   CommandInteractionOption,
+  MessageComponentInteraction,
 } from 'discord.js';
+
+export interface DiscordCommand {
+  aliases?: string[];
+  args?: boolean;
+  data: DiscordCommandData;
+  execute: SlashCommandHandler;
+  permissions?: string[];
+  usage?: string;
+  buttonHandler?: ButtonCommandHandler;
+  messageHandler?: MessageCommandHandler;
+}
+
+export type DiscordCommandHandler =
+  | SlashCommandHandler
+  | ButtonCommandHandler
+  | MessageCommandHandler;
+
+export type MessageCommandHandler = (interaction: Message) => Promise<void | CommandCacheData>;
+
+export type ButtonCommandHandler = (
+  interaction: MessageComponentInteraction,
+) => Promise<void | CommandCacheData>;
+
+export type SlashCommandHandler = (
+  interaction: CommandInteraction,
+) => Promise<void | CommandCacheData>;
 
 export interface DiscordRoleData extends RoleData {}
 
@@ -25,7 +52,6 @@ interface BaseCacheData {
   error?: string;
 }
 
-// TODO: add userId, channelId, guildId to cache data
 export type CommandCacheData = BaseCacheData & {
   command: string;
   args: string[] | CommandInteractionOption[];
@@ -42,16 +68,7 @@ export type EventCacheData = BaseCacheData & {
   event: string;
 };
 
-// TODO: add other command types e.g. context
-export interface DiscordCommand {
-  aliases?: string[];
-  args?: boolean;
-  data: DiscordCommandData;
-  execute: (interaction: CommandInteraction | Message) => Promise<void | CommandCacheData>;
-  permissions?: string[];
-  usage?: string;
-}
-
+// ---------------------------- Discord API Types ----------------------------
 // Generally returned by APIs and used to store data
 // Discord returns snake_case, map to camelCase because this is the way?
 

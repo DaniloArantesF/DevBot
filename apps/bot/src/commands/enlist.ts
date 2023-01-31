@@ -1,7 +1,7 @@
 // Enlists a user into a guild role
 import { SlashCommandBuilder, Message } from 'discord.js';
 import { DiscordCommand } from '@utils/types';
-import { addUserRole } from '@/tasks/roles';
+import { addUserRole, getGuildRole, getUserRoles, removeUserRole } from '@/tasks/roles';
 import { replyInteraction } from '@/tasks/commands';
 
 export const command: DiscordCommand = {
@@ -11,23 +11,43 @@ export const command: DiscordCommand = {
     .addRoleOption((option) =>
       option.setName('role').setDescription('The role to enlist the user into').setRequired(true),
     ),
-  async execute(interaction) {
+  async buttonHandler(interaction) {
     let reply = 'Error adding you to this role.';
-    const isMessage = interaction instanceof Message;
-    let role = null;
+    const roleId = interaction.customId.split(':')[1];
+    const role = await getGuildRole(interaction.guildId, roleId);
 
-    if (isMessage) {
-      role = interaction.mentions.roles.first();
-    } else {
-      role = interaction.options.get('role').role;
+    try {
+      const userRoles = await getUserRoles(interaction.member.user.id, interaction.guildId);
+      if (userRoles.get(role.id)) {
+        await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+        reply = `Successfully removed you from ${role.name}`;
+      } else {
+        await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
+        reply = `Successfully added you to ${role.name}`;
+      }
+    } catch (error) {
+      console.log(error);
     }
 
-    // TODO: check if user has role
+    await interaction.deleteReply();
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'enlist',
+      args: [role.name],
+      reply: reply,
+    };
+  },
+  async messageHandler(interaction) {
+    let reply = 'Error adding you to this role.';
+    const role = interaction.mentions.roles.first();
+
     try {
       await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
       reply = `Successfully added you to ${role.name}`;
     } catch (error) {
-      console.log(interaction);
       console.log(error);
     }
 
@@ -37,8 +57,30 @@ export const command: DiscordCommand = {
       user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: (this.data.name as string) ?? '',
-      args: isMessage ? [role.name] : [...interaction.options.data],
+      command: 'enlist',
+      args: [role.name],
+      reply: reply,
+    };
+  },
+  async execute(interaction) {
+    let reply = 'Error adding you to this role.';
+    const role = interaction.options.get('role').role;
+
+    try {
+      await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      reply = `Successfully added you to ${role.name}`;
+    } catch (error) {
+      console.log(error);
+    }
+
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'enlist',
+      args: [...interaction.options.data],
       reply: reply,
     };
   },

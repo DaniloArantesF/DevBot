@@ -1,14 +1,16 @@
 import {
   Message,
-  CommandInteraction,
-  InteractionEditReplyOptions,
+  MessageReplyOptions,
   MessagePayload,
+  CommandInteraction as _CommandInteraction,
+  InteractionReplyOptions,
 } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { TOKEN, CLIENT_ID } from '@config';
 import { DiscordCommand } from '@utils/types';
 import fs from 'fs';
+import { CommandInteraction } from '@/controllers/commandController';
 
 export async function getCommands(all = false) {
   const commands: DiscordCommand[] = [];
@@ -70,12 +72,14 @@ export async function deleteGuildSlashCommands(guildId: string) {
 }
 
 export function replyInteraction(
-  interaction: Message | CommandInteraction,
-  reply: string | MessagePayload | InteractionEditReplyOptions,
+  interaction: CommandInteraction | _CommandInteraction,
+  reply: string | (MessagePayload | MessageReplyOptions) | InteractionReplyOptions,
 ) {
   if (interaction instanceof Message) {
-    return interaction.reply(reply);
+    return interaction.reply(reply as string | MessagePayload | MessageReplyOptions);
   } else {
-    return interaction.deferred ? interaction.editReply(reply) : interaction.reply(reply);
+    return interaction.deferred
+      ? interaction.editReply(reply)
+      : interaction.reply(reply as string | InteractionReplyOptions);
   }
 }
