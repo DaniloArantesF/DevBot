@@ -4,6 +4,9 @@ import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@/ut
 import type { ApiAuthResponse, DiscordAuthResponse } from '@/utils/types';
 import { APIRouter } from '@/api';
 import { RequestLog } from '@/tasks/logs';
+import botProvider from '..';
+
+// TODO: Check if user exists in PocketBase, if not create it
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();

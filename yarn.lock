@@ -4594,6 +4594,11 @@ pkg-types@^1.0.1:
     mlly "^1.0.0"
     pathe "^1.0.0"
 
+pocketbase@^0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.10.1.tgz#01963c61544b1bcd8db7d3e9d43d4a99dd76f630"
+  integrity sha512-FMBhF+9o2AmdKJYbfz2qunnk4Q5/efYMRcukdQF49UfhsIuaSYl39fSPN1l880bYI4XAvDDeySAjK1MlxrK37A==
+
 postcss-load-config@^3.0.1:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/postcss-load-config/-/postcss-load-config-3.1.4.tgz#1ab2571faf84bb078877e1d07905eabe9ebda855"

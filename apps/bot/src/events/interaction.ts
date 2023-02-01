@@ -5,6 +5,8 @@ import botProvider from '@/index';
 export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
   name: Events.InteractionCreate,
   async on(interaction) {
+    // TODO: Check if user exists in pocketbase if not create it
+
     if (interaction.isRepliable()) {
       // Prevent interaction timeout
       await interaction.deferReply();

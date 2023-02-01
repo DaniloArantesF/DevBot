@@ -22,7 +22,7 @@ export interface BotProvider {
   getService: (name: string) => any;
   getDiscordClient: () => DiscordClient;
   getTaskManager: () => ReturnType<typeof TaskManager>;
-  getDataProvider: () => ReturnType<typeof DataProvider>;
+  getDataProvider: () => DataProvider;
   getApi: () => typeof API;
 }
 

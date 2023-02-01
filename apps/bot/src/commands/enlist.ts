@@ -15,7 +15,7 @@ export const command: DiscordCommand = {
     let reply = 'Error adding you to this role.';
     const roleId = interaction.customId.split(':')[1];
     const role = await getGuildRole(interaction.guildId, roleId);
-
+    // TODO: make sure user's role is at least the same as the role they're trying to enlist into
     try {
       const userRoles = await getUserRoles(interaction.member.user.id, interaction.guildId);
       if (userRoles.get(role.id)) {

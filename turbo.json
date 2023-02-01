@@ -21,7 +21,10 @@
         "DISCORD_TEST_GUILD_ID",
         "TWITTER_API_KEY",
         "TWITTER_KEY_SECRET",
-        "TWITTER_BEARER_TOKEN"
+        "TWITTER_BEARER_TOKEN",
+        "POCKETBASE_BASE_URL",
+        "POCKETBASE_ADMIN_EMAIL",
+        "POCKETBASE_ADMIN_PASSWORD"
       ]
     },
     "web#build": {

@@ -8,6 +8,7 @@ import {
 } from '@/tasks/commands';
 import { RequestLog } from '@/tasks/logs';
 import { setRolesMessage } from '@/tasks/roles';
+import { purgeChannel } from '@/tasks/channels';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -31,11 +32,11 @@ const AdminRouter: APIRouter = (pushRequest) => {
           data = await registerGlobalSlashCommands();
         }
         res.send(data);
-        return RequestLog('post', req.url, 200, data);
+        return RequestLog(req.method, req.url, 200, data);
       } catch (error) {
         console.error('Error registering slash commands: ', error);
         res.status(500).send(error);
-        return RequestLog('post', req.url, 500, null, error);
+        return RequestLog(req.method, req.url, 500, null, error);
       }
     }
 
@@ -62,11 +63,11 @@ const AdminRouter: APIRouter = (pushRequest) => {
           data = await deleteGlobalSlashCommands();
         }
         res.send(data);
-        return RequestLog('post', req.url, 200, data);
+        return RequestLog(req.method, req.url, 200, data);
       } catch (error) {
         console.error('Error purging slash commands: ', error);
         res.status(500).send(error);
-        return RequestLog('post', req.url, 500, null, error);
+        return RequestLog(req.method, req.url, 500, null, error);
       }
     }
 
@@ -89,23 +90,56 @@ const AdminRouter: APIRouter = (pushRequest) => {
 
       if (!guildId || !channelId) {
         res.status(400).send('Missing guildId or channelId');
-        return RequestLog('post', req.url, 400, null, 'Missing guildId or channelId');
+        return RequestLog(req.method, req.url, 400, null, 'Missing guildId or channelId');
       }
 
       try {
         const data = await setRolesMessage(guildId, channelId);
         res.sendStatus(200);
-        return RequestLog('post', req.url, 200, data);
+        return RequestLog(req.method, req.url, 200, data);
       } catch (error) {
         console.error('Error setting roles message', error);
         res.status(500).send(error);
-        return RequestLog('post', req.url, 500, null, error);
+        return RequestLog(req.method, req.url, 500, null, error);
       }
     }
 
     pushRequest(req, handler);
   });
 
+  /**
+   * Purges a channel
+   *
+   * @route POST /api/admin/channel/purge
+   * @apiparam {string} guildId
+   * @apiparam {string} channelId
+   * @apiresponse {200}
+   * @apiresponse {400} Missing guildId or channelId
+   * @apiresponse {500}
+   */
+  router.post('/channel/purge', async (req: Request, res: Response) => {
+    async function handler() {
+      const guildId = req.body?.guildId;
+      const channelId = req.body?.channelId;
+
+      if (!guildId || !channelId) {
+        res.status(400).send('Missing guildId or channelId');
+        return RequestLog(req.method, req.url, 400, null, 'Missing guildId or channelId');
+      }
+
+      try {
+        const data = await purgeChannel(guildId, channelId);
+        res.sendStatus(200);
+        return RequestLog(req.method, req.url, 200, data);
+      } catch (error) {
+        console.error('Error setting roles message', error);
+        res.status(500).send(error);
+        return RequestLog(req.method, req.url, 500, null, error);
+      }
+    }
+
+    pushRequest(req, handler);
+  });
   return router;
 };
 

@@ -19,3 +19,9 @@ export async function getGuildChannelPresence(guildId: string, channelId: string
   const channel = guild.channels.cache.get(channelId);
   return channel.members;
 }
+
+export async function purgeChannel(guildId: string, channelId: string, limit = 100) {
+  const channel = await getGuildChannel(guildId, channelId);
+  if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
+  return channel.bulkDelete(limit, true);
+}

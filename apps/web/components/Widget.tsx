@@ -4,7 +4,7 @@ import classes from '@styles/Widget.module.css';
 
 type WidgetProps = React.ComponentProps<'div'> & {
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   rows?: number | 'auto';
   cols?: number | 'auto';
 };

@@ -26,7 +26,7 @@ const GuildRepository = (client: Client) => {
 
   async function init(guilds: discord.Guild[]) {
     await guildRepository.createIndex();
-    await saveAll(guilds);
+    return await saveAll(guilds);
   }
 
   async function create(guild: GuildCacheData) {
@@ -69,7 +69,7 @@ const GuildRepository = (client: Client) => {
 
   async function saveAll(guilds: discord.Guild[]) {
     const cacheGuilds = await getAll();
-    return guilds.map(async (guild) => {
+    const promises = guilds.map(async (guild) => {
       let cache = cacheGuilds.find((cacheGuild) => cacheGuild.id === guild.id);
       let id;
       if (cache) {
@@ -79,7 +79,9 @@ const GuildRepository = (client: Client) => {
         id = await create({ id: guild.id, rolesChannelId: '', rolesMessageId: '' });
       }
       cacheMap.set(guild.id, id);
+      return id;
     });
+    return await Promise.all(promises);
   }
 
   async function getAll() {

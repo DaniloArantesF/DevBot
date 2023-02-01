@@ -10,6 +10,7 @@ import { stringifyCircular } from '@/utils';
 import { getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
 import { APIConnection } from 'discord.js';
+import botProvider from '..';
 
 // TODO: properly handle errors from Discord API
 
@@ -43,6 +44,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           })
         ).json()) as UserData;
         res.status(200).send(data);
+
+        const dataProvider = (await botProvider).getDataProvider();
+        const userModel = dataProvider.user;
+        userModel.create(data);
+
         return RequestLog('get', req.url, 200, data);
       } catch (error) {
         console.error(`Error `, error);

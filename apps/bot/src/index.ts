@@ -3,8 +3,7 @@ import DataProvider from '@/DataProvider';
 import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@utils/types';
-import { getGuildChannel } from './tasks/channels';
-import { TextChannel } from 'discord.js';
+import { setRolesMessage } from './tasks/roles';
 
 async function Bot() {
   const botProvider: BotProvider = {
@@ -33,18 +32,38 @@ async function Bot() {
   // Add services
   botProvider.addService('discordClient', new DiscordClient(botProvider));
   botProvider.addService('taskManager', TaskManager(botProvider));
-  botProvider.addService('dataProvider', await DataProvider(botProvider));
+  botProvider.addService('dataProvider', new DataProvider(botProvider));
   botProvider.addService('api', API(botProvider));
 
-  const discordClient = botProvider.getService('discordClient') as DiscordClient;
+  const discordClient = botProvider.getDiscordClient();
+  const dataProvider = botProvider.getDataProvider();
+  const taskManager = botProvider.getTaskManager();
+
+  async function main() {
+    await guildSetup();
+  }
+
+  // Guild setup checks
+  // Create guilds in database if they don't exist
+  // Add/Update roles message
+  async function guildSetup() {
+    const guildRepository = dataProvider.guild;
+    await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
+
+    const guilds = await guildRepository.getAll();
+    for (const guild of guilds) {
+      if (guild.rolesChannelId && guild.rolesMessageId) {
+        await setRolesMessage(guild.id, guild.rolesChannelId);
+      }
+    }
+  }
 
   return new Promise<BotProvider>((resolve) => {
+    // Setup
     discordClient.on('ready', async () => {
-      // Setup
-      const guildRepository = (await botProvider.getDataProvider()).guild;
-      guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
-
+      await dataProvider.connect();
       resolve(botProvider);
+      main();
     });
   });
 }
@@ -52,10 +71,3 @@ async function Bot() {
 console.clear();
 const botProvider = Bot();
 export default botProvider;
-
-botProvider.then(async () => {
-  const guildId = '817654492782657566';
-  const rolesChannel = (await getGuildChannel(guildId, '1064934793877397585')) as TextChannel;
-  // const rolesMessage = await getRoleMessage('817654492782657566')
-  // rolesChannel.send({ content: 'hello friends', components: [rolesMessage] })
-});

@@ -1,12 +1,9 @@
-import Card from '@components/Card';
 import Widget from '@components/Widget';
 import classes from '@styles/Dashboard.module.css';
 import { DashboardBaseProps, getBaseLayoutProps } from 'layouts/dashboardLayout';
 import DashboardLayout from 'layouts/dashboardLayout';
 import { sessionOptions } from 'shared/session';
 import { withIronSessionSsr } from 'iron-session/next';
-import AvatarIcon from '@components/Avatar';
-import { getDiscordAvatar } from '@lib/utils';
 
 type DashboardProps = DashboardBaseProps & {};
 
@@ -42,9 +39,8 @@ function Dashboard({ user, guilds, commands }: DashboardProps) {
         </h2>
       </Widget>
 
-      <Widget title={'Scheduled Events'}></Widget>
-
-      <Widget title={'Managed Guilds'}></Widget>
+      <Widget title={'Scheduled Events'} />
+      <Widget title={'Managed Guilds'} />
     </DashboardLayout>
   );
 }
