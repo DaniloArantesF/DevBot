@@ -20,12 +20,12 @@
   user-select: none;
   touch-action: none;
   padding: 2px;
-  background: var(--grayA6);
+  background: var(--slate6);
   transition: background 160ms ease-out;
 }
 
 .scrollbar:hover {
-  background: var(--grayA8);
+  background: var(--slate7);
 }
 
 .scrollbar[data-orientation='vertical'] {

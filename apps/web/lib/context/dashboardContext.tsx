@@ -1,5 +1,6 @@
 'use client';
-import { createContext, useContext, useState } from 'react';
+import useAuth from '@lib/hooks/useAuth';
+import { createContext, useContext, useLayoutEffect, useState } from 'react';
 import { DiscordCommandData, GuildData } from 'shared/types';
 
 type DashboardProviderProps = {
@@ -22,6 +23,7 @@ export const DashboardContext = createContext(initialDashboardContext);
 
 export function DashboardProvider({ children }: DashboardProviderProps) {
   const [guild, setGuild] = useState<GuildData | null>(null);
+  const auth = useAuth();
 
   return (
     <DashboardContext.Provider

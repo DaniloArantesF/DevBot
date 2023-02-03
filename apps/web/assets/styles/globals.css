@@ -1,11 +1,12 @@
 @import '@radix-ui/colors/blackA.css';
 @import '@radix-ui/colors/gray.css';
-@import '@radix-ui/colors/grayA.css';
+@import '@radix-ui/colors/grayDark.css';
 @import '@radix-ui/colors/slate.css';
-@import '@radix-ui/colors/slateA.css';
+@import '@radix-ui/colors/slateDark.css';
 @import '@radix-ui/colors/violet.css';
+@import '@radix-ui/colors/violetDark.css';
 @import '@radix-ui/colors/indigo.css';
-@import '@radix-ui/colors/indigoA.css';
+@import '@radix-ui/colors/indigoDark.css';
 
 *,
 *::before,
@@ -32,14 +33,14 @@ a {
 }
 
 body {
-  background: var(--grayA10);
+  height: 100vh;
+  overflow: hidden;
+  background: var(--slate1);
+  color: var(--slate12);
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
-  }
-  body {
-    color: white;
   }
 }

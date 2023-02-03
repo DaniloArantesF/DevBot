@@ -13,6 +13,7 @@ import { APIConnection } from 'discord.js';
 import botProvider from '..';
 
 // TODO: properly handle errors from Discord API
+// TODO: get guilds from discord.js client instead of fetching from Discord API
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();

@@ -27,6 +27,7 @@ class UserModel {
       record = await this.pocketbase.collection('users').create(data);
     }
 
+    console.log(record);
     return record;
   }
 

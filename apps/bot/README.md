@@ -10,7 +10,7 @@
 - [x] DataProvider
 - [x] TaskManager
 - [x] API
-- [ ] ServiceManager
+- [ ] ServiceControllers
 - [ ] Logger
 
 ### API
@@ -20,7 +20,7 @@
 ### Discord
 
 - [x] Command aliases
-- [ ] Command permissions
+- [ ] Command permission checks
 - [ ] Webhook support
 
 ### Task Queue & Storage
@@ -35,19 +35,22 @@
 
 ### Basic
 
-- [ ] Resume after restart/crash
+- [x] Role assignment
 - [ ] Scheduled Server Events and Channel
-- [ ] Role assignment
-- [ ] Server moderation
-  - [ ] Language moderation
+- [ ] Automated server announcements
+- [ ] Language moderation
 
 ### Main
 
-- [ ] Follow and unfollow users and specific services (e.g. twitter, twitch, git)
-- [ ] Users can play songs on Discord
-- [ ] Users can create rooms w/ webclient and sync video playback
-- [ ] Users can create and share bookmarks
+- Server highlights
+- Follow and unfollow users and specific services (e.g. twitter, twitch, git)
+
+  - [ ] Service controllers
+  - [ ] Store user subscription data
+  - [ ] Notify users of subscribed content
+
+- Users can create and share bookmarks
 
 ### Optional
 
-- [ ] i18n support (changing languages & proving translations)
+- i18n support (changing languages & proving translations)

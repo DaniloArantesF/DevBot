@@ -1,3 +1,4 @@
+'use client';
 import classes from '@styles/Button.module.css';
 import { useMemo, useRef } from 'react';
 
