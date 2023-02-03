@@ -44,9 +44,9 @@ export async function getRoleButtons(guildId: string) {
 // Sets the roles message for a guild
 // If a message is already set, delete it
 export async function setRolesMessage(guildId: string, channelId: string) {
-  const guildRepository = (await (await botProvider).getDataProvider()).guild;
+  const guildRepository = (await botProvider).getDataProvider().guild;
 
-  const guildCacheItem = await guildRepository.getByGuildId(guildId);
+  const guildCacheItem = await guildRepository.get(guildId);
   const channel = await getGuildChannel(guildId, channelId);
 
   const rolesMessage: MessageCreateOptions = {

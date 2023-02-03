@@ -30,9 +30,9 @@ async function Bot() {
   };
 
   // Add services
+  botProvider.addService('dataProvider', new DataProvider(botProvider));
   botProvider.addService('discordClient', new DiscordClient(botProvider));
   botProvider.addService('taskManager', TaskManager(botProvider));
-  botProvider.addService('dataProvider', new DataProvider(botProvider));
   botProvider.addService('api', API(botProvider));
 
   const discordClient = botProvider.getDiscordClient();
@@ -53,7 +53,7 @@ async function Bot() {
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
       if (guild.rolesChannelId && guild.rolesMessageId) {
-        await setRolesMessage(guild.id, guild.rolesChannelId);
+        await setRolesMessage(guild.guildId, guild.rolesChannelId);
       }
     }
   }

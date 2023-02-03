@@ -9,6 +9,7 @@ import AuthRouter from '@/api/authRouter';
 import DiscordRouter from '@/api/discordRouter';
 import type { apiHandler, BotProvider } from '@/utils/types';
 import BotRouter from '@/api/botRouter';
+import PluginRouter from './pluginRouter';
 
 export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,
@@ -30,6 +31,7 @@ function API(provider: BotProvider) {
     api.use('/admin', AdminRouter(pushRequest));
     api.use('/auth', AuthRouter(pushRequest));
     api.use('/discord', DiscordRouter(pushRequest));
+    api.use('/plugins', PluginRouter(pushRequest));
 
     // Status route, does not go through task manager
     rootRouter.get('/status', async (req: Request, res: Response) => res.send('Online'));

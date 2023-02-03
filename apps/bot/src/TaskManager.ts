@@ -5,6 +5,7 @@ import ApiController from '@/controllers/apiController';
 import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
 import Twitter from '@/controllers/services/twitter';
+import HabitTracker from './controllers/plugins/habitTracker';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',
@@ -22,10 +23,13 @@ function TaskManager(provider: BotProvider) {
   const commandController = new CommandController();
   const eventController = new EventController();
   const twitterController = new Twitter();
+  const habitTrackerController = new HabitTracker(provider);
 
   // Process tasks as soon as dependencies are ready
+  // Call plugin setup tasks
   provider.getService('discordClient').on('ready', () => {
     if (AUTO_PROCESS) initProcessing() && console.log('Processing tasks...');
+    habitTrackerController.setup();
   });
 
   // Process tasks
@@ -41,6 +45,7 @@ function TaskManager(provider: BotProvider) {
     commandController,
     eventController,
     twitterController,
+    habitTrackerController,
   };
 }
 

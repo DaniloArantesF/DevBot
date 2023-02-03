@@ -1,4 +1,10 @@
 import { getGuild } from '@/tasks/guild';
+import { GuildChannelCreateOptions } from 'discord.js';
+
+export async function createChannel(guildId: string, options: GuildChannelCreateOptions) {
+  const guild = await getGuild(guildId);
+  return guild.channels.create(options);
+}
 
 // Returns all channels of a guild
 export async function getGuildChannels(guildId: string) {
