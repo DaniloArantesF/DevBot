@@ -20,7 +20,7 @@ interface DataProvider {
   user: UserModel;
 }
 
-class PocketBase extends PocketBaseSDK {
+export class PocketBase extends PocketBaseSDK {
   isAdmin: boolean | Promise<boolean>;
   constructor() {
     super(POCKETBASE_BASE_URL);

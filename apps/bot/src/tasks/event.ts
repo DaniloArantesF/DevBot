@@ -42,8 +42,7 @@ export async function getEvents() {
   return events;
 }
 
+// TODO
 export async function getScheduledEvents(userId: string) {}
-
 export async function getUserScheduledEvents(userId: string) {}
-
 export async function getGuildScheduledEvents() {}

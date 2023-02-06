@@ -1,6 +1,4 @@
-// TODO: challenge-submit
-// TODO: challenge-join
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChannelType } from 'discord.js';
 import { DiscordCommand } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 import botProvider from '..';
@@ -8,7 +6,7 @@ import botProvider from '..';
 export const command: DiscordCommand = {
   data: new SlashCommandBuilder()
     .setName('create-challenge')
-    .setDescription('Creates a challenge')
+    .setDescription('Create a challenge')
     .addStringOption((option) =>
       option.setName('goal').setDescription('Short title for your challenge').setRequired(true),
     )
@@ -50,11 +48,117 @@ export const command: DiscordCommand = {
       user: interaction.member.user.id,
       guild: interaction.guildId,
       channel: interaction.channelId,
-      command: 'challenge-create',
+      command: 'create-challenge',
       args: [],
       reply: reply,
     };
   },
-  usage: '/challenge-create <goal> <duration> <period> <start>',
+  usage: '/create-challenge <goal> <duration> <period> <start>',
+  aliases: [],
+};
+
+export const challangeJoin: DiscordCommand = {
+  data: new SlashCommandBuilder()
+    .setName('join-challenge')
+    .setDescription('Join a challenge')
+    .addChannelOption((option) =>
+      option
+        .setName('channel')
+        .setDescription('The channel of the challenge')
+        .setRequired(true)
+        .addChannelTypes(ChannelType.GuildText),
+    ),
+  async messageHandler(interaction) {
+    const reply = 'TODO';
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'join-challenge',
+      args: [],
+      reply: reply,
+    };
+  },
+  async execute(interaction) {
+    let reply = 'You have joined a challenge!';
+
+    const channelId = interaction.options.get('channel').value as string;
+    const guildId = interaction.guildId;
+    const userId = interaction.member.user.id;
+
+    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
+    try {
+      const record = await habitTrackerController.joinChallenge(channelId, userId);
+      await replyInteraction(interaction, reply);
+    } catch (error) {
+      reply = error?.message ?? 'Error executing that command';
+      await replyInteraction(interaction, reply);
+    }
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'join-challenge',
+      args: [],
+      reply: reply,
+    };
+  },
+  usage: '/join-challenge <channelId>',
+  aliases: [],
+};
+
+// Submit a challenge entry
+// The command must be sent in the main channel of the challenge
+export const challengeSubmit: DiscordCommand = {
+  data: new SlashCommandBuilder()
+    .setName('submit-challenge')
+    .setDescription('Submit a challenge entry')
+    .addStringOption((option) =>
+      option.setName('entry').setDescription('Entry value').setRequired(true),
+    ),
+  async messageHandler(interaction) {
+    const reply = 'TODO';
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'create-challenge',
+      args: [],
+      reply: reply,
+    };
+  },
+  async execute(interaction) {
+    let reply = 'Submission received!';
+
+    const channelId = interaction.channelId;
+    const userId = interaction.member.user.id;
+
+    const entry = interaction.options.get('entry').value as string;
+
+    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
+
+    try {
+      const record = await habitTrackerController.submitEntry(channelId, userId, entry);
+      await replyInteraction(interaction, reply);
+    } catch (error) {
+      reply = error?.message ?? 'Error executing that command';
+      await replyInteraction(interaction, reply);
+    }
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'submit-challenge',
+      args: [],
+      reply: reply,
+    };
+  },
+  usage: '/submit-challenge <submission>',
   aliases: [],
 };

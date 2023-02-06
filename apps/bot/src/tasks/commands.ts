@@ -20,14 +20,13 @@ export async function getCommands(all = false) {
 
   for (const file of commandFiles) {
     if (file === 'index.ts') continue;
-    const command = await import(`@commands/${file}`);
-    const slashCommand = command.command;
-    const contextCommand = command.contextCommand;
+    const exports = await import(`@commands/${file}`);
 
-    if (all && contextCommand) commands.push(contextCommand);
-    if (!slashCommand || !slashCommand.data) continue;
-
-    commands.push(slashCommand);
+    for (const commandName in exports) {
+      const command = exports[commandName];
+      if (command.execute === undefined && !all) continue;
+      commands.push(command);
+    }
   }
 
   return commands;
@@ -43,13 +42,15 @@ export async function setSlashCommands(commands: DiscordCommand[], guildId?: str
     ? Routes.applicationGuildCommands(CLIENT_ID, guildId.toString())
     : Routes.applicationCommands(CLIENT_ID);
   return await rest.put(endpoint, {
-    body: commands.map((command) => {
-      const isSlashCommand = Boolean(command.data);
-      if (isSlashCommand) {
-        return command.data.toJSON();
-      }
-      return (command as any).toJSON();
-    }),
+    body: commands
+      .filter((c) => c.data?.toJSON !== undefined || (c as any)?.toJSON !== undefined)
+      .map((command) => {
+        const isSlashCommand = Boolean(command.data);
+        if (isSlashCommand) {
+          return command.data.toJSON();
+        }
+        return (command as any)?.toJSON();
+      }),
   });
 }
 

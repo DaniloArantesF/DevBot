@@ -1,10 +1,11 @@
+// Base properties from Pocketbase
 export interface PbBase {
   id: string;
   created: string;
   updated: string;
 }
 
-export interface PbUserData extends PbBase {
+export interface PbUserData {
   avatar: string;
   discordId: string;
   email: string;
@@ -34,6 +35,7 @@ export interface ChallengeData extends PbBase {
   description?: string;
   endDate?: Date;
   inProgress?: boolean;
+  allowedSubmissionTypes?: string[];
 }
 
 export interface ChallengeParticipantData {
@@ -41,4 +43,11 @@ export interface ChallengeParticipantData {
   userId: string;
   streak: number;
   lastUpdate: Date;
+}
+
+export interface ChallengeSubmissionData {
+  challenge: string;
+  userId: string;
+  submissionType: string;
+  value: string;
 }

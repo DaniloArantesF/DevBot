@@ -1,12 +1,12 @@
-import Pocketbase from 'pocketbase';
+import PocketBase from 'pocketbase';
 import { UserData } from '@utils/types';
 
 interface UserModel {
-  pocketbase: Pocketbase;
+  pocketbase: PocketBase;
 }
 
 class UserModel {
-  constructor(pocketbase: Pocketbase) {
+  constructor(pocketbase: PocketBase) {
     this.pocketbase = pocketbase;
   }
 
@@ -27,7 +27,6 @@ class UserModel {
       record = await this.pocketbase.collection('users').create(data);
     }
 
-    console.log(record);
     return record;
   }
 

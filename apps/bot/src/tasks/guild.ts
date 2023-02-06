@@ -1,5 +1,5 @@
 import botProvider from '@/index';
-import { ChannelType, GuildMember, PresenceData } from 'discord.js';
+import { ChannelType } from 'discord.js';
 import { getGuildChannels } from './channels';
 
 export async function getGuild(guildId: string) {
@@ -11,12 +11,6 @@ export async function getGuildByName(guildName: string) {
   const client = (await botProvider).getDiscordClient();
   return client.guilds.cache.find((guild) => guild.name === guildName);
 }
-
-type GuildPresence = PresenceData & {
-  user: GuildMember;
-};
-
-type GuildPresenceNetwork = {};
 
 /**
  * Returns active users in a guild

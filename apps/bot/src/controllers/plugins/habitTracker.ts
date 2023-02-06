@@ -1,13 +1,13 @@
 import { BotProvider } from '@/utils/types';
 import { ChallengeData, GuildData } from 'shared/src/pocketbase';
-import Pocketbase from 'pocketbase';
+import PocketBase from 'pocketbase';
 import { getGuild } from '@/tasks/guild';
 import { createChannel, getGuildChannel } from '@/tasks/channels';
-import { ChannelType, CategoryChannel, TextChannel } from 'discord.js';
+import { ChannelType, CategoryChannel } from 'discord.js';
 import ChallengeModel from '@/models/challenge';
 
 interface HabitTracker {
-  pocketbase: Pocketbase;
+  pocketbase: PocketBase;
   provider: BotProvider;
   challengeModel: ChallengeModel;
   ongoingChallenges: ChallengeData[];
@@ -97,11 +97,11 @@ class HabitTracker {
   }
 
   async getOnGoingChallenges() {
-    const challenges = await this.pocketbase
-      .collection('challenges')
-      .getList(1, 100, { filter: 'status="inProgress"', $autoCancel: false });
-    // TODO: improve pocketbase types
-    return challenges.items as any as ChallengeData[];
+    return (
+      await this.pocketbase
+        .collection('challenges')
+        .getList<ChallengeData>(1, 100, { filter: 'status="inProgress"', $autoCancel: false })
+    ).items;
   }
 
   async createChallenge(
@@ -120,13 +120,39 @@ class HabitTracker {
     };
 
     const record = await this.challengeModel.create(challengeData);
-    console.log(record);
     return record;
   }
 
-  async checkRoutine() {}
+  async joinChallenge(channelId: string, userId: string) {
+    const challenge = await this.challengeModel.getFromChannel(channelId);
+    if (!challenge) {
+      throw new Error('Invalid channel!');
+    }
 
-  async updateChallenge() {}
+    if (challenge.participants.includes(userId)) {
+      throw new Error('You already joined this challenge!');
+    }
+
+    return await this.challengeModel.update({
+      id: challenge.id,
+      participants: [...challenge.participants, userId],
+    });
+  }
+
+  // TODO
+  async checkRoutine() {}
+  async leaveChallenge(channelId: string, userId: string) {}
+
+  async submitEntry(channelId: string, userId: string, entry: string) {
+    const challenge = await this.challengeModel.getFromChannel(channelId);
+
+    if (!challenge) {
+      throw new Error('Invalid channel!');
+    }
+
+    const submissionType = 'text';
+    return await this.challengeModel.createSubmission(challenge.id, userId, submissionType, entry);
+  }
 }
 
 export default HabitTracker;

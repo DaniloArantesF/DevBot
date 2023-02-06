@@ -24,6 +24,7 @@ class DiscordClient extends Client {
   async registerCommands() {
     const commands = await getCommands();
     commands.forEach((command) => {
+      if (!command.data) return;
       this.commands.set(command.data.name, command);
     });
   }

@@ -1,5 +1,4 @@
 import { TextChannel, ChannelType, GuildTextThreadCreateOptions } from 'discord.js';
-
 import { getGuildChannel } from './channels';
 
 export async function createThread(

@@ -9,6 +9,7 @@ import {
 import { RequestLog } from '@/tasks/logs';
 import { setRolesMessage } from '@/tasks/roles';
 import { purgeChannel } from '@/tasks/channels';
+import { stringifyCircular } from '@/utils';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -95,7 +96,7 @@ const AdminRouter: APIRouter = (pushRequest) => {
 
       try {
         const data = await setRolesMessage(guildId, channelId);
-        res.sendStatus(200);
+        res.send(stringifyCircular(data));
         return RequestLog(req.method, req.url, 200, data);
       } catch (error) {
         console.error('Error setting roles message', error);
