@@ -33,7 +33,7 @@ class UserModel {
   async getByDiscordId(userId: string) {
     const record = await this.pocketbase
       .collection('users')
-      .getFirstListItem(`discordId=${userId}`);
+      .getFirstListItem(`discordId="${userId}"`);
     return record;
   }
 }

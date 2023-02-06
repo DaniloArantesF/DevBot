@@ -1,9 +1,9 @@
 'use client';
-import classes from '@styles/DashboardLayout.module.css';
 import Sidebar from '@components/Sidebar';
-import { SWRConfig } from 'swr';
-import fetchJson from '@lib/fetch';
 import { DashboardProvider } from '@lib/context/dashboardContext';
+import fetchJson from '@lib/fetch';
+import classes from '@styles/DashboardLayout.module.css';
+import { SWRConfig } from 'swr';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -12,21 +12,21 @@ type LayoutProps = {
 function DashboardLayout({ children }: LayoutProps) {
   return (
     <>
-      <DashboardProvider>
-        <SWRConfig
-          value={{
-            fetcher: fetchJson,
-            onError: (error) => {
-              console.error(error);
-            },
-          }}
-        >
+      <SWRConfig
+        value={{
+          fetcher: fetchJson,
+          onError: (error) => {
+            console.error(error);
+          },
+        }}
+      >
+        <DashboardProvider>
           <main className={classes.container}>
-            {/* <Sidebar /> */}
+            <Sidebar />
             <section className={classes.body}>{children}</section>
           </main>
-        </SWRConfig>
-      </DashboardProvider>
+        </DashboardProvider>
+      </SWRConfig>
     </>
   );
 }

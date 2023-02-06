@@ -1,6 +1,5 @@
-'use client';
 import classes from '@styles/Button.module.css';
-import { useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
 export type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
   label: string;
@@ -9,8 +8,7 @@ export type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorEle
   type?: 'button' | 'link';
 };
 
-function Button(props: ButtonProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
+const Button = React.forwardRef((props: ButtonProps, ref) => {
   const label = useMemo(() => props.label, [props.label]);
   const onClick = useMemo(() => props.onClick, [props.onClick]);
   const href = useMemo(() => props.href, [props.href]);
@@ -19,7 +17,6 @@ function Button(props: ButtonProps) {
   return onClick ? (
     <div className={classes.container}>
       <button
-        ref={buttonRef}
         className={type === 'button' ? classes.button : classes.link}
         onClick={onClick}
         style={props.style}
@@ -38,6 +35,7 @@ function Button(props: ButtonProps) {
       </a>
     </div>
   );
-}
+});
 
 export default Button;
+Button.displayName = 'Button';

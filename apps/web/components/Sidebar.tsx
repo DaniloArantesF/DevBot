@@ -1,20 +1,18 @@
 import { getDiscordAvatar } from '@lib/utils';
 import { useMemo } from 'react';
-import { Command, GuildData } from '@lib/types';
 import AvatarList from './AvatarList';
 import Button from './Button';
-import { logout } from '@api/auth/logout';
 import Modal from './Modal';
 import Help from './Help';
 import Link from 'next/link';
 import classes from '@styles/Sidebar.module.css';
+import { useDashboardContext } from '@lib/context/dashboardContext';
+import { deleteCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
 
-interface SidebarProps {
-  guilds: GuildData[];
-  commands: Command[];
-}
-
-function Sidebar({ guilds, commands }: SidebarProps) {
+function Sidebar() {
+  const router = useRouter();
+  const { guilds, commands } = useDashboardContext();
   const guildAvatars = useMemo(() => {
     return guilds.map((guild) => ({
       href: `/dashboard/${guild.id}`,
@@ -25,6 +23,14 @@ function Sidebar({ guilds, commands }: SidebarProps) {
 
   function toggleHelp() {
     console.log('help');
+  }
+
+  function logout() {
+    deleteCookie('accessToken');
+    deleteCookie('refreshToken');
+    localStorage.clear();
+    router.replace('/login');
+    router.refresh();
   }
 
   return (
@@ -55,7 +61,7 @@ function Sidebar({ guilds, commands }: SidebarProps) {
         <Button
           label="Logout"
           type={'link'}
-          onClick={logout}
+          onClick={() => logout()}
           style={{ textTransform: 'uppercase' }}
         />
       </div>

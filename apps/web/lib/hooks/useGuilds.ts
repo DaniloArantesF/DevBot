@@ -1,6 +1,7 @@
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { GuildData } from '@lib/types';
 import fetchJson from '@lib/fetch';
+import { useEffect, useRef } from 'react';
 
 const guildEndpoint = (guildId: string, token: string) =>
   `http://localhost:8000/discord/guilds/${guildId}?token=${token}`;
@@ -21,11 +22,26 @@ export async function fetchGuilds(token: string) {
 }
 
 export default function useGuilds(token: string) {
-  // const {}
-  const { data: guilds, mutate: mutateGuilds } = useSWR<GuildData[]>(guildsEndpoint(token), {
-    revalidateOnMount: false,
-    revalidateOnFocus: false,
-  });
+  const mounted = useRef(false);
+  const { data: guilds, mutate: mutateGuilds } = useSWR<GuildData[]>(
+    token ? guildsEndpoint(token) : null,
+    {
+      revalidateOnMount: false,
+      revalidateOnFocus: false,
+    },
+  );
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mutateGuilds();
+    }
+
+    return () => {
+      mounted.current = true;
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { guilds, mutateGuilds };
 }

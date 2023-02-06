@@ -1,36 +1,32 @@
 import useSWR from 'swr';
 import { UserData } from 'shared/types';
 import fetchJson from '@lib/fetch';
-// import { User } from 'shared/session';
+import { useEffect, useRef } from 'react';
 
-interface User {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-  isLoggedIn: boolean;
-}
+const userEndpoint = (token: string) => `http://localhost:8000/discord/user?token=${token}`;
 
 export async function fetchUser(token: string) {
-  return await fetchJson<UserData>(`http://localhost:8000/discord/user?token=${token}`);
+  return await fetchJson<UserData>(userEndpoint(token));
 }
 
-export default function useUser({ redirectTo = '', redirectIfFound = false } = {}) {
-  // TODO: refresh tokens
-  const { data: user, mutate: mutateUser } = useSWR<User>('/api/user', {
+// TODO: refresh tokens
+export default function useUser(token: string) {
+  const mounted = useRef(false);
+  const { data: user, mutate: mutateUser } = useSWR<UserData>(token ? userEndpoint(token) : null, {
     revalidateOnFocus: false,
+    revalidateOnMount: false,
   });
 
-  // useEffect(() => {
-  //   if (!redirectTo || !user) return;
+  useEffect(() => {
+    if (!mounted.current) {
+      mutateUser();
+    }
 
-  //   // Redirect if user is not authenticated or redirectIfFound is set
-  //   if (
-  //     (redirectTo && !redirectIfFound && !user?.isLoggedIn) ||
-  //     (redirectIfFound && user?.isLoggedIn)
-  //   ) {
-  //     Router.push(redirectTo);
-  //   }
-  // }, [user, redirectIfFound, redirectTo]);
+    return () => {
+      mounted.current = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { user, mutateUser };
 }

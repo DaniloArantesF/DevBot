@@ -1,35 +1,65 @@
 'use client';
 import useAuth from '@lib/hooks/useAuth';
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
-import { DiscordCommandData, GuildData } from 'shared/types';
+import useCommands from '@lib/hooks/useCommands';
+import useGuilds from '@lib/hooks/useGuilds';
+import useUser from '@lib/hooks/useUser';
+import { useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Command, GuildData, UserData } from 'shared/types';
 
 type DashboardProviderProps = {
   children: React.ReactNode;
 };
 
 interface DashboardContext {
+  commands: Command[];
   currentGuild: GuildData | null;
+  guilds: GuildData[];
   modal: null | React.RefObject<HTMLDivElement>;
-  commands: DiscordCommandData[];
+  user: UserData | null;
 }
 
 export const initialDashboardContext: DashboardContext = {
-  currentGuild: null,
-  modal: null,
   commands: [],
+  currentGuild: null,
+  guilds: [],
+  modal: null,
+  user: null,
 };
 
-export const DashboardContext = createContext(initialDashboardContext);
-
+const DashboardContext = createContext(initialDashboardContext);
 export function DashboardProvider({ children }: DashboardProviderProps) {
+  const router = useRouter();
+  const mounted = useRef(false);
   const [guild, setGuild] = useState<GuildData | null>(null);
   const auth = useAuth();
+  const { guilds } = useGuilds(auth.accessToken);
+  const { commands } = useCommands();
+  const { user } = useUser(auth.accessToken);
+
+  useEffect(() => {
+    if (!mounted.current && !auth.isLogged) {
+      redirectToLogin();
+    }
+    return () => {
+      mounted.current = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function redirectToLogin() {
+    router.replace('/login');
+    router.refresh();
+  }
 
   return (
     <DashboardContext.Provider
       value={{
         ...initialDashboardContext,
+        commands: commands || [],
         currentGuild: guild,
+        guilds: guilds || [],
+        user: user || null,
       }}
     >
       {children}
@@ -40,3 +70,5 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
 export function useDashboardContext() {
   return useContext(DashboardContext);
 }
+
+export default DashboardContext;

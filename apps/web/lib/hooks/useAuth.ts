@@ -3,6 +3,7 @@ import { ApiAuthResponse } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getCookie } from 'cookies-next';
 
 const codeEndpoint = `http://localhost:8000/auth/code`;
 
@@ -18,32 +19,20 @@ export async function fetchAuth(code: string, opts?: RequestInit) {
   });
 }
 
-type AuthData = { isLogged: false } | ({ isLogged: true } & ApiAuthResponse);
+export type AuthData = { isLogged: boolean } & ApiAuthResponse;
 
 export default function useAuth() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isClient = typeof window !== 'undefined';
-  const [authData, setAuthData] = useState<AuthData>(
-    isClient
-      ? {
-          isLogged: localStorage.getItem('accessToken') !== null,
-          accessToken: localStorage.getItem('accessToken') || '',
-          refreshToken: localStorage.getItem('refreshToken') || '',
-          expiresAt: Number(localStorage.getItem('expiresAt')) || 0,
-          scope: '',
-          tokenType: '',
-        }
-      : { isLogged: false },
-  );
-
-  // useEffect(() => {
-  //   if (isClient && !authData.isLogged) {
-  //     localStorage.clear();
-  //     return router.push('/login');
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
+  const [authData, setAuthData] = useState<AuthData>({
+    isLogged: !!getCookie('accessToken'),
+    accessToken: (getCookie('accessToken') as string) || '',
+    refreshToken: (getCookie('refreshToken') as string) || '',
+    expiresAt: Number(0) || 0,
+    scope: '',
+    tokenType: '',
+  });
 
   return {
     ...authData,

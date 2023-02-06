@@ -1,52 +1,54 @@
 'use client';
 import Button from '@components/Button';
-import fetchJson from '@lib/fetch';
 import { fetchAuth } from '@lib/hooks/useAuth';
-import { UserData } from 'shared/types';
 import classes from '@styles/Login.module.css';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef } from 'react';
 import { DISCORD_AUTH_URL } from 'shared/config';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { getCookie, setCookie } from 'cookies-next';
 
 function Page() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const [code, setCode] = useState<string | null>(null);
-  const [isLogged, setLogged] = useState(false);
+  const params = useSearchParams();
+  const processing = useRef(false);
+  const isClient = typeof window !== 'undefined';
+  const isLogged = useMemo(() => (isClient ? !!getCookie('accessToken') : false), [isClient]);
 
   useEffect(() => {
-    if (searchParams.get('code') && !isLogged) {
-      const code = searchParams.get('code');
-      router.replace('/login');
-      setCode(code);
+    if (isLogged && processing.current) {
+      redirectUser();
     }
 
-    if (typeof window !== 'undefined' && localStorage.getItem('isLogged') === 'true') {
-      setLogged(true);
+    if (isClient && !isLogged) {
+      const code = params.get('code');
+      if (code) {
+        login(code);
+      }
     }
+
+    return () => {
+      processing.current = true; // keep login/redirect from firing again
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (code && !isLogged) {
-      login();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
+  async function redirectUser() {
+    router.replace('/dashboard');
+    router.refresh();
+  }
 
-  async function login() {
-    if (!code || typeof window === 'undefined') return;
+  async function login(code: string) {
+    if (processing.current) return;
     try {
       const authData = await fetchAuth(code);
-      localStorage.setItem('accessToken', authData.accessToken);
-      localStorage.setItem('refreshToken', authData.refreshToken);
-      localStorage.setItem('expiresAt', authData.expiresAt.toString());
-      localStorage.setItem('isLogged', 'true');
-      setLogged(true);
+      if (authData) {
+        setCookie('accessToken', authData.accessToken);
+        setCookie('refreshToken', authData.refreshToken);
+
+        redirectUser();
+      }
     } catch (error) {
-      console.error(error);
-      setCode(null);
-      localStorage.clear();
+      console.log('error processing data', error);
     }
   }
 
