@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "lint": "eslint **/*.ts",
+    "lint": "tsc --noEmit && eslint src/**/*.ts",
     "test": "vitest",
     "test:ui": "vitest --ui"
   },

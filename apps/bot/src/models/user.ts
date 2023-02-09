@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase';
-import { UserData } from '@utils/types';
+import { TDiscord, TPocketbase, TBotApi } from '@utils/types';
 
 interface UserModel {
   pocketbase: PocketBase;
@@ -10,7 +10,7 @@ class UserModel {
     this.pocketbase = pocketbase;
   }
 
-  async create(user: UserData) {
+  async create(user: TBotApi.UserData) {
     const data = {
       username: user.username,
       email: '',
@@ -33,7 +33,7 @@ class UserModel {
   async getByDiscordId(userId: string) {
     const record = await this.pocketbase
       .collection('users')
-      .getFirstListItem(`discordId="${userId}"`);
+      .getFirstListItem<TPocketbase.UserData>(`discordId="${userId}"`);
     return record;
   }
 }

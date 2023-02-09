@@ -8,12 +8,12 @@ import {
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { TOKEN, CLIENT_ID } from '@config';
-import { DiscordCommand } from '@utils/types';
+import { TBot } from '@utils/types';
 import fs from 'fs';
 import { CommandInteraction } from '@/controllers/commandController';
 
 export async function getCommands(all = false) {
-  const commands: DiscordCommand[] = [];
+  const commands: TBot.Command[] = [];
   const commandFiles = fs
     .readdirSync(process.env.NODE_ENV === 'prod' ? 'dist/commands' : 'src/commands/')
     .filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
@@ -36,7 +36,7 @@ export async function getCommands(all = false) {
  * Registers slash commands globally or for a specific guild
  * @throws {DiscordAPIError}
  */
-export async function setSlashCommands(commands: DiscordCommand[], guildId?: string) {
+export async function setSlashCommands(commands: TBot.Command[], guildId?: string) {
   const rest = new REST({ version: '10' }).setToken(TOKEN);
   const endpoint = guildId
     ? Routes.applicationGuildCommands(CLIENT_ID, guildId.toString())

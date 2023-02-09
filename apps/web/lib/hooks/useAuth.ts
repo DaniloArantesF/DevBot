@@ -1,5 +1,5 @@
 'use client';
-import { ApiAuthResponse } from '@lib/types';
+import { TBot, TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { getCookie } from 'cookies-next';
 const codeEndpoint = `http://localhost:8000/auth/code`;
 
 export async function fetchAuth(code: string, opts?: RequestInit) {
-  return await fetchJson<ApiAuthResponse>(codeEndpoint, {
+  return await fetchJson<TBotApi.AuthData>(codeEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export async function fetchAuth(code: string, opts?: RequestInit) {
   });
 }
 
-export type AuthData = { isLogged: boolean } & ApiAuthResponse;
+export type AuthData = { isLogged: boolean } & TBotApi.AuthData;
 
 export default function useAuth() {
   const router = useRouter();

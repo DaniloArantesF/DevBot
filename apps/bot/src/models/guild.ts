@@ -1,8 +1,6 @@
 import { BotProvider } from '@/utils/types';
 import discord from 'discord.js';
-import { GuildData, PbBase } from 'shared/src/pocketbase';
-
-type PbGuildData = PbBase & GuildData;
+import { TPocketbase } from 'shared/src/pocketbase';
 
 const GuildRepository = (provider: BotProvider) => {
   const cacheMap = new Map<string, string>(); // guildId -> entityId
@@ -27,7 +25,7 @@ const GuildRepository = (provider: BotProvider) => {
     }
   }
 
-  async function create(guild: GuildData) {
+  async function create(guild: TPocketbase.GuildData) {
     try {
       const record = await pocketbase.collection('servers').create(guild);
       return record;
@@ -39,29 +37,31 @@ const GuildRepository = (provider: BotProvider) => {
 
   async function get(guildId: string) {
     if (cacheMap.has(guildId)) {
-      return await pocketbase.collection('servers').getOne<PbGuildData>(cacheMap.get(guildId));
+      return await pocketbase
+        .collection('servers')
+        .getOne<TPocketbase.Guild>(cacheMap.get(guildId));
     }
     return await pocketbase
       .collection('servers')
-      .getFirstListItem<PbGuildData>(`guildId="${guildId}"`);
+      .getFirstListItem<TPocketbase.Guild>(`guildId="${guildId}"`);
   }
 
   async function getByName(guildName: string) {
     return await pocketbase
       .collection('servers')
-      .getFirstListItem<PbGuildData>(`name="${guildName}"`);
+      .getFirstListItem<TPocketbase.Guild>(`name="${guildName}"`);
   }
 
   async function getAll() {
     return await pocketbase
       .collection('servers')
-      .getFullList<PbGuildData>(1, { $autoCancel: false });
+      .getFullList<TPocketbase.Guild>(1, { $autoCancel: false });
   }
 
-  async function update(guild: GuildData) {
+  async function update(guild: TPocketbase.Guild) {
     const record = await pocketbase
       .collection('servers')
-      .update<PbGuildData>(cacheMap.get(guild.guildId), guild);
+      .update<TPocketbase.Guild>(cacheMap.get(guild.guildId), guild);
     return record;
   }
 

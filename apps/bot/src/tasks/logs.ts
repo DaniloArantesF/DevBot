@@ -1,5 +1,5 @@
 import { stringifyCircular } from '@/utils';
-import type { CommandCacheData, EventCacheData, RequestCacheData } from '@utils/types';
+import type { TCache } from '@utils/types';
 import { CommandInteractionOption } from 'discord.js';
 
 export async function RequestLog(
@@ -15,7 +15,7 @@ export async function RequestLog(
     status,
     data: stringifyCircular(data) || '',
     error: stringifyCircular(error) || '',
-  } as RequestCacheData;
+  } as TCache.Request;
 }
 
 export async function EventLog(event: string, data?: any, error?: any) {
@@ -23,7 +23,7 @@ export async function EventLog(event: string, data?: any, error?: any) {
     event,
     data: stringifyCircular(data) || '',
     error: stringifyCircular(error) || '',
-  } as EventCacheData;
+  } as TCache.Event;
 }
 
 export async function CommandLog(
@@ -39,7 +39,7 @@ export async function CommandLog(
     reply,
     data: stringifyCircular(data) || '',
     error: stringifyCircular(error) || '',
-  } as CommandCacheData;
+  } as TCache.Command;
 }
 
 // TODO

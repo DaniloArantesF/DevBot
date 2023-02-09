@@ -1,10 +1,10 @@
 // Enlists a user into a guild role
 import { SlashCommandBuilder, Message } from 'discord.js';
-import { DiscordCommand } from '@utils/types';
+import { TBot } from '@utils/types';
 import { addUserRole, getGuildRole, getUserRoles, removeUserRole } from '@/tasks/roles';
 import { replyInteraction } from '@/tasks/commands';
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('enlist')
     .setDescription('Enlists a user into a role on this guild')

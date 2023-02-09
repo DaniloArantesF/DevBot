@@ -1,5 +1,5 @@
 import useSWR, { mutate } from 'swr';
-import { GuildData } from '@lib/types';
+import { TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useEffect, useRef } from 'react';
 
@@ -8,14 +8,14 @@ const guildEndpoint = (guildId: string, token: string) =>
 const guildsEndpoint = (token: string) => `http://localhost:8000/discord/guilds?token=${token}`;
 
 export async function fetchGuild(guildId: string, token: string) {
-  const data = await fetchJson<GuildData>(guildEndpoint(guildId, token), {
+  const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId, token), {
     method: 'GET',
   });
   return data;
 }
 
 export async function fetchGuilds(token: string) {
-  const data = await fetchJson<GuildData[]>(guildsEndpoint(token), {
+  const data = await fetchJson<TBotApi.GuildData[]>(guildsEndpoint(token), {
     method: 'GET',
   });
   return data;
@@ -23,7 +23,7 @@ export async function fetchGuilds(token: string) {
 
 export default function useGuilds(token: string) {
   const mounted = useRef(false);
-  const { data: guilds, mutate: mutateGuilds } = useSWR<GuildData[]>(
+  const { data: guilds, mutate: mutateGuilds } = useSWR<TBotApi.GuildData[]>(
     token ? guildsEndpoint(token) : null,
     {
       revalidateOnMount: false,

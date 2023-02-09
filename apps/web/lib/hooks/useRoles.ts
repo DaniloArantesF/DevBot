@@ -1,18 +1,18 @@
 import fetchJson from '@lib/fetch';
-import { DiscordRoleData } from 'shared/types';
+import { TDiscord } from 'shared/types';
 import useSWR from 'swr';
 
 const rolesEndpoint = (guildId: string) => `http://localhost:8000/guilds/${guildId}/roles`;
 
 export async function fetchRoles(guildId: string) {
-  const data = await fetchJson<DiscordRoleData[]>(rolesEndpoint(guildId), {
+  const data = await fetchJson<TDiscord.RoleData[]>(rolesEndpoint(guildId), {
     method: 'GET',
   });
   return data;
 }
 
 export default function useRoles({ guildId }: { guildId: string }) {
-  const { data: roles, mutate: mutateRoles } = useSWR<DiscordRoleData[]>(rolesEndpoint(guildId), {
+  const { data: roles, mutate: mutateRoles } = useSWR<TDiscord.RoleData[]>(rolesEndpoint(guildId), {
     revalidateOnFocus: false,
   });
 

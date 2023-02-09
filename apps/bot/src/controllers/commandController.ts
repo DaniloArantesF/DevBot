@@ -1,6 +1,6 @@
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
-import { Controller, DiscordCommand, DiscordCommandHandler, QueueTaskData } from '@/utils/types';
+import { TBot, Controller, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
 import {
   ChatInputCommandInteraction,
@@ -52,13 +52,13 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
     return job;
   }
 
-  async processTasks(commands: Map<string, DiscordCommand>) {
+  async processTasks(commands: Map<string, TBot.Command>) {
     this.queue.process(async (job) => {
       const interaction = this.taskMap.get(job.id);
       if (!interaction) return;
 
-      let command: DiscordCommand;
-      let execute: DiscordCommandHandler;
+      let command: TBot.Command;
+      let execute: TBot.CommandHandler;
 
       if (interaction instanceof Message) {
         const commandToken = interaction.content

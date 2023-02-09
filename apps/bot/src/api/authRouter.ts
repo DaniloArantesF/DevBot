@@ -1,12 +1,9 @@
 import { Router, Request, Response } from 'express';
 import fetch from 'node-fetch';
 import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
-import type { ApiAuthResponse, DiscordAuthResponse } from '@/utils/types';
 import { APIRouter } from '@/api';
 import { RequestLog } from '@/tasks/logs';
-import botProvider from '..';
-
-// TODO: Check if user exists in PocketBase, if not create it
+import type { TBotApi, DiscordAuthResponse } from '@/utils/types';
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -57,7 +54,7 @@ const AuthRouter: APIRouter = (pushRequest) => {
           expiresAt: Date.now() + expires_in,
           tokenType: token_type,
           scope,
-        } as ApiAuthResponse);
+        } as TBotApi.AuthData);
 
         return RequestLog('post', req.url, 200, data);
       } catch (error) {
@@ -113,7 +110,7 @@ const AuthRouter: APIRouter = (pushRequest) => {
           expiresAt: Date.now() + expires_in,
           tokenType: token_type,
           scope,
-        } as ApiAuthResponse);
+        } as TBotApi.AuthData);
 
         return RequestLog('post', req.url, 200, data);
       } catch (error) {

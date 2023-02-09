@@ -1,5 +1,4 @@
-import { BotProvider } from '@/utils/types';
-import { ChallengeData, GuildData } from 'shared/src/pocketbase';
+import type { BotProvider, TPocketbase } from '@/utils/types';
 import PocketBase from 'pocketbase';
 import { getGuild } from '@/tasks/guild';
 import { createChannel, getGuildChannel } from '@/tasks/channels';
@@ -10,8 +9,9 @@ interface HabitTracker {
   pocketbase: PocketBase;
   provider: BotProvider;
   challengeModel: ChallengeModel;
-  ongoingChallenges: ChallengeData[];
+  ongoingChallenges: TPocketbase.Challenge[];
   enabledGuilds: string[];
+  categoryChannelMap: Map<string, CategoryChannel>;
 }
 
 class HabitTracker {
@@ -20,6 +20,7 @@ class HabitTracker {
     this.pocketbase = provider.getDataProvider().pocketbase;
     this.challengeModel = provider.getDataProvider().challenge;
     this.enabledGuilds = [];
+    this.categoryChannelMap = new Map();
   }
 
   // Reads in challenges from database
@@ -29,7 +30,9 @@ class HabitTracker {
     await this.provider.getDataProvider().pocketbase.isAdmin;
     this.ongoingChallenges = await this.getOnGoingChallenges();
 
-    const servers = (await this.pocketbase.collection('servers').getFullList()) as GuildData[];
+    const servers = await this.pocketbase
+      .collection('servers')
+      .getFullList<TPocketbase.GuildData>();
     servers.forEach((server) => {
       if (server.plugins?.includes('habitTracker')) {
         this.enabledGuilds.push(server.guildId);
@@ -39,15 +42,8 @@ class HabitTracker {
     for (const guildId of this.enabledGuilds) {
       const guild = await getGuild(guildId);
 
-      // Check category exists
-      let category = guild.channels.cache.find((channel) => channel.name === 'Challenges');
-      if (!category) {
-        console.debug(`[${guildId}] Creating challenges category...`);
-        category = await createChannel(guildId, {
-          name: 'Challenges',
-          type: ChannelType.GuildCategory,
-        });
-      }
+      // Initialize category map
+      this.categoryChannelMap.set(guildId, await this.getChallengesCategory(guildId));
 
       // Create channels for ongoing challenges
       for (const challenge of this.ongoingChallenges) {
@@ -59,14 +55,28 @@ class HabitTracker {
         channel = await createChannel(guildId, {
           name: `${challenge.duration}day-${challenge.goal}`,
           type: ChannelType.GuildText,
-          parent: category as CategoryChannel,
+          parent: this.categoryChannelMap.get(guildId),
         });
 
-        this.pocketbase.collection('challenges').update(challenge.id, {
-          channelId: channel.id,
-        });
+        this.challengeModel.update({ id: challenge.id, channelId: channel.id });
       }
     }
+  }
+
+  // Searches for challenge category in the guild
+  // Creates one if it doesn't exist
+  async getChallengesCategory(guildId: string) {
+    const guild = await getGuild(guildId);
+    // Check category exists
+    let category = guild.channels.cache.find((channel) => channel.name === 'Challenges');
+    if (!category) {
+      console.debug(`[${guildId}] Creating challenges category...`);
+      category = await createChannel(guildId, {
+        name: 'Challenges',
+        type: ChannelType.GuildCategory,
+      });
+    }
+    return category as CategoryChannel;
   }
 
   // Enables habit tracking for a guild
@@ -79,7 +89,7 @@ class HabitTracker {
     }
     return await this.pocketbase
       .collection('servers')
-      .update(serverRecord.id, { plugins: [...currentPlugins, 'habitTracker'] });
+      .update<TPocketbase.Guild>(serverRecord.id, { plugins: [...currentPlugins, 'habitTracker'] });
   }
 
   // Disables habit tracking for a guild
@@ -93,20 +103,20 @@ class HabitTracker {
 
     return await this.pocketbase
       .collection('servers')
-      .update(serverRecord.id, { plugins: [...currentPlugins] });
+      .update<TPocketbase.Guild>(serverRecord.id, { plugins: [...currentPlugins] });
   }
 
   async getOnGoingChallenges() {
     return (
-      await this.pocketbase
-        .collection('challenges')
-        .getList<ChallengeData>(1, 100, { filter: 'status="inProgress"', $autoCancel: false })
+      await this.pocketbase.collection('challenges').getList<TPocketbase.Challenge>(1, 100, {
+        filter: 'status="inProgress"',
+        $autoCancel: false,
+      })
     ).items;
   }
 
-  async createChallenge(
-    data: Omit<ChallengeData, 'id' | 'status' | 'channelId' | 'created' | 'updated'>,
-  ) {
+  async createChallenge(data: TPocketbase.ChallengeCreateOptions) {
+    // TODO: get parent category
     const channel = await createChannel(data.guildId, {
       name: `${data.duration}day-${data.goal}`,
       type: ChannelType.GuildText,
@@ -150,8 +160,12 @@ class HabitTracker {
       throw new Error('Invalid channel!');
     }
 
-    const submissionType = 'text';
-    return await this.challengeModel.createSubmission(challenge.id, userId, submissionType, entry);
+    return await this.challengeModel.createSubmission({
+      challenge: challenge.id,
+      userId,
+      submissionType: 'text',
+      value: entry,
+    });
   }
 }
 

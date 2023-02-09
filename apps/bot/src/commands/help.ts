@@ -1,9 +1,9 @@
-import { DiscordCommand } from '@/utils/types';
+import { TBot } from '@/utils/types';
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { getCommands, replyInteraction } from '@/tasks/commands';
 
 // Builds the full help embed
-const HelpEmbed = (commandsData: DiscordCommand[]) => {
+const HelpEmbed = (commandsData: TBot.Command[]) => {
   const fields = [];
   for (const command of commandsData) {
     fields.push({
@@ -23,7 +23,7 @@ const HelpEmbed = (commandsData: DiscordCommand[]) => {
 };
 
 // Builds the help embed for a specific command
-export const CommandHelpEmbed = (command: DiscordCommand) => {
+export const CommandHelpEmbed = (command: TBot.Command) => {
   return new EmbedBuilder()
     .setColor('#b700ff')
     .setTitle(`/${command.data.name}`)
@@ -35,7 +35,7 @@ export const CommandHelpEmbed = (command: DiscordCommand) => {
     );
 };
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('help')
     .setDescription('Displays help for all or a specific command')

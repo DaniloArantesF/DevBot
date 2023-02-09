@@ -5,18 +5,18 @@ import useGuilds from '@lib/hooks/useGuilds';
 import useUser from '@lib/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Command, GuildData, UserData } from 'shared/types';
+import { TBot, TBotApi } from 'shared/types';
 
 type DashboardProviderProps = {
   children: React.ReactNode;
 };
 
 interface DashboardContext {
-  commands: Command[];
-  currentGuild: GuildData | null;
-  guilds: GuildData[];
+  commands: TBot.CommandData[];
+  currentGuild: TBotApi.GuildData | null;
+  guilds: TBotApi.GuildData[];
   modal: null | React.RefObject<HTMLDivElement>;
-  user: UserData | null;
+  user: TBotApi.UserData | null;
 }
 
 export const initialDashboardContext: DashboardContext = {
@@ -31,7 +31,7 @@ const DashboardContext = createContext(initialDashboardContext);
 export function DashboardProvider({ children }: DashboardProviderProps) {
   const router = useRouter();
   const mounted = useRef(false);
-  const [guild, setGuild] = useState<GuildData | null>(null);
+  const [guild, setGuild] = useState<TBotApi.GuildData | null>(null);
   const auth = useAuth();
   const { guilds } = useGuilds(auth.accessToken);
   const { commands } = useCommands();

@@ -1,14 +1,14 @@
-import type { Command } from '@lib/types';
+import type { TBot } from '@lib/types';
 import classes from '@styles/Help.module.css';
 import ScrollArea from './ScrollArea';
 import Separator from './Separator';
 
 interface HelpProps {
-  commands: Command[];
+  commands: TBot.CommandData[];
 }
 
 interface CommandCardProps {
-  command: Command;
+  command: TBot.CommandData;
 }
 
 function CommandCard({ command }: CommandCardProps) {

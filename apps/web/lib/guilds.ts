@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { GuildData } from 'shared/types';
+import { TBotApi } from 'shared/types';
 import fetchJson from './fetch';
 
 export const preload = (token: string) => {
@@ -13,7 +13,7 @@ const guildsEndpoint = (token: string) => `http://localhost:8000/discord/guilds?
 export const getGuilds = cache(async (token?: string) => {
   if (!token) return [];
   try {
-    const data = await fetchJson<GuildData[]>(guildsEndpoint(token), {
+    const data = await fetchJson<TBotApi.GuildData[]>(guildsEndpoint(token), {
       method: 'GET',
     });
     return data;

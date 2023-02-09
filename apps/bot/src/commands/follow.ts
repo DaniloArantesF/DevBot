@@ -1,12 +1,12 @@
 import { SlashCommandBuilder, ContextMenuCommandBuilder, ApplicationCommandType } from 'discord.js';
-import { DiscordCommand } from '@/utils/types';
+import { TBot } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 
 export const contextCommand = new ContextMenuCommandBuilder()
   .setName('follow')
   .setType(ApplicationCommandType.User);
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder().setName('follow').setDescription('Follows a user'),
   async messageHandler(interaction) {
     const reply = 'TODO';

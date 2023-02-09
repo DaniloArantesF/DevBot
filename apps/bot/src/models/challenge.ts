@@ -1,15 +1,12 @@
 import { PocketBase } from '@/DataProvider';
-import { ChallengeData, PbBase } from 'shared/src/pocketbase';
+import { TPocketbase } from 'shared/src/pocketbase';
 
 interface ChallengeModel {
   pocketbase: PocketBase;
-  challenges: (ChallengeData & PbBase)[];
+  challenges: TPocketbase.Challenge[];
 }
 
-type ChallengeSubmissionType = 'text' | 'url' | 'image' | 'commit';
-type ChallengeCreateOptions = Partial<Omit<ChallengeData, 'id' | 'created' | 'updated'>>;
-
-const ChallengeSubmission = () => {};
+type ChallengeUpdateOptions = { id: string } & Partial<TPocketbase.ChallengeData>;
 
 class ChallengeModel {
   constructor(pocketbase: PocketBase) {
@@ -27,44 +24,40 @@ class ChallengeModel {
   async get(challengeId: string) {
     const challenge = await this.pocketbase
       .collection('challenges')
-      .getOne<ChallengeData>(challengeId);
+      .getOne<TPocketbase.Challenge>(challengeId);
     return challenge;
   }
 
   async getAll() {
     const challenges = await this.pocketbase
       .collection('challenges')
-      .getList(1, 100, { filter: 'inProgress=true' });
+      .getList<TPocketbase.Challenge>(1, 100, { filter: 'inProgress=true' });
     return challenges;
   }
 
-  async create(challenge: ChallengeCreateOptions) {
-    const record = await this.pocketbase.collection('challenges').create<ChallengeData>(challenge);
+  async create(challenge: TPocketbase.ChallengeData) {
+    const record = await this.pocketbase
+      .collection('challenges')
+      .create<TPocketbase.Challenge>(challenge);
 
     // TODO: send button to setup challenge
     return record;
   }
 
-  async update(challenge: ChallengeCreateOptions & { id: string }) {
-    return await this.pocketbase.collection('challenges').update(challenge.id, challenge);
+  async update(challenge: ChallengeUpdateOptions) {
+    return await this.pocketbase
+      .collection('challenges')
+      .update<TPocketbase.Challenge>(challenge.id, challenge);
   }
 
   async getFromChannel(channelId: string) {
     return this.challenges.find((c) => c.channelId === channelId);
   }
 
-  async createSubmission(
-    challengeId: string,
-    userId: string,
-    submissionType: ChallengeSubmissionType,
-    value: string,
-  ) {
-    const record = await this.pocketbase.collection('challenge_entry').create<ChallengeData>({
-      challenge: challengeId,
-      type: submissionType,
-      value,
-      userId,
-    });
+  async createSubmission(data: TPocketbase.ChallengeSubmissionData) {
+    const record = await this.pocketbase
+      .collection('challenge_entry')
+      .create<TPocketbase.ChallengeSubmission>(data);
     return record;
   }
 }

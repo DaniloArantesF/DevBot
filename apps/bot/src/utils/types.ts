@@ -5,8 +5,7 @@ import type DiscordClient from '@/DiscordClient';
 import type { VoiceConnection } from '@discordjs/voice';
 import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';
-import type { EventCacheData } from '@/utils/types';
-import type { RequestCacheData } from 'shared/types';
+import type { TCache } from '@/utils/types';
 import type Queue from 'bee-queue';
 
 export interface BotProvider {
@@ -35,8 +34,8 @@ export interface DiscordEvent<K extends keyof ClientEvents = any> {
   name: K;
   active?: boolean;
 
-  on?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
-  once?: (...args: ClientEvents[K]) => void | Promise<void | EventCacheData>;
+  on?: (...args: ClientEvents[K]) => void | Promise<void | TCache.Event>;
+  once?: (...args: ClientEvents[K]) => void | Promise<void | TCache.Event>;
 }
 
 /*     TaskManager Types     */
@@ -54,7 +53,8 @@ export interface QueueTaskData {
   timestamp?: number;
 }
 
-export type apiHandler = (client?: DiscordClient) => Promise<void | RequestCacheData> | void;
+export type apiHandler = (client?: DiscordClient) => Promise<void | TCache.Request> | void;
+
 export interface ApiTask {
   id: string;
   execute: apiHandler;

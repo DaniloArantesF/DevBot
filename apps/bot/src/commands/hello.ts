@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { DiscordCommand } from '@/utils/types';
+import { TBot } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder().setName('hello').setDescription('Friendly greeting'),
   async messageHandler(interaction) {
     const reply = 'Hello!';

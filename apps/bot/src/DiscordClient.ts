@@ -2,10 +2,10 @@ import { Client, Collection } from 'discord.js';
 import { getCommands } from '@/tasks/commands';
 import { getEvents } from '@/tasks/event';
 import { TOKEN, INTENTS as intents } from '@config';
-import type { BotProvider, DiscordCommand, DiscordConnection, DiscordEvent } from '@/utils/types';
+import type { BotProvider, TBot, DiscordConnection, DiscordEvent } from '@/utils/types';
 
 class DiscordClient extends Client {
-  commands = new Collection<string, DiscordCommand>();
+  commands = new Collection<string, TBot.Command>();
   events = new Collection<string, DiscordEvent>();
   connections = new Map<string, DiscordConnection>();
   provider: BotProvider;

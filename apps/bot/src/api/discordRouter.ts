@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { DISCORD_API_BASE_URL } from '@/utils/config';
 import fetch from 'node-fetch';
 import type DiscordClient from '@/DiscordClient';
-import type { GuildData, UserConnectionData, UserData } from '@/utils/types';
+import type { TBotApi } from '@/utils/types';
 import { APIRouter } from '@/api';
 import { getGuild } from '@/tasks/guild';
 import { getGuildRoles } from '@/tasks/roles';
@@ -43,7 +43,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
               authorization: `Bearer ${token}`,
             },
           })
-        ).json()) as UserData;
+        ).json()) as TBotApi.UserData;
         res.status(200).send(data);
 
         const dataProvider = (await botProvider).getDataProvider();
@@ -99,7 +99,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
               verified,
               friendSync: friend_sync,
               showActivity: show_activity,
-            } as UserConnectionData),
+            } as TBotApi.UserConnectionData),
         );
         res.status(200).send(payload);
         return RequestLog('get', req.url, 200, payload);
@@ -139,7 +139,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
               authorization: `Bearer ${token}`,
             },
           })
-        ).json()) as GuildData[];
+        ).json()) as TBotApi.GuildData[];
 
         if (!data) {
           res.sendStatus(500);

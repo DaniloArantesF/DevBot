@@ -1,7 +1,9 @@
+// @ts-check
+
 module.exports = {
   reactStrictMode: true,
+  transpilePackages: ['ui'],
   experimental: {
     appDir: true,
-    transpilePackages: ['ui'],
   },
 };

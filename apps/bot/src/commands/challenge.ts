@@ -1,9 +1,9 @@
 import { SlashCommandBuilder, ChannelType } from 'discord.js';
-import { DiscordCommand } from '@/utils/types';
+import { TBot } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 import botProvider from '..';
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('create-challenge')
     .setDescription('Create a challenge')
@@ -57,7 +57,7 @@ export const command: DiscordCommand = {
   aliases: [],
 };
 
-export const challangeJoin: DiscordCommand = {
+export const challangeJoin: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('join-challenge')
     .setDescription('Join a challenge')
@@ -112,7 +112,7 @@ export const challangeJoin: DiscordCommand = {
 
 // Submit a challenge entry
 // The command must be sent in the main channel of the challenge
-export const challengeSubmit: DiscordCommand = {
+export const challengeSubmit: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('submit-challenge')
     .setDescription('Submit a challenge entry')

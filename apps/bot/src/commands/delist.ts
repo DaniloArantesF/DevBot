@@ -1,10 +1,10 @@
 // Delists a user from a guild role
 import { SlashCommandBuilder, Message } from 'discord.js';
-import { DiscordCommand } from '@/utils/types';
+import { TBot } from '@/utils/types';
 import { getGuildRole, removeUserRole } from '@/tasks/roles';
 import { replyInteraction } from '@/tasks/commands';
 
-export const command: DiscordCommand = {
+export const command: TBot.Command = {
   data: new SlashCommandBuilder()
     .setName('delist')
     .setDescription('Delists a user from a role on this guild')
