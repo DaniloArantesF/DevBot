@@ -7,7 +7,8 @@
   "exports": {
     "./types": "./src/types.ts",
     "./config": "./src/config.ts",
-    "./session": "./src/session.ts"
+    "./session": "./src/session.ts",
+    "./utils": "./src/utils.ts"
   },
   "typesVersions": {
     "*": {
@@ -19,6 +20,9 @@
       ],
       "session": [
         "src/session.ts"
+      ],
+      "utils": [
+        "src/utils.ts"
       ]
     }
   },

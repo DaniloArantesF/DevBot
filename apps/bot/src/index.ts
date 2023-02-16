@@ -53,7 +53,8 @@ async function Bot() {
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
       if (guild.rolesChannelId && guild.rolesMessageId) {
-        await setRolesMessage(guild.guildId, guild.rolesChannelId);
+        // TODO: implement role filtering by guild
+        // await setRolesMessage(guild.guildId, guild.rolesChannelId);
       }
     }
   }

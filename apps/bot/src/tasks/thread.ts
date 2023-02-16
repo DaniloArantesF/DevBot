@@ -10,3 +10,6 @@ export async function createThread(
   const thread = await channel.threads.create(options);
   return thread;
 }
+
+// TODO
+export async function lockThread(guildId: string, threadId: string) {}

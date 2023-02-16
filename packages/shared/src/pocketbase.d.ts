@@ -23,19 +23,21 @@ declare namespace TPocketbase {
   };
 
   export type ChallengeData = {
-    goal: string;
-    startDate: string;
-    user: string;
-    status: string;
-    participants: string[];
-    duration: number; // in days
-    guildId: string;
-    period: number; // in days
+    allowedSubmissionTypes?: string[];
     channelId: string;
     description?: string;
+    duration: number; // in days
     endDate?: Date;
+    goal: string;
+    guildId: string;
+    roleId: string;
     inProgress?: boolean;
-    allowedSubmissionTypes?: string[];
+    lastCheck?: string | null; // Last routine check
+    participants: string[];
+    period: number; // in milliseconds
+    startDate: string;
+    status: string;
+    user: string;
   };
 
   export type ChallengeParticipantData = {
@@ -48,11 +50,12 @@ declare namespace TPocketbase {
   export type ChallengeSubmissionData = {
     challenge: string;
     userId: string;
-    submissionType: 'text' | 'url' | 'image' | 'commit';
+    type: 'text' | 'url' | 'image' | 'commit';
     value: string;
+    day: number;
   };
 
-  type ChallengeCreateOptions = Omit<TPocketbase.ChallengeData, 'channelId' | 'status'>;
+  type ChallengeCreateOptions = Omit<TPocketbase.ChallengeData, 'channelId' | 'status' | 'roleId'>;
 
   export type Guild = GuildData & Base;
   export type Challenge = ChallengeData & Base;

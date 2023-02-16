@@ -10,6 +10,8 @@ import HabitTracker from './controllers/plugins/habitTracker';
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',
   activateDelayedJobs: true,
+  stallInterval: 15000,
+  delayedDebounce: 2000,
 };
 
 /**

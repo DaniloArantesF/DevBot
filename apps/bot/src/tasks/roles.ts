@@ -8,8 +8,14 @@ import {
   MessageActionRowComponentBuilder,
   MessageCreateOptions,
   // RoleSelectMenuBuilder
+  CreateRoleOptions,
 } from 'discord.js';
 import { getGuild } from './guild';
+
+export async function createRole(guildId: string, options: CreateRoleOptions) {
+  const guild = await getGuild(guildId);
+  return guild.roles.create(options);
+}
 
 export function getRoleEmoji(roleId: string) {
   return emojis[Math.floor(Math.random() * emojis.length)];
@@ -122,7 +128,11 @@ export async function getGuildRole(guildId: string, roleId?: string, roleName?: 
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
   if (roleName) return guild.roles.cache.find((role) => role.name === roleName);
-  return guild.roles.cache.get(roleId);
+  try {
+    return guild.roles.cache.get(roleId);
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function hasRole(userId: string, guildId: string, roleId: string) {

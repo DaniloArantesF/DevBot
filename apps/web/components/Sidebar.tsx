@@ -1,4 +1,4 @@
-import { getDiscordAvatar } from '@lib/utils';
+import { getDiscordAvatar } from 'shared/src/utils';
 import { useMemo } from 'react';
 import AvatarList from './AvatarList';
 import Button from './Button';
