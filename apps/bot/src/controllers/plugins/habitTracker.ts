@@ -9,6 +9,7 @@ import {
   CategoryChannel,
   TextChannel,
   ThreadChannel,
+  PermissionsBitField,
 } from 'discord.js';
 import ChallengeModel from '@/models/challenge';
 import Queue from 'bee-queue';
@@ -16,7 +17,6 @@ import { queueSettings } from '@/TaskManager';
 import { createRole, getGuildRole } from '@/tasks/roles';
 import { createThread } from '@/tasks/thread';
 import { getRoleMention, getUserMention } from '@/tasks/message';
-import { getGuildMember } from '@/tasks/members';
 
 interface HabitTracker {
   activeThreads: Map<string, ThreadChannel>; // challengeId -> threadId
@@ -27,6 +27,7 @@ interface HabitTracker {
   pocketbase: PocketBase;
   provider: BotProvider;
   routineQueue: Queue<RoutineTaskData>;
+  participants: Map<string, TPocketbase.ChallengeParticipant[]>; // challengeId -> participants
 
   // Jobs map
   // On init scheduled jobs are read in from redis
@@ -49,6 +50,7 @@ class HabitTracker {
     this.routineQueue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
     this.scheduledTasks = new Map();
     this.activeThreads = new Map();
+    this.participants = new Map();
   }
 
   // Reads in challenges from database
@@ -57,6 +59,16 @@ class HabitTracker {
   async setup() {
     await this.provider.getDataProvider().pocketbase.isAdmin;
     this.ongoingChallenges = await this.getOnGoingChallenges();
+
+    // Save participants
+    const participants = await this.challengeModel.getParticipants();
+    participants.forEach((participant) => {
+      if (this.participants.has(participant.challenge)) {
+        this.participants.get(participant.challenge).push(participant);
+      } else {
+        this.participants.set(participant.challenge, [participant]);
+      }
+    });
 
     const servers = await this.pocketbase
       .collection('servers')
@@ -86,7 +98,7 @@ class HabitTracker {
       // Create channels for ongoing challenges
       for (const challenge of this.ongoingChallenges) {
         const updatedData: Partial<TPocketbase.ChallengeData> = {};
-        let channel = await getGuildChannel(guildId, challenge.channelId);
+        let channel = (await getGuildChannel(guildId, challenge.channelId)) as TextChannel;
 
         if (!channel) {
           console.debug(`[${guildId}] Creating channel for challenge ${challenge.id}...`);
@@ -98,7 +110,10 @@ class HabitTracker {
           updatedData.channelId = channel.id;
         }
 
-        const day = this.getCurrentDay(challenge);
+        // Setup channel filter
+        this.channelFilter(channel);
+
+        const day = challenge.currentPeriod;
         const threads = await this.getChallengeThreads(channel.id);
         let thread = threads?.find((thread) => thread.name.includes(`Day ${day}`));
 
@@ -225,9 +240,19 @@ class HabitTracker {
     // Save to database
     const challenge = await this.challengeModel.create(challengeData as TPocketbase.ChallengeData);
 
+    const participants = data.participants.map(
+      async (participant) =>
+        await this.challengeModel.createParticipant({
+          challenge: challenge.id,
+          userId: participant,
+          streak: 0,
+        }),
+    );
+
     // Save to cache
     this.ongoingChallenges.push(challenge);
     this.activeThreads.set(challenge.id, thread);
+    this.participants.set(challenge.id, await Promise.all(participants));
 
     // Schedule routine check
     this.scheduleCheck(challenge);
@@ -235,6 +260,12 @@ class HabitTracker {
     return challenge;
   }
 
+  /**
+   * Joins a user to a challenge
+   * Updates the challenge in the database and cache
+   * @throws Error if user already joined the challenge
+   * @throws Error if channel is not a challenge channel
+   */
   async joinChallenge(channelId: string, userId: string) {
     const challenge = await this.challengeModel.getFromChannel(channelId);
     if (!challenge) {
@@ -245,10 +276,25 @@ class HabitTracker {
       throw new Error('You already joined this challenge!');
     }
 
-    return await this.challengeModel.update({
+    const updatedChallenge = await this.challengeModel.update({
       id: challenge.id,
       participants: [...challenge.participants, userId],
     });
+
+    await this.challengeModel.createParticipant({
+      challenge: challenge.id,
+      userId: userId,
+      streak: 1,
+      lastUpdate: new Date().toISOString(),
+    });
+
+    // Update cached entities
+    const i = this.ongoingChallenges.findIndex((c) => c.id === challenge.id);
+    this.ongoingChallenges[i] = updatedChallenge;
+    const challengeParticipants = await this.challengeModel.getParticipants(challenge.id);
+    this.participants.set(challenge.id, challengeParticipants);
+
+    return updatedChallenge;
   }
 
   async scheduleCheck(challenge: TPocketbase.Challenge) {
@@ -257,7 +303,7 @@ class HabitTracker {
       return;
     }
 
-    let periodEndOffset = challenge.period * 0.1;
+    let periodEndOffset = 2000;
     const now = new Date();
     let lastCheck = new Date(),
       nextCheck = new Date();
@@ -266,7 +312,7 @@ class HabitTracker {
       lastCheck = new Date(challenge.lastCheck);
 
       // Offset should only be added once, otherwise it compounds?
-      periodEndOffset = 0;
+      // periodEndOffset = 0;
     }
 
     nextCheck.setTime(lastCheck.getTime() + challenge.period - periodEndOffset);
@@ -334,27 +380,58 @@ class HabitTracker {
   // Challenge routine check
   // Responsible for scheduling the next check
   async checkRoutine(challenge: TPocketbase.Challenge) {
+    if (!challenge || !challenge.guildId) return;
     const role = await getGuildRole(challenge.guildId, challenge.roleId);
 
     // today's stats
-    const participantStatus: { userId: string; submitted: boolean }[] = [];
-    const challengeDay = this.getCurrentDay(challenge);
+    const participantStatus: {
+      userId: string;
+      submitted: boolean;
+      streak: boolean;
+      missed: number;
+    }[] = [];
+    const challengeDay = challenge.currentPeriod;
 
     console.debug(
       `[${challenge.guildId}] Checking challenge \"${challenge.goal}\" on day ${challengeDay}.`,
     );
 
     // Get today's submissions
-    for (const participant of challenge.participants) {
-      const todaySubmissions = await this.challengeModel.getSubmissionByDay(
-        challenge.id,
-        participant,
-        challengeDay,
-      );
+    for (const participantUserId of challenge.participants) {
+      const { submitted, streak, missed } = await this.getUserStats(challenge, participantUserId);
+
+      let participantRecord = this.participants
+        .get(challenge.id)
+        .find((p) => p.userId === participantUserId);
+
+      const updateData: Partial<TPocketbase.ChallengeParticipantData> = {};
+
+      if (streak) {
+        updateData.streak = participantRecord.streak + 1;
+      }
+
+      if (submitted) {
+        updateData.lastUpdate = new Date().toISOString();
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        participantRecord = await this.challengeModel.updateParticipant({
+          id: participantRecord.id,
+          ...updateData,
+        });
+      }
+
+      // Update cache
+      const i = this.participants
+        .get(challenge.id)
+        .findIndex((p) => p.userId === participantUserId);
+      this.participants.get(challenge.id)[i] = participantRecord;
 
       participantStatus.push({
-        userId: participant,
-        submitted: todaySubmissions.length > 0,
+        userId: participantUserId,
+        submitted,
+        streak,
+        missed,
       });
     }
 
@@ -363,10 +440,15 @@ class HabitTracker {
     }, 0);
 
     const sinners = participantStatus.filter((status) => !status.submitted);
+    const streakers = participantStatus.filter((status) => status.streak);
 
     const message: MessageCreateOptions = {
       content: `${getRoleMention(role.id)} hello friends`,
-      embeds: [
+      embeds: [],
+    };
+
+    try {
+      message.embeds.push(
         new EmbedBuilder()
           .setColor('#00ff00')
           .setTitle(`Day ${challengeDay} Stats`)
@@ -376,12 +458,20 @@ class HabitTracker {
               value: `${submissionCount}/${participantStatus.length}`,
               inline: false,
             },
+            {
+              name: 'Streakers',
+              value: streakers.length
+                ? streakers.map((s) => getUserMention(s.userId)).join(', ')
+                : 'None :(',
+            },
           ])
           .setFooter({
             text: `You can join the challenge by typing /join-challenge in this channel`,
           }),
-      ],
-    };
+      );
+    } catch (error) {
+      console.log(error);
+    }
 
     if (sinners.length > 0) {
       message.embeds.push(
@@ -394,9 +484,9 @@ class HabitTracker {
             sinners.map((sinner, index) => {
               return {
                 name: `Sinner #${index + 1}`,
-                value: `${getUserMention(sinner.userId)} Missed ${Math.floor(
-                  Math.random() * 10,
-                )}. SHAME!`,
+                value: `${getUserMention(sinner.userId)} Missed ${
+                  sinner.missed
+                } days already. SHAME!`,
                 inline: true,
               };
             }),
@@ -412,6 +502,7 @@ class HabitTracker {
     challenge = await this.challengeModel.update({
       id: challenge.id,
       lastCheck: new Date().toISOString(),
+      currentPeriod: challengeDay + 1,
     });
 
     // Create next thread
@@ -423,22 +514,55 @@ class HabitTracker {
 
     // Update cache
     this.activeThreads.set(challenge.id, thread);
+    const i = this.ongoingChallenges.findIndex((c) => c.id === challenge.id);
+    this.ongoingChallenges[i] = challenge;
 
     this.scheduledTasks.delete(challenge.id);
     await this.scheduleCheck(challenge);
+  }
+
+  async getUserStats(challenge: TPocketbase.Challenge, userId: string) {
+    const day = challenge.currentPeriod;
+    const submissions = await this.challengeModel.getUserSubmissions(challenge.id, userId);
+
+    const submitted = submissions.some((submission) => submission.day === day);
+    let isStreak = false;
+    if (day > 0) {
+      const submittedYesterday = submissions.some((submission) => submission.day === day - 1);
+      isStreak = submitted && submittedYesterday;
+    }
+
+    let missCount = 0;
+    for (let i = 0; i < day; i++) {
+      // TODO: only count miss from date of joining
+      const missed = !submissions.some((submission) => submission.day === i);
+      missCount += Number(missed);
+    }
+
+    return {
+      submitted: submitted,
+      missed: missCount,
+      streak: isStreak,
+      submissions,
+    };
   }
 
   async leaveChallenge(channelId: string, userId: string) {}
 
   async submitEntry(channelId: string, userId: string, entry: string) {
     const challenge = await this.challengeModel.getFromChannel(channelId);
-
     if (!challenge) {
       throw new Error('Invalid channel!');
     }
 
     // Calculate entry's day
-    const day = this.getCurrentDay(challenge);
+    const day = challenge.currentPeriod;
+
+    // Add user to challenge if they're not already in it
+    if (challenge.participants.indexOf(userId) === -1) {
+      await this.joinChallenge(channelId, userId);
+    }
+
     return await this.challengeModel.createSubmission({
       challenge: challenge.id,
       userId,
@@ -463,9 +587,7 @@ class HabitTracker {
     const minutes = Math.floor((diff / 1000 / 60 / 60 - hours) * 60);
 
     console.debug(
-      `[${challenge.guildId}] Sending reminder for \"${
-        challenge.goal
-      }\" on day ${this.getCurrentDay(challenge)}.`,
+      `[${challenge.guildId}] Sending reminder for \"${challenge.goal}\" on day ${challenge.currentPeriod}.`,
     );
 
     await thread.send(
@@ -483,6 +605,32 @@ class HabitTracker {
     const channel = (await getGuildChannel(challenge.guildId, challenge.channelId)) as TextChannel;
     const threads = channel.threads.cache;
     return threads;
+  }
+
+  // Removes any messages that are not from an admin, or a challenge command
+  async channelFilter(channel: TextChannel) {
+    channel.client.on('messageCreate', async (message) => {
+      if (message.channelId !== channel.id || message.author.bot) {
+        return;
+      }
+
+      const isValidCommand = Boolean(message?.interaction?.commandName?.includes('challenge'));
+      const isAdmin = message.member.permissions.has(PermissionsBitField.Flags.ManageChannels);
+
+      if (!isValidCommand && !isAdmin) {
+        const userId = message.author.id;
+        await message.delete();
+
+        const warn = await channel.send(
+          `${getUserMention(
+            userId,
+          )} this channel is only for challenge commands.\nPlease use today's thread for discussion.`,
+        );
+        setTimeout(() => {
+          warn.delete();
+        }, 5000);
+      }
+    });
   }
 }
 

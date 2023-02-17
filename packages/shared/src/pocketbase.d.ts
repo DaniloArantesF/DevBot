@@ -28,6 +28,7 @@ declare namespace TPocketbase {
     description?: string;
     duration: number; // in days
     endDate?: Date;
+    currentPeriod: number;
     goal: string;
     guildId: string;
     roleId: string;
@@ -41,10 +42,10 @@ declare namespace TPocketbase {
   };
 
   export type ChallengeParticipantData = {
-    challengeId: string;
+    challenge: string;
     userId: string;
     streak: number;
-    lastUpdate: Date;
+    lastUpdate?: string;
   };
 
   export type ChallengeSubmissionData = {

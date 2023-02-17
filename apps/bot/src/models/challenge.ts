@@ -52,7 +52,9 @@ class ChallengeModel {
   }
 
   async getFromChannel(channelId: string) {
-    return this.challenges.find((c) => c.channelId === channelId);
+    return await this.pocketbase
+      .collection('challenges')
+      .getFirstListItem<TPocketbase.Challenge>(`channelId = "${channelId}"`);
   }
 
   async createSubmission(data: TPocketbase.ChallengeSubmissionData) {
@@ -103,6 +105,60 @@ class ChallengeModel {
     } catch (error) {
       console.log(error);
       return [];
+    }
+  }
+
+  async getUserSubmissions(challengeId: string, userId: string) {
+    try {
+      const submissions = await this.pocketbase
+        .collection('challenge_entry')
+        .getFullList<TPocketbase.ChallengeSubmission>(1, {
+          filter: `challenge = "${challengeId}" && userId = "${userId}"`,
+          $autoCancel: false,
+        });
+
+      return submissions;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  async createParticipant(data: TPocketbase.ChallengeParticipantData) {
+    try {
+      const record = await this.pocketbase
+        .collection('challenge_participant')
+        .create<TPocketbase.ChallengeParticipant>(data);
+      return record;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Failed to create participant');
+    }
+  }
+
+  async getParticipants(challengeId?: string) {
+    try {
+      const participants = await this.pocketbase
+        .collection('challenge_participant')
+        .getFullList<TPocketbase.ChallengeParticipant>(1, {
+          ...(challengeId && { filter: `challenge = "${challengeId}"` }),
+        });
+      return participants;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  async updateParticipant(data: Partial<TPocketbase.ChallengeParticipant> & { id: string }) {
+    try {
+      const record = await this.pocketbase
+        .collection('challenge_participant')
+        .update<TPocketbase.ChallengeParticipant>(data.id, data);
+      return record;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Failed to update participant');
     }
   }
 }

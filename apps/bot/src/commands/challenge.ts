@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChannelType, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, ChannelType, EmbedBuilder, User } from 'discord.js';
 import { TBot } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 import botProvider from '..';
@@ -43,6 +43,7 @@ export const command: TBot.Command = {
       user: interaction.member.user.id,
       guildId: interaction.guildId,
       participants: [interaction.member.user.id],
+      currentPeriod: 0,
     });
     await replyInteraction(interaction, reply);
 
@@ -148,7 +149,8 @@ export const challengeSubmit: TBot.Command = {
             iconURL: getDiscordAvatar(
               'user',
               interaction.member.user.id,
-              interaction.member.user.avatar,
+              interaction.member.user.avatar ||
+                (interaction.member.user as User).displayAvatarURL(),
             ),
           })
           .addFields({ name: 'Entry', value: entry }),

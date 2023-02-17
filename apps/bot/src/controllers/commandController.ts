@@ -14,6 +14,8 @@ import { BOT_CONFIG } from 'shared/config';
 const COOLDOWN_MS = BOT_CONFIG.cooldownMs;
 const PREFIX = BOT_CONFIG.prefix;
 
+const DEBUG = false;
+
 export type CommandInteraction =
   | ChatInputCommandInteraction
   | Message
@@ -24,11 +26,20 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
   queue = new Queue<QueueTaskData>('command-queue', queueSettings);
   taskMap = new Map<string, CommandInteraction>();
 
-  constructor() {}
+  constructor() {
+    if (DEBUG) {
+      this.debugQueue();
+    }
+  }
+
+  debugQueue() {
+    this.queue.on('job failed', (jobId, err) => console.debug(`Job ${jobId} failed: ${err}`));
+    this.queue.on('job retrying', (jobId, err) => console.debug(`Job ${jobId} retrying: ${err}`));
+  }
 
   async addTask(interaction: CommandInteraction) {
     const job = this.queue.createJob({ id: interaction.id });
-    job.timeout(2000).retries(2);
+    job.timeout(5000).retries(1);
 
     // Check if user is in cooldown
     if (interaction.member) {
