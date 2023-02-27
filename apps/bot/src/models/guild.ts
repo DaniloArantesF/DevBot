@@ -17,6 +17,7 @@ const GuildRepository = (provider: BotProvider) => {
         const record = await create({
           guildId: guild.id,
           name: guild.name,
+          userRoles: [],
         });
         cacheMap.set(guild.id, record.id);
       } else {

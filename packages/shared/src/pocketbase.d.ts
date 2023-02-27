@@ -20,6 +20,7 @@ declare namespace TPocketbase {
     plugins?: string[];
     rolesChannelId?: string;
     rolesMessageId?: string;
+    userRoles: string[];
   };
 
   export type ChallengeData = {
@@ -46,6 +47,10 @@ declare namespace TPocketbase {
     userId: string;
     streak: number;
     lastUpdate?: string;
+    sponsorId?: string;
+    sponsorVerified?: boolean;
+    followers?: string[];
+    // TODO: sponsorNotificationFrequency?
   };
 
   export type ChallengeSubmissionData = {

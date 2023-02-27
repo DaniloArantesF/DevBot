@@ -27,7 +27,6 @@
 
 - [x] Throttling and cooldown
 - [x] Save task results to storage and log interactions
-- [ ] Save and load config and state from storage
 
 ---
 
@@ -39,17 +38,6 @@
 - [ ] Scheduled Server Events and Channel
 - [ ] Automated server announcements
 - [ ] Language moderation
-
-### Main
-
-- Server highlights
-- Follow and unfollow users and specific services (e.g. twitter, twitch, git)
-
-  - [ ] Service controllers
-  - [ ] Store user subscription data
-  - [ ] Notify users of subscribed content
-
-- Users can create and share bookmarks
 
 ### Optional
 

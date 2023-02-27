@@ -10,6 +10,7 @@ import { RequestLog } from '@/tasks/logs';
 import { setRolesMessage } from '@/tasks/roles';
 import { purgeChannel } from '@/tasks/channels';
 import { stringifyCircular } from '@/utils';
+import botProvider from '..';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -95,7 +96,8 @@ const AdminRouter: APIRouter = (pushRequest) => {
       }
 
       try {
-        const data = await setRolesMessage(guildId, channelId);
+        const roles = (await ((await botProvider).getDataProvider()).guild.get(guildId)).userRoles;
+        const data = await setRolesMessage(guildId, channelId, roles);
         res.send(stringifyCircular(data));
         return RequestLog(req.method, req.url, 200, data);
       } catch (error) {

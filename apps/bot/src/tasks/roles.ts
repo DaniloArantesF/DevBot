@@ -21,17 +21,14 @@ export function getRoleEmoji(roleId: string) {
   return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
-export async function getRoleButtons(guildId: string) {
+export async function getRoleButtons(guildId: string, userRoles: string[]) {
   const guild = await getGuild(guildId);
 
   // Filter roles to only include roles below the bot's highest role
   const botRole = guild.members.me.roles.highest;
   const roles = guild.roles.cache.filter(
-    (role) => role.comparePositionTo(botRole) < 0 && role.name !== '@everyone',
+    (role) => role.comparePositionTo(botRole) < 0 && role.name !== '@everyone' && userRoles.includes(role.id),
   );
-  // new RoleSelectMenuBuilder()
-  // .setCustomId('enlist')
-  // .setPlaceholder('@everyone')
 
   const roleMessage = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
     roles.map((role) => {
@@ -49,7 +46,8 @@ export async function getRoleButtons(guildId: string) {
 
 // Sets the roles message for a guild
 // If a message is already set, delete it
-export async function setRolesMessage(guildId: string, channelId: string) {
+export async function setRolesMessage(guildId: string, channelId: string, userRoles: string[]) {
+  if (!userRoles) return;
   const guildRepository = (await botProvider).getDataProvider().guild;
 
   const guildCacheItem = await guildRepository.get(guildId);
@@ -57,7 +55,7 @@ export async function setRolesMessage(guildId: string, channelId: string) {
 
   const rolesMessage: MessageCreateOptions = {
     content: 'Toggle roles by clicking the buttons below.',
-    components: [await getRoleButtons(guildId)],
+    components: [await getRoleButtons(guildId, userRoles)],
   };
 
   if (channel?.isTextBased()) {

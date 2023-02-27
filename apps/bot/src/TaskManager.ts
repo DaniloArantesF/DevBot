@@ -5,7 +5,7 @@ import ApiController from '@/controllers/apiController';
 import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
 import Twitter from '@/controllers/services/twitter';
-import HabitTracker from './controllers/plugins/habitTracker';
+import HabitTracker from '@/controllers/plugins/habitTracker';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',

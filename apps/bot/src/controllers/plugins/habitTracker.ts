@@ -17,6 +17,8 @@ import { queueSettings } from '@/TaskManager';
 import { createRole, getGuildRole } from '@/tasks/roles';
 import { createThread } from '@/tasks/thread';
 import { getRoleMention, getUserMention } from '@/tasks/message';
+import { notifySponsor } from '@/commands/challenge';
+import { getGuildMember } from '@/tasks/members';
 
 interface HabitTracker {
   activeThreads: Map<string, ThreadChannel>; // challengeId -> threadId
@@ -209,11 +211,11 @@ class HabitTracker {
 
   async createChallenge(data: TPocketbase.ChallengeCreateOptions) {
     // Create challenge channel
-    const parentCategory = await this.getChallengesCategory(data.guildId);
+    const parent = await this.getChallengesCategory(data.guildId);
     const channel = (await createChannel(data.guildId, {
       name: `${data.duration}day-${data.goal}`,
       type: ChannelType.GuildText,
-      parent: (await getGuildChannel(data.guildId, parentCategory.id)) as CategoryChannel,
+      parent,
     })) as TextChannel;
 
     // Create challenge role
@@ -266,7 +268,7 @@ class HabitTracker {
    * @throws Error if user already joined the challenge
    * @throws Error if channel is not a challenge channel
    */
-  async joinChallenge(channelId: string, userId: string) {
+  async joinChallenge(channelId: string, { userId, ...options}: { userId: string, sponsor?: string }) {
     const challenge = await this.challengeModel.getFromChannel(channelId);
     if (!challenge) {
       throw new Error('Invalid channel!');
@@ -286,13 +288,13 @@ class HabitTracker {
       userId: userId,
       streak: 1,
       lastUpdate: new Date().toISOString(),
+      sponsorId: options.sponsor ?? null,
     });
 
     // Update cached entities
     const i = this.ongoingChallenges.findIndex((c) => c.id === challenge.id);
     this.ongoingChallenges[i] = updatedChallenge;
-    const challengeParticipants = await this.challengeModel.getParticipants(challenge.id);
-    this.participants.set(challenge.id, challengeParticipants);
+    await this.updateChallengeParticipants(updatedChallenge);
 
     return updatedChallenge;
   }
@@ -485,7 +487,7 @@ class HabitTracker {
               return {
                 name: `Sinner #${index + 1}`,
                 value: `${getUserMention(sinner.userId)} Missed ${
-                  sinner.missed
+                  sinner.missed + 1
                 } days already. SHAME!`,
                 inline: true,
               };
@@ -519,6 +521,9 @@ class HabitTracker {
 
     this.scheduledTasks.delete(challenge.id);
     await this.scheduleCheck(challenge);
+
+    // notify sponsors ?await
+    this.notifySponsors(challenge, sinners.map((sinner) => sinner.userId));
   }
 
   async getUserStats(challenge: TPocketbase.Challenge, userId: string) {
@@ -547,6 +552,20 @@ class HabitTracker {
     };
   }
 
+  async notifySponsors(challenge: TPocketbase.Challenge, users: string[]) {
+    for (const user of users) {
+      const sponsorId = this.participants.get(challenge.id).find((p) => p.userId === user)?.sponsorId;
+      if (!sponsorId) continue;
+      const sponsor = await getGuildMember(challenge.guildId, sponsorId)
+      await notifySponsor(user, sponsor);
+    }
+  }
+
+  async updateChallengeParticipants(challenge: TPocketbase.Challenge) {
+    const challengeParticipants = await this.challengeModel.getParticipants(challenge.id);
+    this.participants.set(challenge.id, challengeParticipants);
+  }
+
   async leaveChallenge(channelId: string, userId: string) {}
 
   async submitEntry(channelId: string, userId: string, entry: string) {
@@ -560,7 +579,7 @@ class HabitTracker {
 
     // Add user to challenge if they're not already in it
     if (challenge.participants.indexOf(userId) === -1) {
-      await this.joinChallenge(channelId, userId);
+      await this.joinChallenge(channelId, { userId });
     }
 
     return await this.challengeModel.createSubmission({
