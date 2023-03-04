@@ -51,6 +51,17 @@ class ChallengeModel {
       .update<TPocketbase.Challenge>(challenge.id, challenge);
   }
 
+  async delete(challenge: ChallengeUpdateOptions) {
+    return await this.pocketbase
+      .collection('challenges').delete(challenge.id);
+  }
+
+  async deleteParticipant(participant: TPocketbase.ChallengeParticipant) {
+    return await this.pocketbase
+      .collection('challenge_participants')
+      .delete(participant.id);
+  }
+
   async getFromChannel(channelId: string) {
     return await this.pocketbase
       .collection('challenges')

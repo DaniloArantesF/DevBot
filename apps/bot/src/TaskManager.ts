@@ -6,6 +6,7 @@ import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
 import Twitter from '@/controllers/services/twitter';
 import HabitTracker from '@/controllers/plugins/habitTracker';
+import OpenAI from './controllers/services/openai';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',
@@ -25,6 +26,7 @@ function TaskManager(provider: BotProvider) {
   const commandController = new CommandController();
   const eventController = new EventController();
   const twitterController = new Twitter();
+  const openAIController = new OpenAI();
   const habitTrackerController = new HabitTracker(provider);
 
   // Process tasks as soon as dependencies are ready
@@ -46,6 +48,7 @@ function TaskManager(provider: BotProvider) {
     apiController,
     commandController,
     eventController,
+    openAIController,
     twitterController,
     habitTrackerController,
   };

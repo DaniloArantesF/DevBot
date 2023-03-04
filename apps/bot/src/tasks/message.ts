@@ -1,4 +1,4 @@
-import { MessagePayload, MessageCreateOptions } from 'discord.js';
+import { MessagePayload, MessageCreateOptions, TextChannel } from 'discord.js';
 import { getGuildChannel } from './channels';
 
 export async function sendMessage(
@@ -8,6 +8,12 @@ export async function sendMessage(
   const channel = await getGuildChannel(channelId);
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.send(message);
+}
+
+export const getLatestChannelMessages = async (channel: TextChannel, limit = 10) => {
+  const messages = [...channel.messages.cache.values()];
+  messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+  return messages.slice(-limit);
 }
 
 export const getUserMention = (userId: string) => `<@${userId}>`;

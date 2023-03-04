@@ -24,7 +24,8 @@
         "TWITTER_BEARER_TOKEN",
         "POCKETBASE_BASE_URL",
         "POCKETBASE_ADMIN_EMAIL",
-        "POCKETBASE_ADMIN_PASSWORD"
+        "POCKETBASE_ADMIN_PASSWORD",
+        "OPENAI_API_KEY"
       ]
     },
     "web#build": {

@@ -5,7 +5,7 @@ import type DiscordClient from '@/DiscordClient';
 import type { TBotApi } from '@/utils/types';
 import { APIRouter } from '@/api';
 import { getGuild } from '@/tasks/guild';
-import { getGuildRoles } from '@/tasks/roles';
+import { getGuildRoles, setRolesMessage } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
 import { getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
@@ -210,8 +210,6 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/guilds/:guildId/roles', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.params.guildId;
-
-      // if (!guild) return res.status(404).send('Guild not found');
       const roles = (await getGuildRoles(guildId)).map((role) =>
         JSON.parse(stringifyCircular(role)),
       );
@@ -239,6 +237,44 @@ const DiscordRouter: APIRouter = (pushRequest) => {
     }
     pushRequest(req, handler);
   });
+
+
+  /**
+   * Sets guild roles available for users to self-assign
+   *
+   * @route PUT /discord/guilds/:guildId/roles
+   * @apiparam {string} guildId
+   * @apiresponse {200} Role[]
+   */
+  router.put('/guilds/:guildId/roles', async (req: Request, res: Response) => {
+    async function handler() {
+      const guildModel = (await botProvider).getDataProvider().guild
+      const guildRecord = await guildModel.get(req.params.guildId);
+
+      if (!guildRecord) {
+        res.status(404).send('Guild not found');
+        return RequestLog('patch', req.url, 404, 'Guild not found');
+      }
+
+      let data = {};
+      try {
+        const updatedRecord = await guildModel.update({
+          ...guildRecord,
+          userRoles: [...req.body]
+        })
+        const channelId = updatedRecord.rolesChannelId;
+        const roleMessage = await setRolesMessage(req.params.guildId, channelId, req.body);
+        data = { updatedRecord, roleMessage };
+      } catch (error) {
+        data = { error: stringifyCircular(error) };
+      }
+
+      res.send(data);
+      return RequestLog(req.method, req.url, 200, data);
+    }
+    pushRequest(req, handler);
+  });
+
   return router;
 };
 

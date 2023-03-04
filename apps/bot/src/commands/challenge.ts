@@ -19,38 +19,46 @@ const DEBUG_CHALLENGE_PERIOD = 5 * 60 * 1000; // 5 minutes
 // TODO: add option for sponsor notification frequency
 async function promptSponsor(challenge: TPocketbase.Challenge, user: User, sponsor: GuildMember) {
   const filter = (m: Message) =>
-    m.author.id === sponsor.user.id && (m.content.toLowerCase() === 'yes' || m.content.toLowerCase() === 'no');
+    m.author.id === sponsor.user.id &&
+    (m.content.toLowerCase() === 'yes' || m.content.toLowerCase() === 'no');
 
   const dm = await sponsor.send({
-    content: `You have been selected as a sponsor for ${getUserMention(user.id)}'s challenge. Do you accept? (yes/no)`
-  })
+    content: `You have been selected as a sponsor for ${getUserMention(
+      user.id,
+    )}'s challenge. Do you accept? (yes/no)`,
+  });
   const collector = dm.channel.createMessageCollector({ filter, time: 15000 });
 
   collector.on('collect', async (m: Message) => {
     if (m.content.toLowerCase() === 'yes') {
-      await dm.channel.send(`You are hereby granted the inexorable right to judge ${getUserMention(user.id)} into oblivion if he fails to complete his challenge.`);
+      await dm.channel.send(
+        `You are hereby granted the inexorable right to judge ${getUserMention(
+          user.id,
+        )} into oblivion if he fails to complete his challenge.`,
+      );
     } else {
       await dm.channel.send(':(');
     }
     collector.stop();
-  }
-  );
+  });
 
   collector.on('end', async (collected) => {
     if (collected.size === 0) {
       await dm.channel.send(':/');
     } else {
       const challengeModel = (await botProvider).getDataProvider().challenge;
-      const participant = (await challengeModel.getParticipants()).find(p => p.userId === user.id && p.challenge === challenge.id);
+      const participant = (await challengeModel.getParticipants()).find(
+        (p) => p.userId === user.id && p.challenge === challenge.id,
+      );
       if (!participant) {
-        console.error("Participant not found", user.id, challenge.id);
+        console.error('Participant not found', user.id, challenge.id);
         return;
       }
       await challengeModel.updateParticipant({
         id: participant.id,
         sponsorId: sponsor.user.id,
         sponsorVerified: true,
-      })
+      });
 
       const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
 
@@ -62,7 +70,7 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
 
 export async function notifySponsor(userId: string, sponsor: GuildMember) {
   const dm = await sponsor.send({
-    content: `${getUserMention(userId)} has failed us all. Let them know how disappointed you are.`
+    content: `${getUserMention(userId)} has failed us all. Let them know how disappointed you are.`,
   });
 }
 
@@ -75,8 +83,10 @@ export const command: TBot.Command = {
     )
     .addIntegerOption((option) =>
       option.setName('duration').setDescription('The duration of the challenge').setRequired(true),
-  )
-  .addNumberOption((option) => option.setName('period').setDescription('Period duration in days')),
+    )
+    .addNumberOption((option) =>
+      option.setName('period').setDescription('Period duration in days'),
+    ),
   async messageHandler(interaction) {
     const reply = 'TODO';
     await replyInteraction(interaction, reply);
@@ -96,7 +106,7 @@ export const command: TBot.Command = {
     const duration = interaction.options.get('duration').value as number;
 
     const periodDays = interaction.options.get('period')?.value as number;
-    const period =  periodDays ? periodDays * 24 * 60 * 60 * 1000 : DEBUG_CHALLENGE_PERIOD;
+    const period = periodDays ? periodDays * 24 * 60 * 60 * 1000 : DEBUG_CHALLENGE_PERIOD;
 
     const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
     const record = await habitTrackerController.createChallenge({
@@ -279,13 +289,16 @@ export const challengeUpdate: TBot.Command = {
     .setDescription('Update a challenge')
     .addChannelOption((option) =>
       option.setName('challenge').setDescription('Challenge channel').setRequired(false),
-    ).addStringOption((option) =>
-    option.setName('goal').setDescription('Short title for your challenge').setRequired(false),
-  )
-  .addIntegerOption((option) =>
-    option.setName('duration').setDescription('The duration of the challenge').setRequired(false),
-)
-.addIntegerOption((option) => option.setName('period').setDescription('Period duration in days')),
+    )
+    .addStringOption((option) =>
+      option.setName('goal').setDescription('Short title for your challenge').setRequired(false),
+    )
+    .addIntegerOption((option) =>
+      option.setName('duration').setDescription('The duration of the challenge').setRequired(false),
+    )
+    .addIntegerOption((option) =>
+      option.setName('period').setDescription('Period duration in days'),
+    ),
   async messageHandler(interaction) {
     const reply = 'TODO';
     await replyInteraction(interaction, reply);
@@ -327,7 +340,7 @@ export const challengeUpdate: TBot.Command = {
       if (!challengeRecord) {
         reply = 'Invalid challenge!';
       } else {
-        await habitTrackerController.challengeModel.update({ id: challengeRecord.id, ...data })
+        await habitTrackerController.challengeModel.update({ id: challengeRecord.id, ...data });
       }
     } catch (error) {
       reply = error?.message ?? 'Error executing that command';
@@ -344,5 +357,71 @@ export const challengeUpdate: TBot.Command = {
     };
   },
   usage: '/update-challenge <?goal> <?duration> <?period>',
+  aliases: [],
+};
+
+// Updates a challenge
+export const challengeLeave: TBot.Command = {
+  data: new SlashCommandBuilder()
+    .setName('leave-challenge')
+    .setDescription('Leave a challenge')
+    .addChannelOption((option) =>
+      option.setName('challenge').setDescription('Challenge channel').setRequired(false),
+    ),
+  async messageHandler(interaction) {
+    const reply = 'TODO';
+    await replyInteraction(interaction, reply);
+
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'submit-challenge',
+      args: [],
+      reply: reply,
+    };
+  },
+  async execute(interaction) {
+    let channelId = interaction.options.get('challenge')?.value as string;
+    if (!channelId) channelId = interaction.channelId;
+    let reply = 'Successfully removed you from the challenge :(';
+    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
+
+    // Remove participant from challenge. If no participants left, delete challenge
+    try {
+      const challengeRecord = await habitTrackerController.challengeModel.getFromChannel(channelId);
+      if (!challengeRecord) {
+        reply = 'Invalid challenge!';
+      } else if (!challengeRecord.participants.includes(interaction.member.user.id)) {
+        reply = 'You are not a participant of this challenge!';
+      } else {
+        const newParticipants = [
+          ...challengeRecord.participants.filter((p) => p !== interaction.member.user.id),
+        ];
+
+        if (!newParticipants.length) {
+          await habitTrackerController.challengeModel.delete(challengeRecord);
+        } else {
+          await habitTrackerController.challengeModel.update({
+            id: challengeRecord.id,
+            participants: [],
+          });
+        }
+      }
+    } catch (error) {
+      reply = error?.message ?? 'Error executing that command';
+    }
+
+    await replyInteraction(interaction, reply);
+    return {
+      user: interaction.member.user.id,
+      guild: interaction.guildId,
+      channel: interaction.channelId,
+      command: 'leave-challenge',
+      args: [],
+      reply: 'Success',
+    };
+  },
+  usage: '/leave-challenge <?challenge>',
   aliases: [],
 };
