@@ -16,6 +16,8 @@ export const POCKETBASE_BASE_URL = process.env.POCKETBASE_BASE_URL;
 export const POCKETBASE_ADMIN_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL;
 export const POCKETBASE_ADMIN_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD;
 
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
 export const INTENTS = [
   // Guilds
   GatewayIntentBits.Guilds,

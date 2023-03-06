@@ -268,7 +268,10 @@ class HabitTracker {
    * @throws Error if user already joined the challenge
    * @throws Error if channel is not a challenge channel
    */
-  async joinChallenge(channelId: string, { userId, ...options}: { userId: string, sponsor?: string }) {
+  async joinChallenge(
+    channelId: string,
+    { userId, ...options }: { userId: string; sponsor?: string },
+  ) {
     const challenge = await this.challengeModel.getFromChannel(channelId);
     if (!challenge) {
       throw new Error('Invalid channel!');
@@ -523,7 +526,10 @@ class HabitTracker {
     await this.scheduleCheck(challenge);
 
     // notify sponsors ?await
-    this.notifySponsors(challenge, sinners.map((sinner) => sinner.userId));
+    this.notifySponsors(
+      challenge,
+      sinners.map((sinner) => sinner.userId),
+    );
   }
 
   async getUserStats(challenge: TPocketbase.Challenge, userId: string) {
@@ -554,9 +560,11 @@ class HabitTracker {
 
   async notifySponsors(challenge: TPocketbase.Challenge, users: string[]) {
     for (const user of users) {
-      const sponsorId = this.participants.get(challenge.id).find((p) => p.userId === user)?.sponsorId;
+      const sponsorId = this.participants
+        .get(challenge.id)
+        .find((p) => p.userId === user)?.sponsorId;
       if (!sponsorId) continue;
-      const sponsor = await getGuildMember(challenge.guildId, sponsorId)
+      const sponsor = await getGuildMember(challenge.guildId, sponsorId);
       await notifySponsor(user, sponsor);
     }
   }

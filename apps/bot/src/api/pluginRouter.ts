@@ -43,6 +43,7 @@ const PluginRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
+  // TODO: create endpoints to enable/disable openAi
   return router;
 };
 

@@ -6,7 +6,7 @@ import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
 import Twitter from '@/controllers/services/twitter';
 import HabitTracker from '@/controllers/plugins/habitTracker';
-import OpenAI from './controllers/services/openai';
+import OpenAI from './controllers/plugins/openai/openai';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',

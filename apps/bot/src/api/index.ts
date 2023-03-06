@@ -24,14 +24,19 @@ function API(provider: BotProvider) {
   const server = http.createServer(api);
   const rootRouter = express.Router();
   const apiController = provider.getTaskManager().apiController;
+  const routers = {
+    '/': rootRouter,
+    '/bot': BotRouter(pushRequest),
+    '/admin': AdminRouter(pushRequest),
+    '/auth': AuthRouter(pushRequest),
+    '/discord': DiscordRouter(pushRequest),
+    '/plugins': PluginRouter(pushRequest),
+  }
 
   function setupRoutes() {
-    api.use('/', rootRouter);
-    api.use('/bot', BotRouter(pushRequest));
-    api.use('/admin', AdminRouter(pushRequest));
-    api.use('/auth', AuthRouter(pushRequest));
-    api.use('/discord', DiscordRouter(pushRequest));
-    api.use('/plugins', PluginRouter(pushRequest));
+    for (const [path, router] of Object.entries(routers)) {
+      api.use(path, router);
+    }
 
     // Status route, does not go through task manager
     rootRouter.get('/status', async (req: Request, res: Response) => res.send('Online'));
@@ -75,7 +80,7 @@ function API(provider: BotProvider) {
     console.log(`API listening on port ${PORT}`);
   });
 
-  return { api, server };
+  return { api, server, routers };
 }
 
 export default API;
