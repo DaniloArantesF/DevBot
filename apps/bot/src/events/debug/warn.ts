@@ -6,6 +6,7 @@ import { EventLog } from '@/tasks/logs';
 export const warn: DiscordEvent<Events.Warn> = {
   name: Events.Warn,
   async on(message) {
+    console.log('WARN', message);
     return EventLog('warn', stringifyCircular({ message }));
   },
 };

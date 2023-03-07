@@ -23,7 +23,7 @@ export const command: TBot.Command = {
     }
 
     try {
-      await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      await removeUserRole(interaction.member!.user.id, interaction.guildId!!, role.id);
       reply = `Successfully removed you from ${role.name}`;
     } catch (error) {
       console.log(interaction);
@@ -33,8 +33,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'enlist',
       args: [role.name],
@@ -43,7 +43,7 @@ export const command: TBot.Command = {
   },
   async execute(interaction) {
     let reply = 'Error removing you from this role.';
-    let role = interaction.options.get('role').role;
+    let role = interaction.options.get('role')!.role;
 
     // Role not found
     if (!role) {
@@ -54,7 +54,7 @@ export const command: TBot.Command = {
 
     // TODO: check if user has role
     try {
-      await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      await removeUserRole(interaction.member!.user.id, interaction.guildId!!, role.id);
       reply = `Successfully removed you from ${role.name}`;
     } catch (error) {
       console.log(interaction);
@@ -64,8 +64,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: (this.data.name as string) ?? '',
       args: [...interaction.options.data],

@@ -6,7 +6,7 @@ import { TOpenAi } from 'shared/types';
 
 class OpenAiPluginApi {
   openAiController: OpenAI;
-  pocketbase: PocketBase;
+  pocketbase?: PocketBase;
 
   constructor(router: Router, openAiController: OpenAI) {
     this.openAiController = openAiController;
@@ -35,18 +35,19 @@ class OpenAiPluginApi {
         return;
       }
 
-      const record = await this.pocketbase.collection('openai_plugin').create<TOpenAi.Record>({
+      const record = await this.pocketbase!.collection('openai_plugin').create<TOpenAi.Record>({
         guildId,
         channels: {},
         guild: guildRecord.id,
       });
 
       this.openAiController.guildRecordMap.set(guildId, record);
-
       // TODO: init bots correctly
     } else {
       const record = this.openAiController.guildRecordMap.get(guildId);
-      await this.pocketbase.collection('openai_plugin').delete(record.id);
+      if (record) {
+        await this.pocketbase!.collection('openai_plugin').delete(record.id);
+      }
     }
 
     response.sendStatus(200);

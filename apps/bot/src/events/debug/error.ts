@@ -6,6 +6,8 @@ import { EventLog } from '@/tasks/logs';
 export const error: DiscordEvent<Events.Error> = {
   name: Events.Error,
   async on(error) {
+
+    console.log(error);
     return EventLog('error', stringifyCircular({ error }));
   },
 };

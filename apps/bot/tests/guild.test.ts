@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { getGuild, getGuildByName } from '../src/controllers/guild';
+import { getGuild, getGuildByName } from '../src/tasks/guild';
 
 describe('Guild controller', async () => {
   test('getGuild', async () => {

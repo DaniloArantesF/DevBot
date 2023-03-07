@@ -21,7 +21,7 @@ export async function getGuildNetwork(guildId: string) {
   const channels = await getGuildChannels(guildId);
   const network: any = {};
 
-  channels.forEach((channel) => {
+  channels?.forEach((channel) => {
     if (channel.type !== ChannelType.GuildVoice) return;
     const presence = channel.members;
     network[channel.name] = presence;

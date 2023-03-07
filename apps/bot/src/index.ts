@@ -16,16 +16,16 @@ async function Bot() {
       return this.services[name];
     },
     getDiscordClient() {
-      return this.services.discordClient;
+      return this.services.discordClient!;
     },
     getTaskManager() {
-      return this.services.taskManager;
+      return this.services.taskManager!;
     },
     getDataProvider() {
-      return this.services.dataProvider;
+      return this.services.dataProvider!;
     },
     getApi() {
-      return this.services.api;
+      return this.services.api!;
     },
   };
 

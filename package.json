@@ -12,7 +12,8 @@
     "web": "yarn workspace web",
     "bot": "yarn workspace bot",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "docker-deploy": "bash scripts/clean.sh && scripts/deploy.sh"
   },
   "devDependencies": {
     "eslint-config-custom": "*",

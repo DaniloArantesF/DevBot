@@ -66,7 +66,7 @@ class HabitTracker {
     const participants = await this.challengeModel.getParticipants();
     participants.forEach((participant) => {
       if (this.participants.has(participant.challenge)) {
-        this.participants.get(participant.challenge).push(participant);
+        this.participants.get(participant.challenge)?.push(participant);
       } else {
         this.participants.set(participant.challenge, [participant]);
       }
@@ -87,20 +87,23 @@ class HabitTracker {
     for (const job of scheduledJobs) {
       const { challengeId } = job.data;
       if (this.scheduledTasks.has(challengeId)) {
-        this.scheduledTasks.get(challengeId).push(job);
+        this.scheduledTasks.get(challengeId)?.push(job);
       } else {
         this.scheduledTasks.set(challengeId, [job]);
       }
     }
 
     for (const guildId of this.enabledGuilds) {
+      const challengesCaterory = await this.getChallengesCategory(guildId);
+      if (!challengesCaterory) continue; //TODO
+
       // Initialize category map
-      this.categoryChannelMap.set(guildId, await this.getChallengesCategory(guildId));
+      this.categoryChannelMap.set(guildId,challengesCaterory);
 
       // Create channels for ongoing challenges
       for (const challenge of this.ongoingChallenges) {
         const updatedData: Partial<TPocketbase.ChallengeData> = {};
-        let channel = (await getGuildChannel(guildId, challenge.channelId)) as TextChannel;
+        let channel = (await getGuildChannel(guildId, challenge.channelId)) as TextChannel | null;
 
         if (!channel) {
           console.debug(`[${guildId}] Creating channel for challenge ${challenge.id}...`);
@@ -109,19 +112,19 @@ class HabitTracker {
             type: ChannelType.GuildText,
             parent: this.categoryChannelMap.get(guildId),
           });
-          updatedData.channelId = channel.id;
+          updatedData.channelId = channel!.id;
         }
 
         // Setup channel filter
-        this.channelFilter(channel);
+        this.channelFilter(channel!);
 
         const day = challenge.currentPeriod;
-        const threads = await this.getChallengeThreads(channel.id);
+        const threads = await this.getChallengeThreads(channel!.id);
         let thread = threads?.find((thread) => thread.name.includes(`Day ${day}`));
 
         if (!thread) {
           console.debug(`[${guildId}] Creating thread for challenge ${challenge.id}...`);
-          thread = await createThread(challenge.guildId, channel.id, {
+          thread = await createThread(challenge.guildId, channel!.id, {
             name: `Day ${day}`,
             autoArchiveDuration: 1440, // TODO: use period
           });
@@ -136,7 +139,7 @@ class HabitTracker {
             name: `${challenge.duration}day-${challenge.goal}`,
             mentionable: true,
           });
-          updatedData.roleId = role.id;
+          updatedData.roleId = role!.id;
         }
 
         if (Object.keys(updatedData).length > 0) {
@@ -160,12 +163,14 @@ class HabitTracker {
     }
 
     const guild = await getGuild(guildId);
+    if (!guild) return null;
 
     // Check category exists
-    let category = guild.channels.cache.find((channel) => channel.name === 'Challenges');
+    let category = guild.channels.cache.find((channel) => channel.name === 'Challenges') as CategoryChannel | null;
+
     if (!category) {
       console.debug(`[${guildId}] Creating challenges category...`);
-      category = await createChannel(guildId, {
+      category = await createChannel<CategoryChannel>(guildId, {
         name: 'Challenges',
         type: ChannelType.GuildCategory,
       });
@@ -229,7 +234,7 @@ class HabitTracker {
       ...data,
       status: 'inProgress',
       channelId: channel.id,
-      roleId: role.id,
+      roleId: role!.id,
     };
 
     // Create day 0 thread
@@ -291,7 +296,7 @@ class HabitTracker {
       userId: userId,
       streak: 1,
       lastUpdate: new Date().toISOString(),
-      sponsorId: options.sponsor ?? null,
+      sponsorId: options.sponsor ?? '',
     });
 
     // Update cached entities
@@ -322,7 +327,7 @@ class HabitTracker {
 
     nextCheck.setTime(lastCheck.getTime() + challenge.period - periodEndOffset);
 
-    const job = this.routineQueue.createJob({
+    const job = this.routineQueue.createJob<RoutineTaskData>({
       challengeId: challenge.id,
       date: nextCheck.toISOString(),
       reminder: false,
@@ -342,7 +347,7 @@ class HabitTracker {
     // Schedule reminder
     // halfway through the difference between now and next check
     const reminderDate = new Date(nextCheck.getTime() - (nextCheck.getTime() - now.getTime()) / 2);
-    const reminderJob = this.routineQueue.createJob({
+    const reminderJob = this.routineQueue.createJob<RoutineTaskData>({
       challengeId: challenge.id,
       date: reminderDate.toISOString(),
       reminder: true,
@@ -369,6 +374,10 @@ class HabitTracker {
     this.routineQueue.process(async (job) => {
       const { challengeId, reminder } = job.data;
       const challenge = this.ongoingChallenges.find((challenge) => challenge.id === challengeId);
+      if (!challenge) {
+        throw new Error(`Challenge ${challengeId} not found!`);
+      }
+
       if (reminder) {
         await this.sendAlert(challenge);
       } else {
@@ -387,6 +396,10 @@ class HabitTracker {
   async checkRoutine(challenge: TPocketbase.Challenge) {
     if (!challenge || !challenge.guildId) return;
     const role = await getGuildRole(challenge.guildId, challenge.roleId);
+
+    if (!role) {
+      throw new Error(`Error finding role ${challenge.roleId} for guild ${challenge.guildId}`);
+    }
 
     // today's stats
     const participantStatus: {
@@ -407,7 +420,9 @@ class HabitTracker {
 
       let participantRecord = this.participants
         .get(challenge.id)
-        .find((p) => p.userId === participantUserId);
+        ?.find((p) => p.userId === participantUserId);
+
+      if (!participantRecord) continue;
 
       const updateData: Partial<TPocketbase.ChallengeParticipantData> = {};
 
@@ -429,8 +444,11 @@ class HabitTracker {
       // Update cache
       const i = this.participants
         .get(challenge.id)
-        .findIndex((p) => p.userId === participantUserId);
-      this.participants.get(challenge.id)[i] = participantRecord;
+        ?.findIndex((p) => p.userId === participantUserId);
+
+      if (i === undefined) continue;
+
+      this.participants.get(challenge.id)![i] = participantRecord;
 
       participantStatus.push({
         userId: participantUserId,
@@ -453,7 +471,7 @@ class HabitTracker {
     };
 
     try {
-      message.embeds.push(
+      message.embeds!.push(
         new EmbedBuilder()
           .setColor('#00ff00')
           .setTitle(`Day ${challengeDay} Stats`)
@@ -479,7 +497,7 @@ class HabitTracker {
     }
 
     if (sinners.length > 0) {
-      message.embeds.push(
+      message.embeds!.push(
         new EmbedBuilder()
           .setColor('#ff0000')
           .setTitle('Wall of Shame')
@@ -562,9 +580,10 @@ class HabitTracker {
     for (const user of users) {
       const sponsorId = this.participants
         .get(challenge.id)
-        .find((p) => p.userId === user)?.sponsorId;
+        ?.find((p) => p.userId === user)?.sponsorId;
       if (!sponsorId) continue;
       const sponsor = await getGuildMember(challenge.guildId, sponsorId);
+      if (!sponsor) continue;
       await notifySponsor(user, sponsor);
     }
   }
@@ -601,12 +620,12 @@ class HabitTracker {
 
   async sendAlert(challenge: TPocketbase.Challenge) {
     const thread = this.activeThreads.get(challenge.id);
-    if (!thread) {
+    const task = this.scheduledTasks.get(challenge.id)?.find((j) => j.data.reminder === false);
+    if (!thread || !task) {
       return;
     }
 
-    const { data } = this.scheduledTasks.get(challenge.id)?.find((j) => j.data.reminder === false);
-    const nextCheck = new Date(data.date);
+    const nextCheck = new Date(task.data.date);
 
     const diff = nextCheck.getTime() - new Date().getTime();
 
@@ -642,7 +661,7 @@ class HabitTracker {
       }
 
       const isValidCommand = Boolean(message?.interaction?.commandName?.includes('challenge'));
-      const isAdmin = message.member.permissions.has(PermissionsBitField.Flags.ManageChannels);
+      const isAdmin = message.member!.permissions.has(PermissionsBitField.Flags.ManageChannels);
 
       if (!isValidCommand && !isAdmin) {
         const userId = message.author.id;

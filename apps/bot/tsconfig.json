@@ -1,28 +1,25 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es6",
-    "noImplicitAny": true,
+    "lib": ["ES2015"],
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "downlevelIteration": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist",
-    "baseUrl": ".",
-    "skipLibCheck": true,
     "paths": {
-      "*": ["node_modules/*"],
-      "@/*": ["src/*"],
-      "@commands/*": ["src/commands/*"],
-      "@events/*": ["src/events/*"],
-      "@services/*": ["src/controllers/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@api/*": ["src/api/*"],
-      "@config": ["src/utils/config.ts"],
-      "@models/*": ["src/models/*"],
-      "@controllers/*": ["src/tasks/*"]
+      "*": ["./node_modules/*"],
+      "@/*": ["./src/*"],
+      "@commands/*": ["./src/commands/*"],
+      "@events/*": ["./src/events/*"],
+      "@services/*": ["./src/controllers/services/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@api/*": ["./src/api/*"],
+      "@config": ["./src/utils/config.ts"],
+      "@models/*": ["./src/models/*"],
+      "@controllers/*": ["./src/tasks/*"]
     },
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*", "./src/"]
+  "include": ["src/**/*", "./src/"],
+  "exclude": ["node_modules"],
+  "extends": "tsconfig/base.json"
 }

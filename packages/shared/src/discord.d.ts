@@ -12,6 +12,8 @@ declare namespace TDiscord {
     Partial<SlashCommandBuilder>;
 
   export type RoleData = DiscordRoleData;
+
+  export type Reply = string | (MessagePayload | MessageReplyOptions) | InteractionReplyOptions
 }
 
 export type { TDiscord };

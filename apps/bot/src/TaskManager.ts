@@ -1,6 +1,6 @@
 import Queue from 'bee-queue';
 import type { BotProvider } from '@/utils/types';
-import { AUTO_PROCESS } from '@/utils/config';
+import { AUTO_PROCESS, REDIS_HOSTNAME, REDIS_PORT } from '@/utils/config';
 import ApiController from '@/controllers/apiController';
 import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
@@ -13,6 +13,12 @@ export const queueSettings: Queue.QueueSettings = {
   activateDelayedJobs: true,
   stallInterval: 15000,
   delayedDebounce: 2000,
+  redis: {
+    host: REDIS_HOSTNAME,
+    port: REDIS_PORT,
+    db: 0,
+    options: {},
+  },
 };
 
 /**
@@ -31,8 +37,8 @@ function TaskManager(provider: BotProvider) {
 
   // Process tasks as soon as dependencies are ready
   // Call plugin setup tasks
-  provider.getService('discordClient').on('ready', () => {
-    if (AUTO_PROCESS) initProcessing() && console.log('Processing tasks...');
+  provider.getService('discordClient').on('ready',async () => {
+    if (AUTO_PROCESS) (await initProcessing())!! && console.log('Processing tasks...');
     habitTrackerController.setup();
   });
 

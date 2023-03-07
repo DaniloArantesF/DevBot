@@ -25,6 +25,9 @@
         "POCKETBASE_BASE_URL",
         "POCKETBASE_ADMIN_EMAIL",
         "POCKETBASE_ADMIN_PASSWORD",
+        "API_PORT",
+        "REDIS_HOSTNAME",
+        "REDIS_PORT",
         "OPENAI_API_KEY"
       ]
     },

@@ -61,8 +61,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'help',
       args: command ? [command.data?.name] : [],
@@ -90,8 +90,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'help',
       args: command ? [command.data.name] : [],

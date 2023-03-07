@@ -8,11 +8,14 @@ export const BOT_CONFIG = {
 };
 
 // Host configuration
-export const CLIENT_URL = 'http://localhost:3000';
-export const REDIS_URL = 'redis://localhost:6379';
-export const BOT_URL = 'http://localhost:8000';
-export const PORT = 8000;
 export const CLIENT_PORT = 3000;
+export const CLIENT_URL = 'http://localhost:3000';
+
+export const REDIS_HOSTNAME = process.env.REDIS_HOSTNAME || '127.0.0.1';
+export const REDIS_PORT = process.env.REDIS_PORT || 6379;
+export const REDIS_URL = `redis://${REDIS_HOSTNAME}:${REDIS_PORT}`;
+export const PORT = process.env.API_PORT || 8000;
+export const BOT_URL = `http://localhost:${PORT}`;
 export const redirectURI = encodeURIComponent(`${CLIENT_URL}/login`);
 
 // Discord configuration

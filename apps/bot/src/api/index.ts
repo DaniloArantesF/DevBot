@@ -31,7 +31,7 @@ function API(provider: BotProvider) {
     '/auth': AuthRouter(pushRequest),
     '/discord': DiscordRouter(pushRequest),
     '/plugins': PluginRouter(pushRequest),
-  }
+  };
 
   function setupRoutes() {
     for (const [path, router] of Object.entries(routers)) {

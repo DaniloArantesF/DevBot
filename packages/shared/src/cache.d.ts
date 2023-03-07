@@ -4,7 +4,7 @@ declare namespace TCache {
   type Base = {
     user?: string;
     channel?: string;
-    guild?: string;
+    guildId?: string;
     data?: string;
     error?: string;
   };

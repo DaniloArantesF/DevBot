@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  redis:
+    container_name: benji-redis
+    image: redis/redis-stack
+    restart: always
+    ports:
+      - 6379:6379
+      - 8001:8001
+    networks:
+      - benji_network
+    volumes:
+      - ./data/redis:/data
+
+  web:
+    container_name: benji-web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - benji_network
+    environment:
+      - API_PORT=3001
+      - API_HOSTNAME=benji-bot
+
+  bot:
+    container_name: benji-bot
+    build:
+      context: .
+      dockerfile: ./apps/bot/Dockerfile
+    restart: always
+    ports:
+      - 3001:3001
+
+    environment:
+      - API_PORT=3001
+      - REDIS_HOSTNAME=benji-redis
+      - REDIS_PORT=6379
+
+    networks:
+      - benji_network
+    env_file:
+      - ./apps/bot/.env
+    depends_on:
+      - redis
+
+# Allow containers to communicate using their container name as a hostname
+networks:
+  benji_network:

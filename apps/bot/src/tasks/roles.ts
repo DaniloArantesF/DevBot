@@ -14,7 +14,7 @@ import { getGuild } from './guild';
 
 export async function createRole(guildId: string, options: CreateRoleOptions) {
   const guild = await getGuild(guildId);
-  return guild.roles.create(options);
+  return guild?.roles.create(options);
 }
 
 export function getRoleEmoji(roleId: string) {
@@ -25,12 +25,20 @@ export async function getRoleButtons(guildId: string, userRoles: string[]) {
   const guild = await getGuild(guildId);
 
   // Filter roles to only include roles below the bot's highest role
-  const botRole = guild.members.me.roles.highest;
-  const roles = guild.roles.cache.filter(
-    (role) => role.comparePositionTo(botRole) < 0 && role.name !== '@everyone' && userRoles.includes(role.id),
+  const botRole = guild?.members.me!.roles.highest!;
+  const roles = guild?.roles.cache.filter(
+    (role) =>
+      role.comparePositionTo(botRole) < 0 &&
+      role.name !== '@everyone' &&
+      userRoles.includes(role.id),
   );
 
-  const roleMessage = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+  const roleMessage = new ActionRowBuilder<MessageActionRowComponentBuilder>();
+
+  if (!roles) {
+    return roleMessage;
+  }
+  roleMessage.addComponents(
     roles.map((role) => {
       const emoji = getRoleEmoji(role.id);
       return new ButtonBuilder()
@@ -88,45 +96,47 @@ export async function setRolesMessage(guildId: string, channelId: string, userRo
 export async function getUserRoles(userId: string, guildId: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  const member = guild.members.cache.get(userId);
-  return member.roles.cache;
+  const member = guild?.members.cache.get(userId);
+  return member?.roles.cache;
 }
 
 export async function setUserRoles(guildId: string, userId: string, roles: string[]) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  const member = guild.members.cache.get(userId);
-  return member.roles.set(roles.map((role) => guild.roles.cache.get(role)));
+  const member = guild?.members.cache.get(userId);
+  return member?.roles.set(roles.map((role) => guild?.roles.cache.get(role)!));
 }
 
 export async function getGuildRoles(guildId: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  return guild.roles.cache;
+  return guild?.roles.cache;
 }
 
 export async function addUserRole(userId: string, guildId: string, roleId: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  const member = guild.members.cache.get(userId);
-  const role = guild.roles.cache.get(roleId);
-  return await member.roles.add(role);
+  const member = guild?.members.cache.get(userId);
+  const role = guild?.roles.cache.get(roleId);
+  if (!role) return;
+  return await member?.roles.add(role);
 }
 
 export async function removeUserRole(userId: string, guildId: string, roleId: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  const member = guild.members.cache.get(userId);
-  const role = guild.roles.cache.get(roleId);
-  await member.roles.remove(role);
+  const member = guild?.members.cache.get(userId);
+  const role = guild?.roles.cache.get(roleId);
+  if (!role) return;
+  await member?.roles.remove(role);
 }
 
 export async function getGuildRole(guildId: string, roleId?: string, roleName?: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  if (roleName) return guild.roles.cache.find((role) => role.name === roleName);
+  if (roleName) return guild?.roles.cache.find((role) => role.name === roleName);
   try {
-    return guild.roles.cache.get(roleId);
+    return guild?.roles.cache.get(roleId!);
   } catch (error) {
     return null;
   }
@@ -135,9 +145,10 @@ export async function getGuildRole(guildId: string, roleId?: string, roleName?: 
 export async function hasRole(userId: string, guildId: string, roleId: string) {
   const client = (await botProvider).getDiscordClient();
   const guild = client.guilds.cache.get(guildId);
-  const member = guild.members.cache.get(userId);
-  const role = guild.roles.cache.get(roleId);
-  return member.roles.cache.has(role.id);
+  const member = guild?.members.cache.get(userId);
+  const role = guild?.roles.cache.get(roleId);
+  if (!role) return false;
+  return member?.roles.cache.has(role.id);
 }
 
 const emojis = [

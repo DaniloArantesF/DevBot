@@ -19,6 +19,7 @@ const GuildRepository = (provider: BotProvider) => {
           name: guild.name,
           userRoles: [],
         });
+        if (!record) continue;
         cacheMap.set(guild.id, record.id);
       } else {
         cacheMap.set(guild.id, storedItem.id);
@@ -40,7 +41,7 @@ const GuildRepository = (provider: BotProvider) => {
     if (cacheMap.has(guildId)) {
       return await pocketbase
         .collection('servers')
-        .getOne<TPocketbase.Guild>(cacheMap.get(guildId));
+        .getOne<TPocketbase.Guild>(cacheMap.get(guildId)!);
     }
     return await pocketbase
       .collection('servers')
@@ -60,9 +61,10 @@ const GuildRepository = (provider: BotProvider) => {
   }
 
   async function update(guild: TPocketbase.Guild) {
+    if (!cacheMap.has(guild.guildId)) return null;
     const record = await pocketbase
       .collection('servers')
-      .update<TPocketbase.Guild>(cacheMap.get(guild.guildId), guild);
+      .update<TPocketbase.Guild>(cacheMap.get(guild.guildId)!, guild);
     return record;
   }
 

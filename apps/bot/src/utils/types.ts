@@ -12,9 +12,9 @@ export interface BotProvider {
   services: Partial<{
     [key: string]: any;
     discordClient: DiscordClient;
-    api: typeof API;
-    dataProvider: typeof DataProvider;
-    taskManager: typeof TaskManager;
+    api: ReturnType<typeof API>;
+    dataProvider: DataProvider;
+    taskManager: ReturnType<typeof TaskManager>;
   }>;
   userCooldown: Map<string, number>;
   addService: (name: string, service: any) => void;
@@ -53,7 +53,7 @@ export interface QueueTaskData {
   timestamp?: number;
 }
 
-export type apiHandler = (client?: DiscordClient) => Promise<void | TCache.Request> | void;
+export type apiHandler = (client: DiscordClient) => Promise<void | TCache.Request> | void;
 
 export interface ApiTask {
   id: string;

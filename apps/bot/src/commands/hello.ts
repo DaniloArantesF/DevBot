@@ -10,8 +10,8 @@ export const command: TBot.Command = {
 
     // Return data to be logged
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'hello',
       args: [],
@@ -24,8 +24,8 @@ export const command: TBot.Command = {
 
     // Return data to be logged
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'hello',
       args: [],

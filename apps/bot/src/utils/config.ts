@@ -7,16 +7,16 @@ dotenv.config();
 export * from 'shared/config';
 
 // Environment variables
-export const TOKEN = process.env.DISCORD_TOKEN;
-export const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-export const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-export const GUILD_ID = process.env.DISCORD_TEST_GUILD_ID;
+export const TOKEN = process.env.DISCORD_TOKEN!;
+export const CLIENT_ID = process.env.DISCORD_CLIENT_ID!;
+export const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET!;
+export const GUILD_ID = process.env.DISCORD_TEST_GUILD_ID!;
 
-export const POCKETBASE_BASE_URL = process.env.POCKETBASE_BASE_URL;
-export const POCKETBASE_ADMIN_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL;
-export const POCKETBASE_ADMIN_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD;
+export const POCKETBASE_BASE_URL = process.env.POCKETBASE_BASE_URL!;
+export const POCKETBASE_ADMIN_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL!;
+export const POCKETBASE_ADMIN_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD!;
 
-export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export const OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
 
 export const INTENTS = [
   // Guilds

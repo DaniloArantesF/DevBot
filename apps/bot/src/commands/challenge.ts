@@ -6,7 +6,7 @@ import {
   Message,
   GuildMember,
 } from 'discord.js';
-import { TBot } from '@/utils/types';
+import { TBot, TDiscord } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
 import botProvider from '..';
 import { getDiscordAvatar } from 'shared/utils';
@@ -92,8 +92,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'create-challenge',
       args: [],
@@ -102,8 +102,8 @@ export const command: TBot.Command = {
   },
   async execute(interaction) {
     const reply = 'Successfully created a challenge!';
-    const goal = interaction.options.get('goal').value as string;
-    const duration = interaction.options.get('duration').value as number;
+    const goal = interaction.options.get('goal')!.value as string;
+    const duration = interaction.options.get('duration')!.value as number;
 
     const periodDays = interaction.options.get('period')?.value as number;
     const period = periodDays ? periodDays * 24 * 60 * 60 * 1000 : DEBUG_CHALLENGE_PERIOD;
@@ -114,16 +114,16 @@ export const command: TBot.Command = {
       duration,
       period,
       startDate: new Date().toISOString(),
-      user: interaction.member.user.id,
-      guildId: interaction.guildId,
-      participants: [interaction.member.user.id],
+      user: interaction.member!.user.id,
+      guildId: interaction.guildId!!,
+      participants: [interaction.member!.user.id],
       currentPeriod: 0,
     });
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'create-challenge',
       args: [],
@@ -153,8 +153,8 @@ export const challangeJoin: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'join-challenge',
       args: [],
@@ -167,33 +167,35 @@ export const challangeJoin: TBot.Command = {
 
     let channelId = interaction.channelId;
     if (interaction.options.get('channel')) {
-      channelId = interaction.options.get('channel').value as string;
+      channelId = interaction.options.get('channel')!.value as string;
     }
 
-    const userId = interaction.member.user.id;
+    const userId = interaction.member!.user.id;
     const sponsor = interaction.options.getUser('sponsor');
 
     try {
       const record = await habitTrackerController.joinChallenge(channelId, {
         userId,
-        sponsor: sponsor.id,
+        sponsor: sponsor?.id ?? '',
       });
 
-      // Send message to verify sponsor
-      const member = await getGuildMember(interaction.guildId, sponsor.id);
-      if (member) {
-        promptSponsor(record, interaction.user, member);
+      if (sponsor) {
+        // Send message to verify sponsor
+        const member = await getGuildMember(interaction.guildId!!, sponsor.id);
+        if (member) {
+          promptSponsor(record, interaction.user, member);
+        }
       }
 
       await replyInteraction(interaction, reply);
-    } catch (error) {
-      reply = error?.message ?? 'Error executing that command';
+    } catch (error: any) {
+      reply = 'Error executing that command';
       await replyInteraction(interaction, reply);
     }
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'join-challenge',
       args: [],
@@ -218,8 +220,8 @@ export const challengeSubmit: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'submit-challenge',
       args: [],
@@ -228,20 +230,20 @@ export const challengeSubmit: TBot.Command = {
   },
   async execute(interaction) {
     let channelId = interaction.channelId;
-    const userId = interaction.member.user.id;
-    const entry = interaction.options.get('entry').value as string;
-    let reply = {
+    const userId = interaction.member!.user.id;
+    const entry = interaction.options.get('entry')!.value as string;
+    let reply: TDiscord.Reply = {
       embeds: [
         new EmbedBuilder()
           .setTitle('Challenge Entry Submitted')
           .setColor(0x0000ff)
           .setAuthor({
-            name: interaction.member.user.username,
+            name: interaction.member!.user.username,
             iconURL: getDiscordAvatar(
               'user',
-              interaction.member.user.id,
-              interaction.member.user.avatar ||
-                (interaction.member.user as User).displayAvatarURL(),
+              interaction.member!.user.id,
+              interaction.member!.user.avatar ||
+                (interaction.member!.user as User).displayAvatarURL(),
             ),
           })
           .addFields({ name: 'Entry', value: entry }),
@@ -250,13 +252,17 @@ export const challengeSubmit: TBot.Command = {
 
     const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
 
-    if (interaction.channel.isThread()) {
-      channelId = interaction.channel.parentId;
+    if (interaction.channel!.isThread()) {
+      channelId = interaction.channel.parentId!;
     }
 
     try {
       const { challenge } = await habitTrackerController.submitEntry(channelId, userId, entry);
       const activeThread = habitTrackerController.activeThreads.get(challenge);
+
+      if (!activeThread) {
+        throw new Error('No active thread found');
+      }
 
       await activeThread.send(reply);
       await replyInteraction(interaction, { content: 'Submission received!', ephemeral: true });
@@ -264,14 +270,14 @@ export const challengeSubmit: TBot.Command = {
       setTimeout(async () => {
         await interaction.deleteReply();
       }, 2 * 1000);
-    } catch (error) {
-      reply = error?.message ?? 'Error executing that command';
+    } catch (error: any) {
+      reply = 'Error executing that command';
       await replyInteraction(interaction, reply);
     }
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'submit-challenge',
       args: [],
@@ -304,8 +310,8 @@ export const challengeUpdate: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'submit-challenge',
       args: [],
@@ -343,13 +349,13 @@ export const challengeUpdate: TBot.Command = {
         await habitTrackerController.challengeModel.update({ id: challengeRecord.id, ...data });
       }
     } catch (error) {
-      reply = error?.message ?? 'Error executing that command';
+      reply = 'Error executing that command';
     }
 
     await replyInteraction(interaction, reply);
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'update-challenge',
       args: [],
@@ -373,8 +379,8 @@ export const challengeLeave: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'submit-challenge',
       args: [],
@@ -392,11 +398,11 @@ export const challengeLeave: TBot.Command = {
       const challengeRecord = await habitTrackerController.challengeModel.getFromChannel(channelId);
       if (!challengeRecord) {
         reply = 'Invalid challenge!';
-      } else if (!challengeRecord.participants.includes(interaction.member.user.id)) {
+      } else if (!challengeRecord.participants.includes(interaction.member!.user.id)) {
         reply = 'You are not a participant of this challenge!';
       } else {
         const newParticipants = [
-          ...challengeRecord.participants.filter((p) => p !== interaction.member.user.id),
+          ...challengeRecord.participants.filter((p) => p !== interaction.member!.user.id),
         ];
 
         if (!newParticipants.length) {
@@ -409,13 +415,13 @@ export const challengeLeave: TBot.Command = {
         }
       }
     } catch (error) {
-      reply = error?.message ?? 'Error executing that command';
+      reply = 'Error executing that command';
     }
 
     await replyInteraction(interaction, reply);
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'leave-challenge',
       args: [],

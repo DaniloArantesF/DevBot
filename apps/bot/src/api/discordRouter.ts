@@ -186,7 +186,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
       }
 
       try {
-        const guild = (await getGuild(guildId)).toJSON();
+        const guild = (await getGuild(guildId))?.toJSON() ?? {};
         res.send(guild);
         return RequestLog('get', req.url, 200, guild);
       } catch (error) {
@@ -210,10 +210,10 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/guilds/:guildId/roles', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.params.guildId;
-      const roles = (await getGuildRoles(guildId)).map((role) =>
+      const roles = (await getGuildRoles(guildId))?.map((role) =>
         JSON.parse(stringifyCircular(role)),
       );
-      res.send(roles);
+      res.send(roles ?? []);
       return RequestLog('get', req.url, 200, roles);
     }
     pushRequest(req, handler);
@@ -229,9 +229,9 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/guilds/:guildId/channels', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.params.guildId;
-      const channels = (await getGuildChannels(guildId)).map((channel) =>
+      const channels = (await getGuildChannels(guildId))?.map((channel) =>
         JSON.parse(stringifyCircular(channel)),
-      );
+      ) ?? [];
       res.send(channels);
       return RequestLog('get', req.url, 200, channels);
     }
@@ -262,6 +262,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           ...guildRecord,
           userRoles: [...req.body]
         })
+        if (!updatedRecord || !updatedRecord.rolesChannelId) return;
         const channelId = updatedRecord.rolesChannelId;
         const roleMessage = await setRolesMessage(req.params.guildId, channelId, req.body);
         data = { updatedRecord, roleMessage };

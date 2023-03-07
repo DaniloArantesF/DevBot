@@ -14,15 +14,16 @@ export const command: TBot.Command = {
   async buttonHandler(interaction) {
     let reply = 'Error adding you to this role.';
     const roleId = interaction.customId.split(':')[1];
-    const role = await getGuildRole(interaction.guildId, roleId);
+    const role = await getGuildRole(interaction.guildId!!, roleId);
+    if (!role) return;
     // TODO: make sure user's role is at least the same as the role they're trying to enlist into
     try {
-      const userRoles = await getUserRoles(interaction.member.user.id, interaction.guildId);
-      if (userRoles.get(role.id)) {
-        await removeUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      const userRoles = await getUserRoles(interaction.member!.user.id, interaction.guildId!!);
+      if (userRoles && userRoles.get(role.id)) {
+        await removeUserRole(interaction.member!.user.id, interaction.guildId!!, role.id);
         reply = `Successfully removed you from ${role.name}`;
       } else {
-        await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
+        await addUserRole(interaction.member!.user.id, interaction.guildId!!, role.id);
         reply = `Successfully added you to ${role.name}`;
       }
     } catch (error) {
@@ -32,8 +33,8 @@ export const command: TBot.Command = {
     await interaction.deleteReply();
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'enlist',
       args: [role.name],
@@ -43,9 +44,9 @@ export const command: TBot.Command = {
   async messageHandler(interaction) {
     let reply = 'Error adding you to this role.';
     const role = interaction.mentions.roles.first();
-
+    if (!role) return;
     try {
-      await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      await addUserRole(interaction.member!.user.id, interaction.guildId!!, role.id);
       reply = `Successfully added you to ${role.name}`;
     } catch (error) {
       console.log(error);
@@ -54,8 +55,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'enlist',
       args: [role.name],
@@ -64,10 +65,10 @@ export const command: TBot.Command = {
   },
   async execute(interaction) {
     let reply = 'Error adding you to this role.';
-    const role = interaction.options.get('role').role;
-
+    const role = interaction.options.get('role')!.role;
+    if (!role) return;
     try {
-      await addUserRole(interaction.member.user.id, interaction.guildId, role.id);
+      await addUserRole(interaction.member!.user.id, interaction.guildId!, role.id);
       reply = `Successfully added you to ${role.name}`;
     } catch (error) {
       console.log(error);
@@ -76,8 +77,8 @@ export const command: TBot.Command = {
     await replyInteraction(interaction, reply);
 
     return {
-      user: interaction.member.user.id,
-      guild: interaction.guildId,
+      user: interaction.member!.user.id,
+      guild: interaction.guildId!,
       channel: interaction.channelId,
       command: 'enlist',
       args: [...interaction.options.data],

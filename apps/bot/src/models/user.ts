@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase';
-import { TDiscord, TPocketbase, TBotApi } from '@utils/types';
+import { TPocketbase, TBotApi } from '@utils/types';
 
 interface UserModel {
   pocketbase: PocketBase;

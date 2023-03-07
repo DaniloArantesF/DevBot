@@ -19,7 +19,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   async processTasks() {
     this.queue.process(async (job) => {
       const event = this.taskMap.get(job.id);
-      if (!event) return;
+      if (!event || !event.on) return;
 
       const data = await event.on(...event.args);
       if (data) {

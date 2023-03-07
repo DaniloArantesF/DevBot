@@ -44,18 +44,18 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
     // Check if user is in cooldown
     if (interaction.member) {
       const cooldownMap = (await botProvider).userCooldown;
-      const lastInteraction = cooldownMap.get(interaction.member.user.id) ?? -1;
+      const lastInteraction = cooldownMap.get(interaction.member!.user.id) ?? -1;
       const timeLeft = lastInteraction === -1 ? 0 : lastInteraction + COOLDOWN_MS - Date.now();
 
       if (timeLeft > 0) {
         console.info(
-          `Delaying command from ${interaction.member.user.username} for ${timeLeft}ms}`,
+          `Delaying command from ${interaction.member!.user.username} for ${timeLeft}ms}`,
         );
         job.delayUntil(Date.now() + timeLeft);
       }
 
       // Update last interaction
-      cooldownMap.set(interaction.member.user.id, Date.now());
+      cooldownMap.set(interaction.member!.user.id, Date.now());
     }
 
     await job.save();
@@ -68,8 +68,8 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
       const interaction = this.taskMap.get(job.id);
       if (!interaction) return;
 
-      let command: TBot.Command;
-      let execute: TBot.CommandHandler;
+      let command: TBot.Command | undefined;
+      let execute: TBot.CommandHandler | undefined;
 
       if (interaction instanceof Message) {
         const commandToken = interaction.content
@@ -89,7 +89,7 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
         execute = command?.buttonHandler;
       } else {
         command = commands.get(interaction.commandName);
-        execute = command.execute;
+        execute = command?.execute;
       }
 
       if (!command || !execute) return;

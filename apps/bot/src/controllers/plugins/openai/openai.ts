@@ -17,7 +17,7 @@ import { OPENAI_API_KEY } from '@/utils/config';
 import OpenAiPluginApi from './api';
 
 class OpenAI extends OpenAIApi {
-  api: OpenAiPluginApi;
+  api?: OpenAiPluginApi;
   guildRecordMap = new Map<string, TOpenAi.Record>();
   channels = new Map<string, { [key: string]: string }>();
   requestQueue = new Queue<TOpenAi.RequestTaskData>('openai-request-queue', queueSettings);
@@ -189,8 +189,8 @@ class OpenAI extends OpenAIApi {
         const messages = [...instructions, ...latestMessages];
         const job = await this.addTask({ messageId: message.id, type: 'chat', messages });
         job.on('succeeded', async (response: CreateChatCompletionResponse) => {
-          if (!response || !response.choices.length) return;
-          message.reply(response.choices[0].message.content);
+          if (!response || !response.choices) return;
+          message.reply(response.choices[0].message?.content ?? 'No response');
         });
       }
     });
@@ -238,7 +238,7 @@ class OpenAI extends OpenAIApi {
           if (!response || !response.data) {
             message.reply('Image came back empty :(');
           } else {
-            const url = response.data[0].url;
+            const url = response.data[0].url ?? '';
             message.reply(url);
           }
         });

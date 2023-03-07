@@ -33,6 +33,7 @@ export class PocketBase extends PocketBaseSDK {
         POCKETBASE_ADMIN_EMAIL,
         POCKETBASE_ADMIN_PASSWORD,
       );
+      console.log(adminData);
       // this.authStore.save(adminData.token, adminData.admin);
       return true;
     } catch (error) {

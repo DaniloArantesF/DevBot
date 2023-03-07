@@ -8,7 +8,7 @@ import {
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { TOKEN, CLIENT_ID } from '@config';
-import { TBot } from '@utils/types';
+import { TBot, TDiscord } from '@utils/types';
 import fs from 'fs';
 import { CommandInteraction } from '@/controllers/commandController';
 
@@ -34,14 +34,15 @@ export async function getCommands(all = false) {
 
 /**
  * Registers slash commands globally or for a specific guild
- * @throws {DiscordAPIError}
+  TODO: fix type issues here
+* @throws {DiscordAPIError}
  */
 export async function setSlashCommands(commands: TBot.Command[], guildId?: string) {
   const rest = new REST({ version: '10' }).setToken(TOKEN);
   const endpoint = guildId
     ? Routes.applicationGuildCommands(CLIENT_ID, guildId.toString())
     : Routes.applicationCommands(CLIENT_ID);
-  return await rest.put(endpoint, {
+  return (await rest.put(endpoint, {
     body: commands
       .filter((c) => c.data?.toJSON !== undefined || (c as any)?.toJSON !== undefined)
       .map((command) => {
@@ -49,9 +50,9 @@ export async function setSlashCommands(commands: TBot.Command[], guildId?: strin
         if (isSlashCommand) {
           return command.data.toJSON();
         }
-        return (command as any)?.toJSON();
+        return (command as any)?.toJSON() ;
       }),
-  });
+  })) as any[];
 }
 
 export async function registerGlobalSlashCommands() {
@@ -74,7 +75,7 @@ export async function deleteGuildSlashCommands(guildId: string) {
 
 export function replyInteraction(
   interaction: CommandInteraction | _CommandInteraction,
-  reply: string | (MessagePayload | MessageReplyOptions) | InteractionReplyOptions,
+  reply: TDiscord.Reply,
 ) {
   if (interaction instanceof Message) {
     return interaction.reply(reply as string | MessagePayload | MessageReplyOptions);
