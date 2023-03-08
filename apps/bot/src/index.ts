@@ -4,6 +4,7 @@ import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@utils/types';
 import { setRolesMessage } from './tasks/roles';
+import { BOT_URL, API_HOSTNAME } from 'shared/config';
 
 async function Bot() {
   const botProvider: BotProvider = {
@@ -61,6 +62,9 @@ async function Bot() {
   return new Promise<BotProvider>((resolve) => {
     // Setup
     discordClient.on('ready', async () => {
+
+      console.log({ BOT_URL, API_HOSTNAME  })
+
       await dataProvider.connect();
       resolve(botProvider);
       main();

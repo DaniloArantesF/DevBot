@@ -40,4 +40,5 @@ RUN adduser --system --uid 1001 nextjs
 USER nextjs
 
 COPY --from=installer --chown=nextjs:nodejs /app .
-CMD yarn web start
+
+CMD yarn workspace web start

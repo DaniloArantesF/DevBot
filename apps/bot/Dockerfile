@@ -43,4 +43,4 @@ RUN adduser --system --uid 1001 benji
 USER benji
 COPY --from=installer /app .
 
-CMD yarn bot dev
+CMD yarn bot start

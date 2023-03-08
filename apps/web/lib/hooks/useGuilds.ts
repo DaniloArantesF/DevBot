@@ -2,10 +2,11 @@ import useSWR, { mutate } from 'swr';
 import { TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useEffect, useRef } from 'react';
+import { BOT_URL } from 'shared/config';
 
 const guildEndpoint = (guildId: string, token: string) =>
-  `http://localhost:8000/discord/guilds/${guildId}?token=${token}`;
-const guildsEndpoint = (token: string) => `http://localhost:8000/discord/guilds?token=${token}`;
+  `${BOT_URL}/discord/guilds/${guildId}?token=${token}`;
+const guildsEndpoint = (token: string) => `${BOT_URL}/discord/guilds?token=${token}`;
 
 export async function fetchGuild(guildId: string, token: string) {
   const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId, token), {

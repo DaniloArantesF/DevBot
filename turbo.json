@@ -3,13 +3,27 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**"],
+      "env": [
+        "CLIENT_HOSTNAME",
+        "CLIENT_PORT",
+        "API_HOSTNAME",
+        "API_PORT"
+      ]
     },
     "lint": {
       "outputs": []
     },
     "dev": {
       "cache": false
+    },
+    "shared#build": {
+      "env": [
+        "CLIENT_HOSTNAME",
+        "CLIENT_PORT",
+        "API_HOSTNAME",
+        "API_PORT"
+      ]
     },
     "bot#build": {
       "env": [
@@ -25,14 +39,15 @@
         "POCKETBASE_BASE_URL",
         "POCKETBASE_ADMIN_EMAIL",
         "POCKETBASE_ADMIN_PASSWORD",
-        "API_PORT",
         "REDIS_HOSTNAME",
         "REDIS_PORT",
         "OPENAI_API_KEY"
       ]
     },
     "web#build": {
-      "env": ["SECRET_COOKIE_PASSWORD"]
+      "env": [
+        "SECRET_COOKIE_PASSWORD"
+      ]
     }
   },
   "globalDependencies": [".env", "package.json", "tsconfig.json"]

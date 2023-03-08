@@ -7,6 +7,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "dev": "tsx src/index.ts",
+    "start": "tsx src/index.ts",
     "lint": "tsc --noEmit && eslint src/**/*.ts --fix",
     "test": "vitest",
     "test:ui": "vitest --ui"
@@ -44,6 +45,7 @@
     "tsx": "^3.12.2",
     "typescript": "^4.9.4",
     "vite-plugin-require": "^1.1.10",
-    "vitest": "^0.28.2"
+    "vitest": "^0.28.2",
+    "dotenv-cli": "latest"
   }
 }

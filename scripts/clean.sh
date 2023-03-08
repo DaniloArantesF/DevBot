@@ -14,4 +14,6 @@ docker rm $(docker ps -aq --filter ancestor=$WEB_IMAGE) 2>/dev/null
 docker rmi $BOT_IMAGE 2>/dev/null
 docker rmi $WEB_IMAGE 2>/dev/null
 
+# docker system prune -a
+
 exit 0

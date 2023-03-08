@@ -29,12 +29,10 @@ export class PocketBase extends PocketBaseSDK {
 
   async authenticate() {
     try {
-      const adminData = await this.admins.authWithPassword(
+      await this.admins.authWithPassword(
         POCKETBASE_ADMIN_EMAIL,
         POCKETBASE_ADMIN_PASSWORD,
       );
-      console.log(adminData);
-      // this.authStore.save(adminData.token, adminData.admin);
       return true;
     } catch (error) {
       console.log('Error authenticating with PocketBase', error);

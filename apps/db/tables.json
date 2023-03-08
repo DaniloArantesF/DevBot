@@ -1,0 +1,622 @@
+[
+  {
+      "id": "_pb_users_auth_",
+      "name": "users",
+      "type": "auth",
+      "system": false,
+      "schema": [
+          {
+              "id": "users_avatar",
+              "name": "avatar",
+              "type": "file",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "maxSelect": 1,
+                  "maxSize": 5242880,
+                  "mimeTypes": [
+                      "image/jpeg",
+                      "image/png",
+                      "image/svg+xml",
+                      "image/gif",
+                      "image/webp"
+                  ],
+                  "thumbs": null
+              }
+          },
+          {
+              "id": "us1lsgqj",
+              "name": "discordId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": true,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          }
+      ],
+      "listRule": "id = @request.auth.id",
+      "viewRule": "id = @request.auth.id",
+      "createRule": "",
+      "updateRule": "id = @request.auth.id",
+      "deleteRule": "id = @request.auth.id",
+      "options": {
+          "allowEmailAuth": true,
+          "allowOAuth2Auth": true,
+          "allowUsernameAuth": true,
+          "exceptEmailDomains": null,
+          "manageRule": null,
+          "minPasswordLength": 8,
+          "onlyEmailDomains": null,
+          "requireEmail": false
+      }
+  },
+  {
+      "id": "tzmq5mu9ur71uar",
+      "name": "challenges",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "5teofzak",
+              "name": "participants",
+              "type": "json",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {}
+          },
+          {
+              "id": "y2qkhgcy",
+              "name": "status",
+              "type": "select",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "maxSelect": 1,
+                  "values": [
+                      "scheduled",
+                      "inProgress",
+                      "finished"
+                  ]
+              }
+          },
+          {
+              "id": "hlxqjx08",
+              "name": "duration",
+              "type": "number",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null
+              }
+          },
+          {
+              "id": "aibchdyr",
+              "name": "channelId",
+              "type": "text",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "v4i2enyq",
+              "name": "endDate",
+              "type": "date",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": "",
+                  "max": ""
+              }
+          },
+          {
+              "id": "gvldtvos",
+              "name": "period",
+              "type": "number",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": 0,
+                  "max": null
+              }
+          },
+          {
+              "id": "rxedqqoc",
+              "name": "startDate",
+              "type": "date",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": "",
+                  "max": ""
+              }
+          },
+          {
+              "id": "kdpgcbkj",
+              "name": "goal",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "xliqdnpm",
+              "name": "user",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "icwlxcnf",
+              "name": "allowedSubmissionTypes",
+              "type": "select",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "maxSelect": 1,
+                  "values": [
+                      "text",
+                      "url",
+                      "image",
+                      "commit"
+                  ]
+              }
+          },
+          {
+              "id": "weqgk0wr",
+              "name": "lastCheck",
+              "type": "date",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": "",
+                  "max": ""
+              }
+          },
+          {
+              "id": "cloeyfgf",
+              "name": "guildId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "03c2aaa8",
+              "name": "roleId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "okwqhw5e",
+              "name": "currentPeriod",
+              "type": "number",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": 0,
+                  "max": null
+              }
+          }
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "",
+      "updateRule": "",
+      "deleteRule": "",
+      "options": {}
+  },
+  {
+      "id": "2j9lpdcag1klg3a",
+      "name": "challenge_participant",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "2yjoaipg",
+              "name": "challenge",
+              "type": "relation",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "collectionId": "tzmq5mu9ur71uar",
+                  "cascadeDelete": true,
+                  "minSelect": null,
+                  "maxSelect": 1,
+                  "displayFields": []
+              }
+          },
+          {
+              "id": "fnnvv04p",
+              "name": "streak",
+              "type": "number",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null
+              }
+          },
+          {
+              "id": "msf2pg1j",
+              "name": "userId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "3h1rwjhg",
+              "name": "lastUpdate",
+              "type": "text",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "x340cde3",
+              "name": "sponsorId",
+              "type": "text",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "gpojji5p",
+              "name": "sponsorVerified",
+              "type": "bool",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {}
+          }
+      ],
+      "listRule": null,
+      "viewRule": null,
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null,
+      "options": {}
+  },
+  {
+      "id": "t4lktrm8izad7bo",
+      "name": "challenge_entry",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "mekgatji",
+              "name": "type",
+              "type": "select",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "maxSelect": 1,
+                  "values": [
+                      "commit",
+                      "picture",
+                      "text",
+                      "url"
+                  ]
+              }
+          },
+          {
+              "id": "vgpfiowd",
+              "name": "challenge",
+              "type": "relation",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "collectionId": "tzmq5mu9ur71uar",
+                  "cascadeDelete": true,
+                  "minSelect": null,
+                  "maxSelect": 1,
+                  "displayFields": []
+              }
+          },
+          {
+              "id": "8bqirycd",
+              "name": "userId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "qv4m1srp",
+              "name": "value",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "gyzxao6a",
+              "name": "day",
+              "type": "number",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": 0,
+                  "max": null
+              }
+          },
+          {
+              "id": "fedzqj3q",
+              "name": "participant",
+              "type": "relation",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "collectionId": "2j9lpdcag1klg3a",
+                  "cascadeDelete": true,
+                  "minSelect": null,
+                  "maxSelect": 1,
+                  "displayFields": []
+              }
+          }
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "",
+      "updateRule": "",
+      "deleteRule": "",
+      "options": {}
+  },
+  {
+      "id": "eo5hauksfbsajqi",
+      "name": "servers",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "d7ghfxgi",
+              "name": "plugins",
+              "type": "json",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {}
+          },
+          {
+              "id": "mqmfbmwc",
+              "name": "rolesChannelId",
+              "type": "text",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "atmnab47",
+              "name": "rolesMessageId",
+              "type": "text",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "qbowh6pa",
+              "name": "guildId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": true,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "yghykn8n",
+              "name": "name",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "nkttbvro",
+              "name": "userRoles",
+              "type": "json",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {}
+          }
+      ],
+      "listRule": null,
+      "viewRule": null,
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null,
+      "options": {}
+  },
+  {
+      "id": "fqe6i5kfscc0zkt",
+      "name": "scheduled_tasks",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "7vsv2cjp",
+              "name": "key",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          },
+          {
+              "id": "k9ulzo0x",
+              "name": "nextExecution",
+              "type": "date",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {
+                  "min": "",
+                  "max": ""
+              }
+          },
+          {
+              "id": "zecnkbmm",
+              "name": "isRecurring",
+              "type": "bool",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {}
+          }
+      ],
+      "listRule": null,
+      "viewRule": null,
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null,
+      "options": {}
+  },
+  {
+      "id": "i2r2mw77i3ec72v",
+      "name": "openai_plugin",
+      "type": "base",
+      "system": false,
+      "schema": [
+          {
+              "id": "8uqv9mqm",
+              "name": "guild",
+              "type": "relation",
+              "system": false,
+              "required": true,
+              "unique": true,
+              "options": {
+                  "collectionId": "eo5hauksfbsajqi",
+                  "cascadeDelete": true,
+                  "minSelect": null,
+                  "maxSelect": 1,
+                  "displayFields": []
+              }
+          },
+          {
+              "id": "t5xwfcyo",
+              "name": "channels",
+              "type": "json",
+              "system": false,
+              "required": false,
+              "unique": false,
+              "options": {}
+          },
+          {
+              "id": "v6siriek",
+              "name": "guildId",
+              "type": "text",
+              "system": false,
+              "required": true,
+              "unique": false,
+              "options": {
+                  "min": null,
+                  "max": null,
+                  "pattern": ""
+              }
+          }
+      ],
+      "listRule": null,
+      "viewRule": null,
+      "createRule": null,
+      "updateRule": null,
+      "deleteRule": null,
+      "options": {}
+  }
+]

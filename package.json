@@ -7,20 +7,21 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
-    "web": "yarn workspace web",
-    "bot": "yarn workspace bot",
+    "build": "dotenv -e .env turbo run build",
+    "dev": "dotenv -e .env turbo run dev --parallel",
+    "web": "dotenv -e .env yarn workspace web",
+    "bot": "dotenv -e .env yarn workspace bot",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "docker-deploy": "bash scripts/clean.sh && scripts/deploy.sh"
+    "docker-deploy": "bash ./scripts/redeploy.sh"
   },
   "devDependencies": {
+    "dotenv-cli": "latest",
     "eslint-config-custom": "*",
+    "husky": "latest",
     "prettier": "latest",
     "pretty-quick": "latest",
-    "turbo": "latest",
-    "husky": "latest"
+    "turbo": "^1.8.3"
   },
   "engines": {
     "node": ">=14.0.0"

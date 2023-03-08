@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import AdminRouter from '@/api/adminRouter';
-import { CLIENT_URL, ENVIRONMENT, PORT } from '@config';
+import { CLIENT_URL, ENVIRONMENT, API_PORT } from '@config';
 import AuthRouter from '@/api/authRouter';
 import DiscordRouter from '@/api/discordRouter';
 import type { apiHandler, BotProvider } from '@/utils/types';
@@ -76,8 +76,8 @@ function API(provider: BotProvider) {
   // Setup server and listen for connections
   setupMiddleware();
   setupRoutes();
-  server.listen(PORT, () => {
-    console.log(`API listening on port ${PORT}`);
+  server.listen(API_PORT, () => {
+    console.log(`API listening on port ${API_PORT}`);
   });
 
   return { api, server, routers };

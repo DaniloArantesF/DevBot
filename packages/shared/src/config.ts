@@ -7,15 +7,23 @@ export const BOT_CONFIG = {
   cooldownMs: 2500,
 };
 
+export const ENV = process.env.NODE_ENV;
+
 // Host configuration
-export const CLIENT_PORT = 3000;
-export const CLIENT_URL = 'http://localhost:3000';
+export const CLIENT_PORT = process.env.CLIENT_PORT || 3000;
+export const CLIENT_HOSTNAME = process.env.CLIENT_HOSTNAME || 'localhost';
+export const CLIENT_URL = `http://${CLIENT_HOSTNAME}:${CLIENT_PORT}`;
+
+export const API_HOSTNAME =
+  process.env.API_HOSTNAME || ENV === 'production' ? 'localhost' : 'localhost';
+export const API_PORT = process.env.API_PORT || 3001;
+
+export const BOT_URL = `http://${API_HOSTNAME}:${API_PORT}`;
 
 export const REDIS_HOSTNAME = process.env.REDIS_HOSTNAME || '127.0.0.1';
 export const REDIS_PORT = process.env.REDIS_PORT || 6379;
 export const REDIS_URL = `redis://${REDIS_HOSTNAME}:${REDIS_PORT}`;
-export const PORT = process.env.API_PORT || 8000;
-export const BOT_URL = `http://localhost:${PORT}`;
+
 export const redirectURI = encodeURIComponent(`${CLIENT_URL}/login`);
 
 // Discord configuration

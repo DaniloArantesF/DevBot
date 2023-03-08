@@ -1,18 +1,6 @@
 version: '3'
 
 services:
-  redis:
-    container_name: benji-redis
-    image: redis/redis-stack
-    restart: always
-    ports:
-      - 6379:6379
-      - 8001:8001
-    networks:
-      - benji_network
-    volumes:
-      - ./data/redis:/data
-
   web:
     container_name: benji-web
     build:
@@ -25,7 +13,11 @@ services:
       - benji_network
     environment:
       - API_PORT=3001
-      - API_HOSTNAME=benji-bot
+      - API_HOSTNAME=localhost
+    depends_on:
+      - pocketbase
+      - redis
+      - bot
 
   bot:
     container_name: benji-bot
@@ -35,18 +27,49 @@ services:
     restart: always
     ports:
       - 3001:3001
-
     environment:
+      - API_HOSTNAME=benji-bot
       - API_PORT=3001
+      - POCKETBASE_BASE_URL=http://benji-db:3002
       - REDIS_HOSTNAME=benji-redis
       - REDIS_PORT=6379
-
     networks:
       - benji_network
     env_file:
-      - ./apps/bot/.env
+      - .env
     depends_on:
+      - pocketbase
       - redis
+
+  pocketbase:
+    container_name: benji-db
+    build:
+      context: .
+      dockerfile: ./apps/db/Dockerfile
+    restart: always
+    ports:
+      - 3002:3002
+    networks:
+      - benji_network
+    volumes:
+      - ./data/pocketbase:/pb/pb_data
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3002/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: benji-redis
+    image: redis/redis-stack
+    restart: always
+    ports:
+      - 3003:6379
+      - 3004:8001
+    networks:
+      - benji_network
+    volumes:
+      - ./data/redis:/data
 
 # Allow containers to communicate using their container name as a hostname
 networks:

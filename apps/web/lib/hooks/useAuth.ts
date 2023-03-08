@@ -1,11 +1,12 @@
-'use client';
 import { TBot, TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
+import { BOT_URL, API_PORT } from 'shared/config';
 
-const codeEndpoint = `http://localhost:8000/auth/code`;
+const API_EXTERNAL_URL = `http://localhost:${API_PORT}`;
+const codeEndpoint = `${API_EXTERNAL_URL}/auth/code`;
 
 export async function fetchAuth(code: string, opts?: RequestInit) {
   return await fetchJson<TBotApi.AuthData>(codeEndpoint, {
