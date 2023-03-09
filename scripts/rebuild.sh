@@ -11,7 +11,3 @@ $(. $SCRIPTPATH/clean.sh)
 # Build
 echo "Building..."
 . $SCRIPTPATH/build.sh
-
-# Deploy
-echo "Deploying..."
-. $SCRIPTPATH/deploy.sh

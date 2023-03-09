@@ -17,14 +17,6 @@
     "dev": {
       "cache": false
     },
-    "shared#build": {
-      "env": [
-        "CLIENT_HOSTNAME",
-        "CLIENT_PORT",
-        "API_HOSTNAME",
-        "API_PORT"
-      ]
-    },
     "bot#build": {
       "env": [
         "NODE_ENV",
@@ -46,6 +38,7 @@
     },
     "web#build": {
       "env": [
+        "NEXT_PUBLIC_API_URL",
         "SECRET_COOKIE_PASSWORD"
       ]
     }

@@ -40,5 +40,8 @@ dist
 # tsc build
 *.tsbuildinfo
 
-
+# database 
 data/
+
+# docker images
+*.tar

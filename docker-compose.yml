@@ -12,8 +12,7 @@ services:
     networks:
       - benji_network
     environment:
-      - API_PORT=3001
-      - API_HOSTNAME=localhost
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
       - pocketbase
       - redis

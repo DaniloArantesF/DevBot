@@ -13,7 +13,10 @@
     "bot": "dotenv -e .env yarn workspace bot",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "docker-deploy": "bash ./scripts/redeploy.sh"
+    "compose": "docker-compose -f docker-compose.yml up -d",
+    "compose-down": "docker-compose down",
+    "docker-rebuild": "bash ./scripts/rebuild.sh",
+    "docker-deploy": "bash ./scripts/deploy.sh"
   },
   "devDependencies": {
     "dotenv-cli": "latest",
@@ -24,7 +27,7 @@
     "turbo": "^1.8.3"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.12.0"
   },
   "dependencies": {},
   "packageManager": "yarn@1.22.19"

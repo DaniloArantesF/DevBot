@@ -24,9 +24,9 @@ export const queueSettings: Queue.QueueSettings = {
 /**
  * Task execution module
  * Depends on discordClient service to start processing tasks
- *
- * @param {BotProvider} provider
- */
+*
+* @param {BotProvider} provider
+*/
 function TaskManager(provider: BotProvider) {
   const apiController = new ApiController();
   const commandController = new CommandController();
