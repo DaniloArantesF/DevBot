@@ -58,7 +58,7 @@ export async function setRolesMessage(guildId: string, channelId: string, userRo
   if (!userRoles || !userRoles.length) return;
   const guildRepository = (await botProvider).getDataProvider().guild;
   const guildCacheItem = await guildRepository.get(guildId);
-  const channel = await getGuildChannel(guildId, channelId);
+  const channel = await getGuildChannel(guildId, channelId) as TextChannel;
 
   const rolesMessage: MessageCreateOptions = {
     content: 'Toggle roles by clicking the buttons below.',

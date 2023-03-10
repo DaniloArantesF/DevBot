@@ -5,7 +5,7 @@ export async function sendMessage(
   channelId: string,
   message: string | MessagePayload | MessageCreateOptions,
 ) {
-  const channel = await getGuildChannel(channelId);
+  const channel = await getGuildChannel(channelId) as TextChannel;
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.send(message);
 }

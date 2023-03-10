@@ -3,6 +3,15 @@ import { TDiscord } from './discord';
 import { TCache } from './cache';
 
 declare namespace TBot {
+  type LogLevel = 'debug' | 'minimal';
+
+  type Config = {
+    prefix: string;
+    logLevel: 'debug' | 'minimal';
+    cooldownMs: number;
+    autoProcess: boolean;
+  }
+
   type CommandHandler = SlashCommandHandler | ButtonCommandHandler | MessageCommandHandler;
 
   type SlashCommandHandler = (interaction: CommandInteraction) => Promise<void | TCache.Command>;

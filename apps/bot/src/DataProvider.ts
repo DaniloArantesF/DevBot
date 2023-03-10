@@ -10,6 +10,7 @@ import {
   POCKETBASE_BASE_URL,
 } from '@/utils/config';
 import ChallengeModel from './models/challenge';
+import { logger } from 'shared/logger';
 
 interface DataProvider {
   botProvider: Awaited<BotProvider>;
@@ -22,6 +23,7 @@ interface DataProvider {
 
 export class PocketBase extends PocketBaseSDK {
   isAdmin: boolean | Promise<boolean>;
+
   constructor() {
     super(POCKETBASE_BASE_URL);
     this.isAdmin = this.authenticate();
@@ -29,13 +31,10 @@ export class PocketBase extends PocketBaseSDK {
 
   async authenticate() {
     try {
-      await this.admins.authWithPassword(
-        POCKETBASE_ADMIN_EMAIL,
-        POCKETBASE_ADMIN_PASSWORD,
-      );
+      await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
       return true;
     } catch (error) {
-      console.log('Error authenticating with PocketBase', error);
+      console.error(error);
       return false;
     }
   }
@@ -44,10 +43,14 @@ export class PocketBase extends PocketBaseSDK {
 class DataProvider {
   constructor(botProvider: Awaited<BotProvider>) {
     this.botProvider = botProvider;
-    this.redis = new Client();
     this.pocketbase = new PocketBase();
-    this.user = new UserModel(this.pocketbase);
     this.challenge = new ChallengeModel(this.pocketbase);
+    this.redis = new Client();
+
+    logger.Header(
+      ['Data Provider Config', '', `Pocketbase: ${POCKETBASE_BASE_URL}`, `Redis: ${REDIS_URL}`],
+      'minimal',
+    );
   }
 
   async connect() {
@@ -55,8 +58,14 @@ class DataProvider {
     if (!this.redis.isOpen()) {
       await this.redis.open(REDIS_URL);
     }
-    this.guild = GuildRepository(this.botProvider);
+
     await this.pocketbase.isAdmin;
+    if (!this.pocketbase || !this.pocketbase.isAdmin) {
+      throw new Error('Error authenticating with Pocketbase.');
+    }
+
+    this.guild = GuildRepository(this.botProvider);
+    this.user = new UserModel(this.pocketbase);
   }
 
   async cleanUp() {}

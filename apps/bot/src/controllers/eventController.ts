@@ -6,12 +6,16 @@ import Queue from 'bee-queue';
 class EventController implements Controller<QueueTaskData, EventTask> {
   queue = new Queue<QueueTaskData>('event-queue', queueSettings);
   taskMap = new Map<string, EventTask>();
+  config = {
+    taskTimeout: 3000,
+    taskRetries: 2,
+  };
 
   constructor() {}
 
   async addTask(event: DiscordEvent, args: any[] = []) {
     const job = this.queue.createJob({ id: `${event.name}@${new Date().toISOString()}` });
-    await job.timeout(2000).retries(2).save();
+    await job.timeout(this.config.taskTimeout).retries(this.config.taskRetries).save();
     this.taskMap.set(job.id, { ...event, args });
     return job;
   }

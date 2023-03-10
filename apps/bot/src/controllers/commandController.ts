@@ -10,11 +10,10 @@ import {
 } from 'discord.js';
 import botProvider from '@/index';
 import { BOT_CONFIG } from 'shared/config';
+import { logger } from 'shared/logger';
 
 const COOLDOWN_MS = BOT_CONFIG.cooldownMs;
 const PREFIX = BOT_CONFIG.prefix;
-
-const DEBUG = false;
 
 export type CommandInteraction =
   | ChatInputCommandInteraction
@@ -25,21 +24,17 @@ export type CommandInteraction =
 class CommandController implements Controller<QueueTaskData, CommandInteraction> {
   queue = new Queue<QueueTaskData>('command-queue', queueSettings);
   taskMap = new Map<string, CommandInteraction>();
+  config = {
+    taskTimeout: 5000,
+    taskRetries: 1,
+  };
 
-  constructor() {
-    if (DEBUG) {
-      this.debugQueue();
-    }
-  }
-
-  debugQueue() {
-    this.queue.on('job failed', (jobId, err) => console.debug(`Job ${jobId} failed: ${err}`));
-    this.queue.on('job retrying', (jobId, err) => console.debug(`Job ${jobId} retrying: ${err}`));
-  }
+  constructor() {}
 
   async addTask(interaction: CommandInteraction) {
     const job = this.queue.createJob({ id: interaction.id });
-    job.timeout(5000).retries(1);
+
+    job.timeout(this.config.taskTimeout).retries(this.config.taskRetries);
 
     // Check if user is in cooldown
     if (interaction.member) {
@@ -64,6 +59,7 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
   }
 
   async processTasks(commands: Map<string, TBot.Command>) {
+    logger.Info('Processing command tasks.');
     this.queue.process(async (job) => {
       const interaction = this.taskMap.get(job.id);
       if (!interaction) return;

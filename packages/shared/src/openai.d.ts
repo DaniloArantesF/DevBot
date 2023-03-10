@@ -1,11 +1,28 @@
-
-
 declare namespace TOpenAi {
   export type ChatMessage = (content: string) => ChatCompletionRequestMessage;
 
+  export type TaskType = 'chat' | 'image' | 'code' | 'completion';
+
+  export type BotConfig = {
+    name: string;
+  } & ({
+    type: 'chat';
+    baseMessages: ChatCompletionRequestMessage[];
+  } | {
+    type: 'image';
+    promptPrefix: string;
+  } | {
+    type: 'completion';
+    promptPrefix: string;
+  } | {
+    type: 'code';
+    promptPrefix: string;
+    })
+
+
   export interface RequestTask {
     messageId: string;
-    type: 'chat' | 'image' | 'code' | 'completion';
+    type: TaskType;
   }
 
   export interface ChatRequestTask extends RequestTask {

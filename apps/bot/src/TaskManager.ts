@@ -1,12 +1,12 @@
 import Queue from 'bee-queue';
 import type { BotProvider } from '@/utils/types';
-import { AUTO_PROCESS, REDIS_HOSTNAME, REDIS_PORT } from '@/utils/config';
+import { REDIS_HOSTNAME, REDIS_PORT } from '@/utils/config';
 import ApiController from '@/controllers/apiController';
 import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
-import Twitter from '@/controllers/services/twitter';
 import HabitTracker from '@/controllers/plugins/habitTracker';
 import OpenAI from './controllers/plugins/openai/openai';
+import { logger } from 'shared/logger';
 
 export const queueSettings: Queue.QueueSettings = {
   prefix: 'bot',
@@ -24,23 +24,24 @@ export const queueSettings: Queue.QueueSettings = {
 /**
  * Task execution module
  * Depends on discordClient service to start processing tasks
-*
-* @param {BotProvider} provider
-*/
+ *
+ * @param {BotProvider} provider
+ */
 function TaskManager(provider: BotProvider) {
+  logger.Info('Initializing task manager...');
   const apiController = new ApiController();
   const commandController = new CommandController();
   const eventController = new EventController();
-  const twitterController = new Twitter();
   const openAIController = new OpenAI();
   const habitTrackerController = new HabitTracker(provider);
 
-  // Process tasks as soon as dependencies are ready
-  // Call plugin setup tasks
-  provider.getService('discordClient').on('ready',async () => {
-    if (AUTO_PROCESS) (await initProcessing())!! && console.log('Processing tasks...');
-    habitTrackerController.setup();
-  });
+  const controllers = [
+    apiController,
+    commandController,
+    eventController,
+    openAIController,
+    habitTrackerController,
+  ];
 
   // Process tasks
   async function initProcessing() {
@@ -50,13 +51,26 @@ function TaskManager(provider: BotProvider) {
     await eventController.processTasks();
   }
 
+  async function setupPlugins() {
+    await openAIController.setup();
+    await habitTrackerController.setup();
+  }
+
+  async function shutdown() {
+    for (const controller of controllers) {
+      await controller.queue.close();
+    }
+  }
+
   return {
     apiController,
     commandController,
     eventController,
     openAIController,
-    twitterController,
     habitTrackerController,
+    initProcessing,
+    setupPlugins,
+    shutdown,
   };
 }
 

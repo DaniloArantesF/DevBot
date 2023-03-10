@@ -39,7 +39,11 @@ export interface DiscordEvent<K extends keyof ClientEvents = any> {
 }
 
 /*     TaskManager Types     */
-export interface Controller<T, E> {
+export interface Controller<T, E, C = {}> {
+  config: {
+    taskTimeout: number;
+    taskRetries: number;
+  } & C;
   queue: Queue<T>;
   taskMap: Map<string, E>;
   addTask: (...args: any) => Promise<Queue.Job<T>>;

@@ -5,6 +5,7 @@ import {
   User,
   Message,
   GuildMember,
+  TextChannel,
 } from 'discord.js';
 import { TBot, TDiscord } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
@@ -27,24 +28,25 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
       user.id,
     )}'s challenge. Do you accept? (yes/no)`,
   });
-  const collector = dm.channel.createMessageCollector({ filter, time: 15000 });
+  const dmChannel = (dm.channel as TextChannel);
+  const collector = dmChannel.createMessageCollector({ filter, time: 15000 });
 
   collector.on('collect', async (m: Message) => {
     if (m.content.toLowerCase() === 'yes') {
-      await dm.channel.send(
+      await dmChannel.send(
         `You are hereby granted the inexorable right to judge ${getUserMention(
           user.id,
         )} into oblivion if he fails to complete his challenge.`,
       );
     } else {
-      await dm.channel.send(':(');
+      await dmChannel.send(':(');
     }
     collector.stop();
   });
 
   collector.on('end', async (collected) => {
     if (collected.size === 0) {
-      await dm.channel.send(':/');
+      await dmChannel.send(':/');
     } else {
       const challengeModel = (await botProvider).getDataProvider().challenge;
       const participant = (await challengeModel.getParticipants()).find(
@@ -396,13 +398,15 @@ export const challengeLeave: TBot.Command = {
     // Remove participant from challenge. If no participants left, delete challenge
     try {
       const challengeRecord = await habitTrackerController.challengeModel.getFromChannel(channelId);
+
       if (!challengeRecord) {
         reply = 'Invalid challenge!';
       } else if (!challengeRecord.participants.includes(interaction.member!.user.id)) {
         reply = 'You are not a participant of this challenge!';
       } else {
+
         const newParticipants = [
-          ...challengeRecord.participants.filter((p) => p !== interaction.member!.user.id),
+          ...challengeRecord.participants.filter((p: string) => p !== interaction.member!.user.id),
         ];
 
         if (!newParticipants.length) {

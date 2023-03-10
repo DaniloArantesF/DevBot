@@ -1,5 +1,5 @@
 import { PocketBase } from '@/DataProvider';
-import { TPocketbase } from 'shared/src/pocketbase';
+import { TPocketbase } from 'shared/types';
 
 interface ChallengeModel {
   pocketbase: PocketBase;
@@ -9,13 +9,15 @@ interface ChallengeModel {
 type ChallengeUpdateOptions = { id: string } & Partial<TPocketbase.ChallengeData>;
 
 class ChallengeModel {
+  challenges: TPocketbase.Challenge[] = [];
+
   constructor(pocketbase: PocketBase) {
     this.pocketbase = pocketbase;
     this.init();
   }
 
   async init() {
-    await this.pocketbase.isAdmin;
+    if (!this.pocketbase || !(await this.pocketbase.isAdmin)) return;
     this.challenges = await this.pocketbase
       .collection('challenges')
       .getFullList(1, { $autoCancel: false });
@@ -52,14 +54,11 @@ class ChallengeModel {
   }
 
   async delete(challenge: ChallengeUpdateOptions) {
-    return await this.pocketbase
-      .collection('challenges').delete(challenge.id);
+    return await this.pocketbase.collection('challenges').delete(challenge.id);
   }
 
   async deleteParticipant(participant: TPocketbase.ChallengeParticipant) {
-    return await this.pocketbase
-      .collection('challenge_participants')
-      .delete(participant.id);
+    return await this.pocketbase.collection('challenge_participants').delete(participant.id);
   }
 
   async getFromChannel(channelId: string) {

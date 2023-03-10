@@ -10,6 +10,7 @@ import DiscordRouter from '@/api/discordRouter';
 import type { apiHandler, BotProvider } from '@/utils/types';
 import BotRouter from '@/api/botRouter';
 import PluginRouter from './pluginRouter';
+import { logger } from 'shared/logger';
 
 export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,
@@ -77,7 +78,10 @@ function API(provider: BotProvider) {
   setupMiddleware();
   setupRoutes();
   server.listen(API_PORT, () => {
-    console.log(`API listening on port ${API_PORT}`);
+    logger.Header([
+      'API',
+      `Listening on port ${API_PORT}`,
+    ], 'minimal')
   });
 
   return { api, server, routers };

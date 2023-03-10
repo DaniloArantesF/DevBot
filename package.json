@@ -16,7 +16,8 @@
     "compose": "docker-compose -f docker-compose.yml up -d",
     "compose-down": "docker-compose down",
     "docker-rebuild": "bash ./scripts/rebuild.sh",
-    "docker-deploy": "bash ./scripts/deploy.sh"
+    "docker-deploy": "bash ./scripts/deploy.sh",
+    "docker-clean": "bash ./scripts/clean.sh"
   },
   "devDependencies": {
     "dotenv-cli": "latest",

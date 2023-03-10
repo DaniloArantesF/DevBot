@@ -3,7 +3,7 @@ import fetchJson from '@lib/fetch';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
-import { BOT_URL, } from 'shared/config';
+import { BOT_URL } from 'shared/config';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || BOT_URL;
 const codeEndpoint = `${apiUrl}/auth/code`;

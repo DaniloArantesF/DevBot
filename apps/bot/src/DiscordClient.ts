@@ -3,6 +3,7 @@ import { getCommands } from '@/tasks/commands';
 import { getEvents } from '@/tasks/event';
 import { TOKEN, INTENTS as intents } from '@config';
 import type { BotProvider, TBot, DiscordConnection, DiscordEvent } from '@/utils/types';
+import { logger } from 'shared/logger';
 
 class DiscordClient extends Client {
   commands = new Collection<string, TBot.Command>();
@@ -14,11 +15,13 @@ class DiscordClient extends Client {
     super({
       intents,
     });
-
     this.provider = provider;
     this.registerEvents();
     this.registerCommands();
     this.login(TOKEN);
+
+    // Display module header
+    this.on('ready', () => logger.Header(['Discord Client', 'Ready'], 'minimal'));
   }
 
   async registerCommands() {

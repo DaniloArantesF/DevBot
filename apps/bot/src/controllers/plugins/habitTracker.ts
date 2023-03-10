@@ -1,4 +1,4 @@
-import type { BotProvider, TPocketbase } from '@/utils/types';
+import type { BotProvider } from '@/utils/types';
 import PocketBase from 'pocketbase';
 import { getGuild } from '@/tasks/guild';
 import { createChannel, getGuildChannel } from '@/tasks/channels';
@@ -19,6 +19,8 @@ import { createThread } from '@/tasks/thread';
 import { getRoleMention, getUserMention } from '@/tasks/message';
 import { notifySponsor } from '@/commands/challenge';
 import { getGuildMember } from '@/tasks/members';
+import { TPocketbase } from 'shared';
+import { logger } from 'shared/logger';
 
 interface HabitTracker {
   activeThreads: Map<string, ThreadChannel>; // challengeId -> threadId
@@ -28,7 +30,7 @@ interface HabitTracker {
   ongoingChallenges: TPocketbase.Challenge[];
   pocketbase: PocketBase;
   provider: BotProvider;
-  routineQueue: Queue<RoutineTaskData>;
+  queue: Queue<RoutineTaskData>;
   participants: Map<string, TPocketbase.ChallengeParticipant[]>; // challengeId -> participants
 
   // Jobs map
@@ -49,7 +51,7 @@ class HabitTracker {
     this.challengeModel = provider.getDataProvider().challenge;
     this.enabledGuilds = [];
     this.categoryChannelMap = new Map();
-    this.routineQueue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
+    this.queue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
     this.scheduledTasks = new Map();
     this.activeThreads = new Map();
     this.participants = new Map();
@@ -59,7 +61,9 @@ class HabitTracker {
   // Schedules routine checks
   // Executes overdue tasks
   async setup() {
-    await this.provider.getDataProvider().pocketbase.isAdmin;
+    if (!await this.provider.getDataProvider().pocketbase.isAdmin) {
+      logger.Warning('HabitTracker', 'Aborting setup. Pocketbase is not admin.');
+    };
     this.ongoingChallenges = await this.getOnGoingChallenges();
 
     // Save participants
@@ -72,6 +76,7 @@ class HabitTracker {
       }
     });
 
+    // Get guilds with plugin enabled
     const servers = await this.pocketbase
       .collection('servers')
       .getFullList<TPocketbase.GuildData>();
@@ -82,7 +87,7 @@ class HabitTracker {
     });
 
     // Initialize scheduled task map
-    const scheduledJobs = await this.routineQueue.getJobs('delayed', { start: 0, end: 1000 });
+    const scheduledJobs = await this.queue.getJobs('delayed', { start: 0, end: 1000 });
 
     for (const job of scheduledJobs) {
       const { challengeId } = job.data;
@@ -106,7 +111,7 @@ class HabitTracker {
         let channel = (await getGuildChannel(guildId, challenge.channelId)) as TextChannel | null;
 
         if (!channel) {
-          console.debug(`[${guildId}] Creating channel for challenge ${challenge.id}...`);
+          logger.Debug('Habit Tracker', `[${guildId}] Creating channel for challenge ${challenge.id}...`);
           channel = await createChannel(guildId, {
             name: `${challenge.duration}day-${challenge.goal}`,
             type: ChannelType.GuildText,
@@ -206,12 +211,17 @@ class HabitTracker {
   }
 
   async getOnGoingChallenges() {
-    return (
-      await this.pocketbase.collection('challenges').getList<TPocketbase.Challenge>(1, 100, {
-        filter: 'status="inProgress"',
-        $autoCancel: false,
-      })
-    ).items;
+    logger.Debug('HabitTracker', 'Fetching ongoing challenges.');
+    try {
+      return (
+        await this.pocketbase.collection('challenges').getList<TPocketbase.Challenge>(1, 100, {
+          filter: 'status="inProgress"',
+          $autoCancel: false,
+        })
+      ).items;
+    } catch (error) {
+      return [];
+    }
   }
 
   async createChallenge(data: TPocketbase.ChallengeCreateOptions) {
@@ -320,14 +330,11 @@ class HabitTracker {
 
     if (challenge.lastCheck) {
       lastCheck = new Date(challenge.lastCheck);
-
-      // Offset should only be added once, otherwise it compounds?
-      // periodEndOffset = 0;
     }
 
     nextCheck.setTime(lastCheck.getTime() + challenge.period - periodEndOffset);
 
-    const job = this.routineQueue.createJob<RoutineTaskData>({
+    const job = this.queue.createJob<RoutineTaskData>({
       challengeId: challenge.id,
       date: nextCheck.toISOString(),
       reminder: false,
@@ -347,7 +354,7 @@ class HabitTracker {
     // Schedule reminder
     // halfway through the difference between now and next check
     const reminderDate = new Date(nextCheck.getTime() - (nextCheck.getTime() - now.getTime()) / 2);
-    const reminderJob = this.routineQueue.createJob<RoutineTaskData>({
+    const reminderJob = this.queue.createJob<RoutineTaskData>({
       challengeId: challenge.id,
       date: reminderDate.toISOString(),
       reminder: true,
@@ -369,9 +376,9 @@ class HabitTracker {
   }
 
   async processRoutineChecks() {
-    await this.provider.getDataProvider().pocketbase.isAdmin;
+    logger.Debug('Habit Tracker', 'Processing routine tasks.');
 
-    this.routineQueue.process(async (job) => {
+    this.queue.process(async (job) => {
       const { challengeId, reminder } = job.data;
       const challenge = this.ongoingChallenges.find((challenge) => challenge.id === challengeId);
       if (!challenge) {
@@ -394,7 +401,12 @@ class HabitTracker {
   // Challenge routine check
   // Responsible for scheduling the next check
   async checkRoutine(challenge: TPocketbase.Challenge) {
-    if (!challenge || !challenge.guildId) return;
+    if (!challenge || !challenge.guildId) {
+      logger.Warning('Habit Tracker', `Invalid challenge: ${challenge}. Aborting check`);
+    };
+
+    logger.Debug('Habit Tracker', `Checking routine for challenge ${challenge.id}`);
+
     const role = await getGuildRole(challenge.guildId, challenge.roleId);
 
     if (!role) {
@@ -446,10 +458,9 @@ class HabitTracker {
         .get(challenge.id)
         ?.findIndex((p) => p.userId === participantUserId);
 
-      if (i === undefined) continue;
+      if (i === undefined || !participantRecord) continue;
 
       this.participants.get(challenge.id)![i] = participantRecord;
-
       participantStatus.push({
         userId: participantUserId,
         submitted,
@@ -469,32 +480,27 @@ class HabitTracker {
       content: `${getRoleMention(role.id)} hello friends`,
       embeds: [],
     };
-
-    try {
-      message.embeds!.push(
-        new EmbedBuilder()
-          .setColor('#00ff00')
-          .setTitle(`Day ${challengeDay} Stats`)
-          .addFields([
-            {
-              name: 'Submissions',
-              value: `${submissionCount}/${participantStatus.length}`,
-              inline: false,
-            },
-            {
-              name: 'Streakers',
-              value: streakers.length
-                ? streakers.map((s) => getUserMention(s.userId)).join(', ')
-                : 'None :(',
-            },
-          ])
-          .setFooter({
-            text: `You can join the challenge by typing /join-challenge in this channel`,
-          }),
-      );
-    } catch (error) {
-      console.log(error);
-    }
+    message.embeds!.push(
+      new EmbedBuilder()
+        .setColor('#00ff00')
+        .setTitle(`Day ${challengeDay} Stats`)
+        .addFields([
+          {
+            name: 'Submissions',
+            value: `${submissionCount}/${participantStatus.length}`,
+            inline: false,
+          },
+          {
+            name: 'Streakers',
+            value: streakers.length
+              ? streakers.map((s) => getUserMention(s.userId)).join(', ')
+              : 'None :(',
+          },
+        ])
+        .setFooter({
+          text: `You can join the challenge by typing /join-challenge in this channel`,
+        }),
+    );
 
     if (sinners.length > 0) {
       message.embeds!.push(
@@ -517,8 +523,14 @@ class HabitTracker {
       );
     }
 
-    const channel = await getGuildChannel(challenge.guildId, challenge.channelId);
-    if (!channel || !channel.isTextBased()) return;
+    const channel = await getGuildChannel(challenge.guildId, challenge.channelId) as TextChannel;
+    if (!channel || !channel.isTextBased()) {
+      logger.Warning(
+        'Habit Tracker',
+        `Invalid channel ${challenge.channelId} for guild ${challenge.guildId}. Aborting check`,
+      );
+      return;
+    };
     await channel.send(message);
 
     // Update challenge and schedule next check
@@ -589,6 +601,7 @@ class HabitTracker {
   }
 
   async updateChallengeParticipants(challenge: TPocketbase.Challenge) {
+    logger.Debug('Habit Tracker', `Updating participants for challenge ${challenge.id}`);
     const challengeParticipants = await this.challengeModel.getParticipants(challenge.id);
     this.participants.set(challenge.id, challengeParticipants);
   }
@@ -632,9 +645,7 @@ class HabitTracker {
     const hours = Math.floor(diff / 1000 / 60 / 60);
     const minutes = Math.floor((diff / 1000 / 60 / 60 - hours) * 60);
 
-    console.debug(
-      `[${challenge.guildId}] Sending reminder for \"${challenge.goal}\" on day ${challenge.currentPeriod}.`,
-    );
+    logger.Debug('Habit Tracker', `[${challenge.guildId}] Sending reminder for \"${challenge.goal}\" on day ${challenge.currentPeriod}.`);
 
     await thread.send(
       `${getRoleMention(challenge.roleId)} ${hours}:${minutes

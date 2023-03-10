@@ -43,6 +43,3 @@ export const INTENTS = [
 
 // Bot configuration
 export const ENVIRONMENT = process.env.NODE_ENV ?? 'dev';
-
-// Tasks configuration
-export const AUTO_PROCESS = true;

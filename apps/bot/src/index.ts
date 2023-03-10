@@ -2,8 +2,10 @@ import DiscordClient from '@/DiscordClient';
 import DataProvider from '@/DataProvider';
 import API from '@/api';
 import TaskManager from '@/TaskManager';
-import type { BotProvider } from '@utils/types';
-import { setRolesMessage } from './tasks/roles';
+import type { BotProvider } from '@/utils/types';
+import { setRolesMessage } from '@/tasks/roles';
+import { BOT_CONFIG } from 'shared/config';
+import { logger } from 'shared/logger';
 
 async function Bot() {
   const botProvider: BotProvider = {
@@ -41,6 +43,11 @@ async function Bot() {
 
   async function main() {
     await guildSetup();
+
+    if (BOT_CONFIG.autoProcess) {
+      await taskManager.initProcessing();
+    }
+    await taskManager.setupPlugins();
   }
 
   // Guild setup checks
@@ -58,12 +65,21 @@ async function Bot() {
     }
   }
 
-  return new Promise<BotProvider>((resolve) => {
+  return new Promise<BotProvider>((resolve, reject) => {
     // Setup
     discordClient.on('ready', async () => {
-      await dataProvider.connect();
-      resolve(botProvider);
-      main();
+      try {
+        logger.Info('Connecting to database...');
+        await dataProvider.connect();
+        resolve(botProvider);
+        main();
+      } catch (error) {
+        console.info(error);
+        console.info('Shutting down...');
+        taskManager.shutdown();
+        discordClient.destroy();
+        process.exit(1);
+      }
     });
   });
 }

@@ -11,8 +11,8 @@ class OpenAiPluginApi {
   constructor(router: Router, openAiController: OpenAI) {
     this.openAiController = openAiController;
 
+    /* Endpoints */
     router.patch('/openai/:guildId/status', this.setPluginStatus.bind(this));
-
     this.init();
   }
 
@@ -42,7 +42,6 @@ class OpenAiPluginApi {
       });
 
       this.openAiController.guildRecordMap.set(guildId, record);
-      // TODO: init bots correctly
     } else {
       const record = this.openAiController.guildRecordMap.get(guildId);
       if (record) {
@@ -51,11 +50,11 @@ class OpenAiPluginApi {
     }
 
     response.sendStatus(200);
-  }
+  };
 
   updateConfig = async (request: Request, response: Response) => {
     /** TODO */
-  }
+  };
 }
 
 export default OpenAiPluginApi;

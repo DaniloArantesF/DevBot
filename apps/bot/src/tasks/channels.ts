@@ -1,5 +1,5 @@
 import { getGuild } from '@/tasks/guild';
-import { GuildChannelCreateOptions } from 'discord.js';
+import { GuildChannelCreateOptions, TextChannel } from 'discord.js';
 
 export async function createChannel<T>(guildId: string, options: GuildChannelCreateOptions) {
   const guild = await getGuild(guildId);
@@ -27,7 +27,7 @@ export async function getGuildChannelPresence(guildId: string, channelId: string
 }
 
 export async function purgeChannel(guildId: string, channelId: string, limit = 100) {
-  const channel = await getGuildChannel(guildId, channelId);
+  const channel = await getGuildChannel(guildId, channelId) as TextChannel;
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.bulkDelete(limit, true);
 }

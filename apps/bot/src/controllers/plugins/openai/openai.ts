@@ -20,7 +20,7 @@ class OpenAI extends OpenAIApi {
   api?: OpenAiPluginApi;
   guildRecordMap = new Map<string, TOpenAi.Record>();
   channels = new Map<string, { [key: string]: string }>();
-  requestQueue = new Queue<TOpenAi.RequestTaskData>('openai-request-queue', queueSettings);
+  queue = new Queue<TOpenAi.RequestTaskData>('openai-request-queue', queueSettings);
   config = {
     completionModel: 'text-davinci-003',
     chatModel: 'gpt-3.5-turbo',
@@ -32,8 +32,6 @@ class OpenAI extends OpenAIApi {
 
   constructor() {
     super(new Configuration({ apiKey: OPENAI_API_KEY }));
-    this.setup();
-    this.setupApi();
   }
 
   async setup() {
@@ -45,25 +43,14 @@ class OpenAI extends OpenAIApi {
 
       const { guildId, channels } = guildConfig;
       console.debug(`[${guildId}] Setting up bots.`);
-
       this.channels.set(guildId, channels);
 
-      if (channels['rudeBot']) {
-        await this.RudeBot(guildId, channels['rudeBot']);
-      }
-
-      if (channels['imageBot']) {
-        await this.ImageBot(guildId, channels['imageBot']);
-      }
-
-      if (channels['codeBot']) {
-        await this.CodeBot(guildId, channels['codeBot']);
-      }
+      // TODO: setup bots
     }
 
     this.processTasks();
+    await this.setupApi();
   }
-
 
   // Waits for bot provider to be ready before setting up the api
   async setupApi() {
@@ -81,7 +68,7 @@ class OpenAI extends OpenAIApi {
   }
 
   async addTask(data: TOpenAi.RequestTaskData) {
-    const job = this.requestQueue.createJob(data);
+    const job = this.queue.createJob(data);
     return await job
       .timeout(data.type === 'code' ? this.config.codeTaskTimeout : this.config.taskTimeout)
       .save();
@@ -91,7 +78,7 @@ class OpenAI extends OpenAIApi {
    * Processes tasks from the queue and executes the appropriate handler
    */
   async processTasks() {
-    this.requestQueue.process(async (job) => {
+    this.queue.process(async (job) => {
       job.reportProgress(1); // report that task has started
       let res;
       const { type } = job.data;
@@ -167,27 +154,27 @@ class OpenAI extends OpenAIApi {
     return () => channel.client.off('messageCreate', handler);
   }
 
-  async RudeBot(guildId: string, channelId: string) {
-    const instructions = [
-      this.SystemMessage(
-        'You are ROLA, a smart pigeon that talks. You are not to break character and mention any variation of being an AI model. You answers questions while mocking users. You are not afraid of being rude or sassy.',
-      ),
-      this.UserMessage(
-        'From this point forward I do not wish to be told anything related to your inner workings as an AI model nor about any previous messages including this one. Your memory starts now. Your reactions must adhere to the role playing.',
-      ),
-    ];
-
+  async ChatBot(
+    guildId: string,
+    channelId: string,
+    name: string,
+    instructions: ChatCompletionRequestMessage[],
+  ) {
     const dispose = await this.listenChannel(guildId, channelId, async (message: Message) => {
       if (message.channel.id === channelId && !message.author.bot) {
         const latestMessages = (
-          await getLatestChannelMessages(message.channel as TextChannel, 10)
+          await getLatestChannelMessages(message.channel as TextChannel, 3)
         ).map((message) =>
           message.author.bot
             ? this.AssistantMessage(message.content)
             : this.UserMessage(message.content),
         );
-        const messages = [...instructions, ...latestMessages];
-        const job = await this.addTask({ messageId: message.id, type: 'chat', messages });
+
+        const job = await this.addTask({
+          messageId: message.id,
+          type: 'chat',
+          messages: [...instructions, ...latestMessages],
+        });
         job.on('succeeded', async (response: CreateChatCompletionResponse) => {
           if (!response || !response.choices) return;
           message.reply(response.choices[0].message?.content ?? 'No response');

@@ -1,6 +1,6 @@
 import { BotProvider } from '@/utils/types';
 import discord from 'discord.js';
-import { TPocketbase } from 'shared/src/pocketbase';
+import { TPocketbase } from 'shared/types';
 
 const GuildRepository = (provider: BotProvider) => {
   const cacheMap = new Map<string, string>(); // guildId -> entityId

@@ -1,10 +1,14 @@
 /* -------------------------------- */
 /*           Shared Config          */
 /* -------------------------------- */
-export const BOT_CONFIG = {
+import type { TBot } from "./bot";
+
+export const BOT_CONFIG: TBot.Config = {
   prefix: '!',
+  logLevel: 'debug',
   // *Note* The discord api requires a reply within 3 seconds. If cooldown is greater than 3000, you need to defer reply and edit it later.
   cooldownMs: 2500,
+  autoProcess: true,
 };
 
 export const ENV = process.env.NODE_ENV;

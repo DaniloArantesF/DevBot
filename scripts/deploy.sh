@@ -19,6 +19,7 @@ REMOTE_DIR="/root/DevBot/"
 REMOTE_ADDRESS=$1
 PEM_FILE=$2
 
+# IMAGE_ID=$(docker images -q | head -n 1);
 IMAGES=("devbot-bot" "devbot-web" "devbot-pocketbase")
 echo $IMAGES
 
@@ -26,9 +27,9 @@ echo $IMAGES
 for IMAGE in "${IMAGES[@]}"
   do
     echo "Saving $IMAGE..."
+    docker tag $IMAGE $IMAGE:latest
     docker save $IMAGE -o $IMAGE.tar
-
-    scp -i $PEM_FILE $IMAGE.tar root@$REMOTE_ADDRESS:$REMOTE_DIR
-    ssh -i $PEM_FILE root@$REMOTE_ADDRESS "docker load -i $REMOTE_DIR/$IMAGE.tar"
   done
 
+# scp -i $PEM_FILE *.tar root@$REMOTE_ADDRESS:$REMOTE_DIR
+# ssh -i $PEM_FILE root@$REMOTE_ADDRESS "docker load -i $REMOTE_DIR/$IMAGE.tar"
