@@ -39,6 +39,7 @@
     "web#build": {
       "env": [
         "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_CLIENT_URL",
         "SECRET_COOKIE_PASSWORD"
       ]
     }

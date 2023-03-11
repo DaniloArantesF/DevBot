@@ -4,8 +4,10 @@ import { fetchAuth } from '@lib/hooks/useAuth';
 import classes from '@styles/Login.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
-import { DISCORD_AUTH_URL } from 'shared/config';
 import { getCookie, setCookie } from 'cookies-next';
+
+const redirectURI = encodeURIComponent(`${process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost'}/login`);
+const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=${redirectURI}&response_type=code&scope=identify%20connections%20guilds`;
 
 function Page() {
   const router = useRouter();
@@ -18,7 +20,6 @@ function Page() {
     if (isLogged && processing.current) {
       redirectUser();
     }
-
     if (isClient && !isLogged) {
       const code = params.get('code');
       if (code) {

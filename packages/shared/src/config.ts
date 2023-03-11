@@ -16,7 +16,7 @@ export const ENV = process.env.NODE_ENV;
 // Host configuration
 export const CLIENT_PORT = process.env.CLIENT_PORT || 3000;
 export const CLIENT_HOSTNAME = process.env.CLIENT_HOSTNAME || 'localhost';
-export const CLIENT_URL = `http://${CLIENT_HOSTNAME}:${CLIENT_PORT}`;
+export const CLIENT_URL = process.env.CLIENT_URL || `http://${CLIENT_HOSTNAME}:${CLIENT_PORT}`;
 
 export const API_HOSTNAME =
   process.env.API_HOSTNAME || ENV === 'production' ? 'localhost' : 'localhost';
