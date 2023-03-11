@@ -28,7 +28,7 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
       user.id,
     )}'s challenge. Do you accept? (yes/no)`,
   });
-  const dmChannel = (dm.channel as TextChannel);
+  const dmChannel = dm.channel as TextChannel;
   const collector = dmChannel.createMessageCollector({ filter, time: 15000 });
 
   collector.on('collect', async (m: Message) => {
@@ -191,7 +191,7 @@ export const challangeJoin: TBot.Command = {
 
       await replyInteraction(interaction, reply);
     } catch (error: any) {
-      reply = 'Error executing that command';
+      reply = error.message ?? 'Error executing that command';
       await replyInteraction(interaction, reply);
     }
 
@@ -259,8 +259,8 @@ export const challengeSubmit: TBot.Command = {
     }
 
     try {
-      const { challenge } = await habitTrackerController.submitEntry(channelId, userId, entry);
-      const activeThread = habitTrackerController.activeThreads.get(challenge);
+      const entryData = await habitTrackerController.submitEntry(channelId, userId, entry);
+      const activeThread = habitTrackerController.activeThreads.get(entryData.challenge);
 
       if (!activeThread) {
         throw new Error('No active thread found');
@@ -273,7 +273,7 @@ export const challengeSubmit: TBot.Command = {
         await interaction.deleteReply();
       }, 2 * 1000);
     } catch (error: any) {
-      reply = 'Error executing that command';
+      reply = error.message ?? 'Error executing that command';
       await replyInteraction(interaction, reply);
     }
 
@@ -350,8 +350,10 @@ export const challengeUpdate: TBot.Command = {
       } else {
         await habitTrackerController.challengeModel.update({ id: challengeRecord.id, ...data });
       }
-    } catch (error) {
-      reply = 'Error executing that command';
+    } catch (error: any) {
+      console.log(error);
+      reply = error.message ?? 'Error executing that command';
+      await replyInteraction(interaction, reply);
     }
 
     await replyInteraction(interaction, reply);
@@ -404,7 +406,6 @@ export const challengeLeave: TBot.Command = {
       } else if (!challengeRecord.participants.includes(interaction.member!.user.id)) {
         reply = 'You are not a participant of this challenge!';
       } else {
-
         const newParticipants = [
           ...challengeRecord.participants.filter((p: string) => p !== interaction.member!.user.id),
         ];
@@ -418,8 +419,10 @@ export const challengeLeave: TBot.Command = {
           });
         }
       }
-    } catch (error) {
-      reply = 'Error executing that command';
+    } catch (error: any) {
+      console.log(error);
+      reply = error.message ?? 'Error executing that command';
+      await replyInteraction(interaction, reply);
     }
 
     await replyInteraction(interaction, reply);

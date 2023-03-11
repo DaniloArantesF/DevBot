@@ -48,7 +48,6 @@ class HabitTracker {
   constructor(provider: BotProvider) {
     this.provider = provider;
     this.pocketbase = provider.getDataProvider().pocketbase;
-    this.challengeModel = provider.getDataProvider().challenge;
     this.enabledGuilds = [];
     this.categoryChannelMap = new Map();
     this.queue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
@@ -61,10 +60,11 @@ class HabitTracker {
   // Schedules routine checks
   // Executes overdue tasks
   async setup() {
-    if (!await this.provider.getDataProvider().pocketbase.isAdmin) {
+    if (!(await this.provider.getDataProvider().pocketbase.isAdmin)) {
       logger.Warning('HabitTracker', 'Aborting setup. Pocketbase is not admin.');
-    };
+    }
     this.ongoingChallenges = await this.getOnGoingChallenges();
+    this.challengeModel = this.provider.getDataProvider().challenge;
 
     // Save participants
     const participants = await this.challengeModel.getParticipants();
@@ -103,7 +103,7 @@ class HabitTracker {
       if (!challengesCaterory) continue; //TODO
 
       // Initialize category map
-      this.categoryChannelMap.set(guildId,challengesCaterory);
+      this.categoryChannelMap.set(guildId, challengesCaterory);
 
       // Create channels for ongoing challenges
       for (const challenge of this.ongoingChallenges) {
@@ -111,7 +111,10 @@ class HabitTracker {
         let channel = (await getGuildChannel(guildId, challenge.channelId)) as TextChannel | null;
 
         if (!channel) {
-          logger.Debug('Habit Tracker', `[${guildId}] Creating channel for challenge ${challenge.id}...`);
+          logger.Debug(
+            'HabitTracker',
+            `[${guildId}] Creating channel for challenge ${challenge.id}...`,
+          );
           channel = await createChannel(guildId, {
             name: `${challenge.duration}day-${challenge.goal}`,
             type: ChannelType.GuildText,
@@ -171,7 +174,9 @@ class HabitTracker {
     if (!guild) return null;
 
     // Check category exists
-    let category = guild.channels.cache.find((channel) => channel.name === 'Challenges') as CategoryChannel | null;
+    let category = guild.channels.cache.find(
+      (channel) => channel.name === 'Challenges',
+    ) as CategoryChannel | null;
 
     if (!category) {
       console.debug(`[${guildId}] Creating challenges category...`);
@@ -376,7 +381,7 @@ class HabitTracker {
   }
 
   async processRoutineChecks() {
-    logger.Debug('Habit Tracker', 'Processing routine tasks.');
+    logger.Debug('HabitTracker', 'Processing routine tasks.');
 
     this.queue.process(async (job) => {
       const { challengeId, reminder } = job.data;
@@ -402,10 +407,13 @@ class HabitTracker {
   // Responsible for scheduling the next check
   async checkRoutine(challenge: TPocketbase.Challenge) {
     if (!challenge || !challenge.guildId) {
-      logger.Warning('Habit Tracker', `Invalid challenge: ${challenge}. Aborting check`);
-    };
+      logger.Warning(
+        'HabitTracker',
+        `Invalid challenge found in routine check: ${challenge}. Aborting check`,
+      );
+    }
 
-    logger.Debug('Habit Tracker', `Checking routine for challenge ${challenge.id}`);
+    logger.Debug('HabitTracker', `Checking routine for challenge ${challenge.id}`);
 
     const role = await getGuildRole(challenge.guildId, challenge.roleId);
 
@@ -523,14 +531,14 @@ class HabitTracker {
       );
     }
 
-    const channel = await getGuildChannel(challenge.guildId, challenge.channelId) as TextChannel;
+    const channel = (await getGuildChannel(challenge.guildId, challenge.channelId)) as TextChannel;
     if (!channel || !channel.isTextBased()) {
       logger.Warning(
-        'Habit Tracker',
-        `Invalid channel ${challenge.channelId} for guild ${challenge.guildId}. Aborting check`,
+        'HabitTracker',
+        `Found invalid channel ${challenge.channelId} for guild ${challenge.guildId}. Aborting check.`,
       );
       return;
-    };
+    }
     await channel.send(message);
 
     // Update challenge and schedule next check
@@ -601,7 +609,7 @@ class HabitTracker {
   }
 
   async updateChallengeParticipants(challenge: TPocketbase.Challenge) {
-    logger.Debug('Habit Tracker', `Updating participants for challenge ${challenge.id}`);
+    logger.Debug('HabitTracker', `Updating participants for challenge ${challenge.id}`);
     const challengeParticipants = await this.challengeModel.getParticipants(challenge.id);
     this.participants.set(challenge.id, challengeParticipants);
   }
@@ -609,8 +617,11 @@ class HabitTracker {
   async leaveChallenge(channelId: string, userId: string) {}
 
   async submitEntry(channelId: string, userId: string, entry: string) {
-    const challenge = await this.challengeModel.getFromChannel(channelId);
-    if (!challenge) {
+    let challenge;
+    try {
+      challenge = await this.challengeModel.getFromChannel(channelId);
+    } catch (error) {
+      console.log(error);
       throw new Error('Invalid channel!');
     }
 
@@ -645,7 +656,10 @@ class HabitTracker {
     const hours = Math.floor(diff / 1000 / 60 / 60);
     const minutes = Math.floor((diff / 1000 / 60 / 60 - hours) * 60);
 
-    logger.Debug('Habit Tracker', `[${challenge.guildId}] Sending reminder for \"${challenge.goal}\" on day ${challenge.currentPeriod}.`);
+    logger.Debug(
+      'HabitTracker',
+      `[${challenge.guildId}] Sending reminder for \"${challenge.goal}\" on day ${challenge.currentPeriod}.`,
+    );
 
     await thread.send(
       `${getRoleMention(challenge.roleId)} ${hours}:${minutes

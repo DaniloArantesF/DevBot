@@ -45,6 +45,7 @@ const AuthRouter: APIRouter = (pushRequest) => {
           })
         ).json();
 
+        console.log(data);
         const { access_token, refresh_token, expires_in, token_type, scope } =
           data as DiscordAuthResponse;
 

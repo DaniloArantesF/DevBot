@@ -30,27 +30,19 @@ export class PocketBase extends PocketBaseSDK {
   }
 
   async authenticate() {
-    try {
-      await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
-      return true;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
+    // TODO: handle admin auth failure better
+    await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
+    logger.Info('DataProvider', 'Successfull Pocketbase login.');
+    return true;
   }
 }
 
 class DataProvider {
   constructor(botProvider: Awaited<BotProvider>) {
+    logger.Info('DataProvider', 'Initializing ...');
     this.botProvider = botProvider;
     this.pocketbase = new PocketBase();
-    this.challenge = new ChallengeModel(this.pocketbase);
     this.redis = new Client();
-
-    logger.Header(
-      ['Data Provider Config', '', `Pocketbase: ${POCKETBASE_BASE_URL}`, `Redis: ${REDIS_URL}`],
-      'minimal',
-    );
   }
 
   async connect() {
@@ -64,6 +56,7 @@ class DataProvider {
       throw new Error('Error authenticating with Pocketbase.');
     }
 
+    this.challenge = new ChallengeModel(this.pocketbase);
     this.guild = GuildRepository(this.botProvider);
     this.user = new UserModel(this.pocketbase);
   }

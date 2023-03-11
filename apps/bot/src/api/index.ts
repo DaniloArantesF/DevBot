@@ -78,10 +78,7 @@ function API(provider: BotProvider) {
   setupMiddleware();
   setupRoutes();
   server.listen(API_PORT, () => {
-    logger.Header([
-      'API',
-      `Listening on port ${API_PORT}`,
-    ], 'minimal')
+    logger.Info('API', `Listening on port ${API_PORT}`);
   });
 
   return { api, server, routers };

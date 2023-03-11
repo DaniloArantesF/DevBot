@@ -28,7 +28,7 @@ export const queueSettings: Queue.QueueSettings = {
  * @param {BotProvider} provider
  */
 function TaskManager(provider: BotProvider) {
-  logger.Info('Initializing task manager...');
+  logger.Info('TaskManager', 'Initializing ...');
   const apiController = new ApiController();
   const commandController = new CommandController();
   const eventController = new EventController();

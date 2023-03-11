@@ -20,8 +20,7 @@ class DiscordClient extends Client {
     this.registerCommands();
     this.login(TOKEN);
 
-    // Display module header
-    this.on('ready', () => logger.Header(['Discord Client', 'Ready'], 'minimal'));
+    this.on('ready', () => logger.Info('DiscordClient', 'Connected.'));
   }
 
   async registerCommands() {

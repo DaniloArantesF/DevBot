@@ -1,17 +1,28 @@
-import { TBot } from "./bot";
+import { TBot } from './bot';
+
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+};
 
 class Logger {
   logLevel: TBot.LogLevel;
-  constructor(level:TBot.LogLevel) {
+  constructor(level: TBot.LogLevel) {
     this.logLevel = level;
   }
 
-  Header(rows: string[], level: TBot.LogLevel) {
+  Header(rows: string[]) {
     const margin = 4;
     const width = Math.max(...rows.map((row) => row.length)) + margin * 2;
 
     console.log(
-      `%c
+      `${colors.cyan}
     ${'#'.repeat(width)}
     #${' '.repeat(width - 2)}#
     ${rows
@@ -24,27 +35,26 @@ class Logger {
     #${' '.repeat(width - 2)}#
     ${'#'.repeat(width)}
     `,
-      'background: #222; color: #bada55',
     );
   }
 
-  Info(message: string) {
+  Info(module: string, message: string) {
     if (this.logLevel === 'minimal') return;
-    console.log(`%c  ${message}`, 'color: #bada55');
+    console.log(`${colors.green}[INFO:${module}]${colors.reset} ${message}`);
   }
 
   Warning(module: string, message: string) {
-    console.log(`%c  [${module}]: ${message}`, 'color: #f0ad4e');
+    console.log(`${colors.yellow}[WARNING:${module}]${colors.reset} ${message}`);
   }
 
   Debug(module: string, message: string) {
-    console.log(`%c  [${module}]: ${message}`, 'color: #5bc0de');
+    console.log(`${colors.magenta}[DEBUG:${module}]${colors.reset} ${message}`);
   }
 
   Error(module: string, message: string) {
-    console.log(`%c  [${module}]: ${message}`, 'color: #ff0111');
+    console.log(`${colors.red}[ERROR:${module}]${colors.reset} ${message}`);
   }
 }
 
 const logger = new Logger('debug');
-export {logger};
+export { logger };

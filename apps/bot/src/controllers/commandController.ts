@@ -59,7 +59,7 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
   }
 
   async processTasks(commands: Map<string, TBot.Command>) {
-    logger.Info('Processing command tasks.');
+    logger.Info('CommandController', 'Processing tasks ...');
     this.queue.process(async (job) => {
       const interaction = this.taskMap.get(job.id);
       if (!interaction) return;

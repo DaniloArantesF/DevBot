@@ -4,10 +4,18 @@ import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@/utils/types';
 import { setRolesMessage } from '@/tasks/roles';
-import { BOT_CONFIG } from 'shared/config';
+import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
+import { POCKETBASE_BASE_URL } from './utils/config';
 
 async function Bot() {
+  logger.Header([
+    `Client: ${CLIENT_URL}`,
+    `API: ${API_HOSTNAME}:${API_PORT}`,
+    `Pocketbase: ${POCKETBASE_BASE_URL}`,
+    `Redis: ${REDIS_URL}`,
+  ]);
+
   const botProvider: BotProvider = {
     services: {},
     userCooldown: new Map(),
@@ -69,13 +77,12 @@ async function Bot() {
     // Setup
     discordClient.on('ready', async () => {
       try {
-        logger.Info('Connecting to database...');
         await dataProvider.connect();
         resolve(botProvider);
         main();
       } catch (error) {
         console.info(error);
-        console.info('Shutting down...');
+        console.info('Shutting down ...');
         taskManager.shutdown();
         discordClient.destroy();
         process.exit(1);

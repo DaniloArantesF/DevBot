@@ -17,7 +17,6 @@ class OpenAiPluginApi {
   }
 
   async init() {
-    await botProvider;
     this.pocketbase = (await botProvider).getDataProvider().pocketbase;
   }
 

@@ -2,6 +2,7 @@ import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
 import { Controller, DiscordEvent, EventTask, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
+import { logger } from 'shared/logger';
 
 class EventController implements Controller<QueueTaskData, EventTask> {
   queue = new Queue<QueueTaskData>('event-queue', queueSettings);
@@ -21,6 +22,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   }
 
   async processTasks() {
+    logger.Info('EventController', 'Processing tasks ...');
     this.queue.process(async (job) => {
       const event = this.taskMap.get(job.id);
       if (!event || !event.on) return;

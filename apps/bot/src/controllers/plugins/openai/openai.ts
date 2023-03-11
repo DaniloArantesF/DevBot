@@ -14,7 +14,7 @@ import Queue from 'bee-queue';
 import { queueSettings } from '@/TaskManager';
 import { TOpenAi } from 'shared/types';
 import { OPENAI_API_KEY } from '@/utils/config';
-import OpenAiPluginApi from './api';
+import OpenAiPluginApi from './openaiApi';
 
 class OpenAI extends OpenAIApi {
   api?: OpenAiPluginApi;

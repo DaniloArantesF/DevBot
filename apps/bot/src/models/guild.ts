@@ -9,7 +9,15 @@ const GuildRepository = (provider: BotProvider) => {
   // Syncs guilds with database
   // Stores mapping in cache
   async function init(guilds: discord.Guild[]) {
-    const storedGuilds = await getAll();
+    let storedGuilds: TPocketbase.Guild[] = [];
+
+    try {
+      storedGuilds = await getAll();
+    } catch (error) {
+      console.error(error);
+      return;
+    }
+
     for (const guild of guilds) {
       const storedItem = storedGuilds.find((storedGuild) => storedGuild.guildId === guild.id);
       const isStored = storedItem !== undefined;
