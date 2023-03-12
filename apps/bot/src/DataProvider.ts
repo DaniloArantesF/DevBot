@@ -2,7 +2,7 @@ import { Client } from 'redis-om';
 import { REDIS_URL } from 'shared/config';
 import GuildRepository from './models/guild';
 import type { BotProvider } from '@utils/types';
-import PocketBaseSDK from 'pocketbase';
+import PocketBaseSDK, { Collection } from 'pocketbase';
 import UserModel from './models/user';
 import {
   POCKETBASE_ADMIN_EMAIL,
@@ -11,6 +11,7 @@ import {
 } from '@/utils/config';
 import ChallengeModel from './models/challenge';
 import { logger } from 'shared/logger';
+import dbSchema from '../pb_schema.json';
 
 interface DataProvider {
   botProvider: Awaited<BotProvider>;
@@ -30,10 +31,35 @@ export class PocketBase extends PocketBaseSDK {
   }
 
   async authenticate() {
-    // TODO: handle admin auth failure better
-    await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
-    logger.Info('DataProvider', 'Successfull Pocketbase login.');
-    return true;
+    try {
+      await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
+      logger.Info('DataProvider', 'Successfull Pocketbase login.');
+      return true;
+    } catch (error) {
+      /** New pocketbase setup */
+      logger.Info('DataProvider', 'Trying to create admin account ...');
+      await this.admins.create({
+        email: POCKETBASE_ADMIN_EMAIL,
+        password: POCKETBASE_ADMIN_PASSWORD,
+        passwordConfirm: POCKETBASE_ADMIN_PASSWORD,
+      });
+
+      try {
+        await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
+
+        // Import schema
+        logger.Debug('DataProvider', 'Creating schema tables ...');
+        await this.collections.import(dbSchema as Collection[]);
+        this.settings.update({
+          appName: 'Benji-DB',
+        })
+
+        return true;
+      } catch (error) {
+        logger.Error('DataProvider', 'Error creating Pocketbase admin account.');
+        throw error;
+      }
+    }
   }
 }
 
