@@ -5,9 +5,7 @@ import classes from '@styles/Login.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCookie, setCookie } from 'cookies-next';
-
-const redirectURI = encodeURIComponent(`${process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost'}/login`);
-const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=${redirectURI}&response_type=code&scope=identify%20connections%20guilds`;
+import { DISCORD_AUTH_URL } from 'shared/config';
 
 function Page() {
   const router = useRouter();

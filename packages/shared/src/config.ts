@@ -18,12 +18,14 @@ export const CLIENT_PORT = process.env.CLIENT_PORT || 3000;
 export const CLIENT_HOSTNAME = process.env.CLIENT_HOSTNAME || 'localhost';
 export const CLIENT_URL =
   process.env.NEXT_PUBLIC_CLIENT_URL || `http://${CLIENT_HOSTNAME}:${CLIENT_PORT}`;
+export const PUBLIC_CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
 
 export const API_HOSTNAME =
   process.env.API_HOSTNAME || ENV === 'production' ? 'localhost' : 'localhost';
 export const API_PORT = process.env.API_PORT || 3001;
 
 export const BOT_URL = `http://${API_HOSTNAME}:${API_PORT}`;
+export const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || BOT_URL;
 
 export const REDIS_HOSTNAME = process.env.REDIS_HOSTNAME || '127.0.0.1';
 export const REDIS_PORT = process.env.REDIS_PORT || 6379;

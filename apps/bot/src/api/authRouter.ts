@@ -1,12 +1,15 @@
 import { Router, Request, Response } from 'express';
 import fetch from 'node-fetch';
-import { CLIENT_URL, DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
+import { DISCORD_API_BASE_URL, CLIENT_ID, CLIENT_SECRET, PUBLIC_CLIENT_URL } from '@/utils/config';
 import { APIRouter } from '@/api';
 import { RequestLog } from '@/tasks/logs';
 import type { TBotApi, DiscordAuthResponse } from '@/utils/types';
+import botProvider from '..';
+import { logger } from 'shared/logger';
 
 const AuthRouter: APIRouter = (pushRequest) => {
   const router = Router();
+  logger.Debug('AuthRouter', `OAuth RedirectURL: ${PUBLIC_CLIENT_URL}/login`);
 
   /**
    * Fetches access token given an authorization code
@@ -38,14 +41,13 @@ const AuthRouter: APIRouter = (pushRequest) => {
               client_secret: CLIENT_SECRET,
               code,
               grant_type: 'authorization_code',
-              redirect_uri: `${CLIENT_URL}/login`,
+              redirect_uri: `${PUBLIC_CLIENT_URL}/login`,
               scope:
                 'identify connections activities.read applications.commands.permissions.update guilds guilds.members.read applications.commands role_connections.write',
             }),
           })
         ).json();
 
-        console.log(data);
         const { access_token, refresh_token, expires_in, token_type, scope } =
           data as DiscordAuthResponse;
 
@@ -120,6 +122,28 @@ const AuthRouter: APIRouter = (pushRequest) => {
       }
     }
 
+    pushRequest(req, handler);
+  });
+
+  router.post('/login', async (req: Request, res: Response) => {
+    async function handler() {
+      const { code } = req.body;
+      if (!code) {
+        res.sendStatus(401);
+        return RequestLog('post', req.url, 401, 'No code provided');
+      }
+
+      try {
+        const data = await (await botProvider).getDataProvider().pocketbase.oAuthSign('discord', code, `${PUBLIC_CLIENT_URL}/login`);
+
+        console.log(data);
+        res.status(200).send({ token: data.token });
+      } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+      }
+      res.send('Logged in');
+    }
     pushRequest(req, handler);
   });
 

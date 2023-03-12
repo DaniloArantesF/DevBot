@@ -100,7 +100,10 @@ class HabitTracker {
 
     for (const guildId of this.enabledGuilds) {
       const challengesCaterory = await this.getChallengesCategory(guildId);
-      if (!challengesCaterory) continue; //TODO
+      if (!challengesCaterory) {
+        logger.Error('HabitTracker', `Could not find challenges category for guild ${guildId}`);
+        continue;
+      }; //TODO
 
       // Initialize category map
       this.categoryChannelMap.set(guildId, challengesCaterory);
@@ -409,7 +412,7 @@ class HabitTracker {
     if (!challenge || !challenge.guildId) {
       logger.Warning(
         'HabitTracker',
-        `Invalid challenge found in routine check: ${challenge}. Aborting check`,
+        `Invalid challenge found in routine check: ${challenge.id}. Aborting check`,
       );
     }
 

@@ -8,7 +8,9 @@
         "CLIENT_HOSTNAME",
         "CLIENT_PORT",
         "API_HOSTNAME",
-        "API_PORT"
+        "API_PORT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_CLIENT_URL"
       ]
     },
     "lint": {

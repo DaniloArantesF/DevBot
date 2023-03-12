@@ -50,9 +50,9 @@ export class PocketBase extends PocketBaseSDK {
         // Import schema
         logger.Debug('DataProvider', 'Creating schema tables ...');
         await this.collections.import(dbSchema as Collection[]);
-        this.settings.update({
+        await this.settings.update({
           appName: 'Benji-DB',
-        })
+        });
 
         return true;
       } catch (error) {
@@ -60,6 +60,10 @@ export class PocketBase extends PocketBaseSDK {
         throw error;
       }
     }
+  }
+
+  async oAuthSign(code: string, verifier: string, redirectUri: string) {
+    return await this.collection('users').authWithOAuth2('discord', code, verifier, redirectUri);
   }
 }
 

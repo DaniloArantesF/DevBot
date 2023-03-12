@@ -1,9 +1,9 @@
 import fetchJson from '@lib/fetch';
 import { TBot } from 'shared/types';
 import useSWR from 'swr';
-import { BOT_URL } from 'shared/config';
+import { PUBLIC_API_URL } from 'shared/config';
 
-const commandsEndpoint = `${BOT_URL}/bot/commands`;
+const commandsEndpoint = `${PUBLIC_API_URL}/bot/commands`;
 
 export async function fetchCommands() {
   const data = await fetchJson<TBot.CommandData[]>(commandsEndpoint, {
