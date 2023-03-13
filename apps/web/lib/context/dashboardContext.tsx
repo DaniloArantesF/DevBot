@@ -33,9 +33,9 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
   const mounted = useRef(false);
   const [guild, setGuild] = useState<TBotApi.GuildData | null>(null);
   const auth = useAuth();
-  const { guilds } = useGuilds(auth.accessToken);
+  const { guilds } = useGuilds();
   const { commands } = useCommands();
-  const { user } = useUser(auth.accessToken);
+  const { user } = useUser();
 
   useEffect(() => {
     if (!mounted.current && !auth.isLogged) {

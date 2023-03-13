@@ -1,5 +1,5 @@
 import PocketBase from 'pocketbase';
-import { TPocketbase, TBotApi } from '@utils/types';
+import { TPocketbase } from '@utils/types';
 
 interface UserModel {
   pocketbase: PocketBase;
@@ -10,30 +10,30 @@ class UserModel {
     this.pocketbase = pocketbase;
   }
 
-  async create(user: TBotApi.UserData) {
-    const data = {
-      username: user.username,
-      email: '',
-      emailVisibility: false,
-      password: user.id,
-      passwordConfirm: user.id,
-      discordId: user.id,
-    };
-
-    let record;
+  async create(user: TPocketbase.UserData) {
     try {
-      record = await this.getByDiscordId(user.id);
+      const record = await this.pocketbase.collection('users').create<TPocketbase.User>(user);
+      return record;
     } catch (error) {
-      record = await this.pocketbase.collection('users').create(data);
+      return null;
     }
+  }
 
-    return record;
+  async update(user: { id: string } & Partial<TPocketbase.UserData>) {
+    try {
+      const record = await this.pocketbase
+        .collection('users')
+        .update<TPocketbase.User>(user.id, user);
+      return record;
+    } catch (error) {
+      return null;
+    }
   }
 
   async getByDiscordId(userId: string) {
     const record = await this.pocketbase
       .collection('users')
-      .getFirstListItem<TPocketbase.UserData>(`discordId="${userId}"`);
+      .getFirstListItem<TPocketbase.User>(`discordId="${userId}"`);
     return record;
   }
 }

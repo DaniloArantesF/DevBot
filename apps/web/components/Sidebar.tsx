@@ -26,8 +26,9 @@ function Sidebar() {
   }
 
   function logout() {
-    deleteCookie('accessToken');
-    deleteCookie('refreshToken');
+    deleteCookie('token');
+    deleteCookie('expiresAt');
+    document.cookie = '';
     localStorage.clear();
     router.replace('/login');
     router.refresh();

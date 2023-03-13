@@ -29,9 +29,9 @@ export interface GuildDiscordData {
   name: string;
   icon: string;
   owner: boolean;
-  permissions: number;
   features: string[];
-  permissions_new: string;
+  // permissions: number;
+  // permissions_new: string;
 }
 
 declare namespace TBotApi {
@@ -58,6 +58,17 @@ declare namespace TBotApi {
     mfaEnabled: boolean;
     premiumType: number;
     publicFlags: number;
+  };
+
+  export type CookiePayload = {
+    userId: string; // pb user id
+    auth: AuthData;
+    discordUser: UserData;
+  };
+
+  export type Session = {
+    token: string;
+    expiresAt: number;
   };
 
   type UserConnectionData = {

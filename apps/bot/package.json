@@ -14,15 +14,21 @@
   },
   "dependencies": {
     "@discordjs/voice": "^0.14.0",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/express-session": "^1.17.6",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/morgan": "^1.9.4",
     "bee-queue": "^1.5.0",
     "bufferutil": "^4.0.7",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "erlpack": "discord/erlpack",
     "express": "^4.18.2",
     "express-rate-limit": "^6.7.0",
+    "express-session": "^1.17.3",
+    "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.0",
     "openai": "^3.2.1",
@@ -38,6 +44,7 @@
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/node": "^18.15.0",
+    "dotenv-cli": "latest",
     "esbuild": "^0.17.11",
     "esbuild-register": "^3.4.2",
     "eslint": "^8.35.0",
@@ -45,7 +52,6 @@
     "tsx": "^3.12.3",
     "typescript": "^4.9.5",
     "vite-plugin-require": "^1.1.10",
-    "vitest": "^0.29.2",
-    "dotenv-cli": "latest"
+    "vitest": "^0.29.2"
   }
 }

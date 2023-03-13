@@ -1,8 +1,17 @@
+import { DiscordAuthResponse, TBotApi } from './api';
+
 declare namespace TPocketbase {
   export type Base = {
     id: string;
     created: string;
     updated: string;
+  };
+
+  export type AuthBase = Base & {
+    username: string;
+    email: string;
+    emailVisibility: boolean;
+    verified: boolean;
   };
 
   export type UserData = {
@@ -11,6 +20,9 @@ declare namespace TPocketbase {
     email: string;
     emailVisibility: boolean;
     username: string;
+    isAdmin: boolean;
+    auth?: TBotApi.AuthData;
+    user?: TBotApi.UserData;
   };
 
   // aka server
@@ -63,6 +75,7 @@ declare namespace TPocketbase {
 
   type ChallengeCreateOptions = Omit<TPocketbase.ChallengeData, 'channelId' | 'status' | 'roleId'>;
 
+  export type User = AuthBase & UserData;
   export type Guild = GuildData & Base;
   export type Challenge = ChallengeData & Base;
   export type ChallengeParticipant = ChallengeParticipantData & Base;

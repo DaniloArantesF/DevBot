@@ -11,6 +11,7 @@ import type { apiHandler, BotProvider } from '@/utils/types';
 import BotRouter from '@/api/botRouter';
 import PluginRouter from './pluginRouter';
 import { logger } from 'shared/logger';
+import cookie from 'cookie-parser';
 
 export type APIRouter = (
   pushRequest: (req: Request, execute: apiHandler) => void,
@@ -44,16 +45,18 @@ function API(provider: BotProvider) {
   }
 
   function setupMiddleware() {
-    api.use(express.urlencoded({ extended: true }));
-    api.use(express.json());
     api.use(cors());
     api.options(
       '*',
       cors({
-        origin: ['*'], //[CLIENT_URL],
+        origin: ['http://localhost:3000', 'https://darflix.dev'],
         methods: ['GET', 'POST'],
+        credentials: true,
       }),
     );
+    api.use(express.urlencoded({ extended: true }));
+    api.use(express.json());
+    api.use(cookie());
     api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
 
     // Rate limit requests - 10/sec

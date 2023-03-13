@@ -1,37 +1,36 @@
 import { TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
 import { PUBLIC_API_URL } from 'shared/config';
 
-const codeEndpoint = `${PUBLIC_API_URL}/auth/code`;
+const codeEndpoint = `${PUBLIC_API_URL}/auth/login`;
 
 export async function fetchAuth(code: string, opts?: RequestInit) {
-  return await fetchJson<TBotApi.AuthData>(codeEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ code }),
-    cache: 'force-cache',
-    ...opts,
-  });
+  return (await (
+    await fetch(codeEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
+      cache: 'force-cache',
+      ...opts,
+    })
+  ).json()) as TBotApi.Session;
 }
 
-export type AuthData = { isLogged: boolean } & TBotApi.AuthData;
+export type AuthData = { isLogged: boolean } & TBotApi.Session;
 
 export default function useAuth() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isClient = typeof window !== 'undefined';
   const [authData, setAuthData] = useState<AuthData>({
-    isLogged: !!getCookie('accessToken'),
-    accessToken: (getCookie('accessToken') as string) || '',
-    refreshToken: (getCookie('refreshToken') as string) || '',
-    expiresAt: Number(0) || 0,
-    scope: '',
-    tokenType: '',
+    isLogged: !!getCookie('token'),
+    token: (getCookie('token') as string) || '',
+    expiresAt: Number(getCookie('expiresAt')) || -1,
   });
 
   return {

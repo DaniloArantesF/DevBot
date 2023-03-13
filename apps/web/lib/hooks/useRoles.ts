@@ -1,5 +1,5 @@
 import fetchJson from '@lib/fetch';
-import {  PUBLIC_API_URL } from 'shared/config';
+import { PUBLIC_API_URL } from 'shared/config';
 import { TDiscord } from 'shared/types';
 import useSWR from 'swr';
 
@@ -8,6 +8,7 @@ const rolesEndpoint = (guildId: string) => `${PUBLIC_API_URL}/guilds/${guildId}/
 export async function fetchRoles(guildId: string) {
   const data = await fetchJson<TDiscord.RoleData[]>(rolesEndpoint(guildId), {
     method: 'GET',
+    credentials: 'include',
   });
   return data;
 }

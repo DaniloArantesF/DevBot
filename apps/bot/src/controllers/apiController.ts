@@ -10,7 +10,7 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
   taskMap = new Map<string, ApiTask['execute']>();
   config = {
     taskTimeout: 2000,
-    taskRetries: 2,
+    taskRetries: 1,
   };
 
   constructor() {}

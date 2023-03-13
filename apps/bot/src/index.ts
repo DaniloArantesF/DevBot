@@ -7,6 +7,7 @@ import { setRolesMessage } from '@/tasks/roles';
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
 import { POCKETBASE_BASE_URL } from './utils/config';
+import AuthController from './controllers/authController';
 
 async function Bot() {
   logger.Header([
@@ -50,6 +51,7 @@ async function Bot() {
   const taskManager = botProvider.getTaskManager();
 
   async function main() {
+    const authController = AuthController.getInstance();
     await guildSetup();
 
     if (BOT_CONFIG.autoProcess) {

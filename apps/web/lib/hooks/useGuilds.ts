@@ -3,6 +3,7 @@ import { TBotApi } from '@lib/types';
 import fetchJson from '@lib/fetch';
 import { useEffect, useRef } from 'react';
 import { PUBLIC_API_URL } from 'shared/config';
+import { getCookie } from 'cookies-next';
 
 const guildEndpoint = (guildId: string, token: string) =>
   `${PUBLIC_API_URL}/discord/guilds/${guildId}?token=${token}`;
@@ -11,6 +12,7 @@ const guildsEndpoint = (token: string) => `${PUBLIC_API_URL}/discord/guilds?toke
 export async function fetchGuild(guildId: string, token: string) {
   const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId, token), {
     method: 'GET',
+    credentials: 'include',
   });
   return data;
 }
@@ -18,14 +20,15 @@ export async function fetchGuild(guildId: string, token: string) {
 export async function fetchGuilds(token: string) {
   const data = await fetchJson<TBotApi.GuildData[]>(guildsEndpoint(token), {
     method: 'GET',
+    credentials: 'include',
   });
   return data;
 }
 
-export default function useGuilds(token: string) {
+export default function useGuilds() {
   const mounted = useRef(false);
   const { data: guilds, mutate: mutateGuilds } = useSWR<TBotApi.GuildData[]>(
-    token ? guildsEndpoint(token) : null,
+    getCookie('token') ? guildsEndpoint(getCookie('token') as string) : null,
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,

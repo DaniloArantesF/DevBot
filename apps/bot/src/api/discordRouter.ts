@@ -11,12 +11,14 @@ import { getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
 import { APIConnection } from 'discord.js';
 import botProvider from '..';
+import AuthController from '@/controllers/authController';
+import { getUserGuilds } from '@/tasks/user';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
   /**
-   * Fetches user data from Discord
+   * Returns the cached user data
    *
    * @route GET /api/discord/user
    * @apiparam {string} token
@@ -26,27 +28,22 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    */
   router.get('/user', async (req: Request, res: Response) => {
     async function handler() {
-      const token = req.query.token as string;
+      const token = req.cookies?.token || (req.query?.token as string);
       if (!token) {
         res.sendStatus(401);
         return RequestLog('get', req.url, 401, 'No token provided');
       }
 
       try {
-        const data = (await (
-          await fetch(`${DISCORD_API_BASE_URL}/users/@me`, {
-            method: 'GET',
-            headers: {
-              authorization: `Bearer ${token}`,
-            },
-          })
-        ).json()) as TBotApi.UserData;
-        res.status(200).send(data);
+        const authController = AuthController.getInstance();
+        const data = await authController.verifySessionToken(token);
 
-        const dataProvider = (await botProvider).getDataProvider();
-        const userModel = dataProvider.user;
-        userModel.create(data);
+        if (!data) {
+          res.sendStatus(401);
+          return RequestLog('get', req.url, 401, 'Invalid token');
+        }
 
+        res.status(200).send(data.discordUser);
         return RequestLog('get', req.url, 200, data);
       } catch (error) {
         console.error(`Error `, error);
@@ -70,7 +67,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    */
   router.get('/user/connections', async (req: Request, res: Response) => {
     async function handler() {
-      const token = req.query.token as string;
+      const token = req.cookies?.token || (req.query?.token as string);
       if (!token) {
         res.sendStatus(401);
         return RequestLog('get', req.url, 401, 'No token provided');
@@ -122,41 +119,21 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    */
   router.get('/guilds', async (req: Request, res: Response) => {
     async function handler(client: DiscordClient) {
-      const token = req.query.token as string;
-      if (!token) {
+      const token = req.cookies?.token || (req.query?.token as string);
+      const payload = await AuthController.getInstance().verifySessionToken(token || '');
+      if (!token || !payload) {
         res.sendStatus(401);
-        return RequestLog('get', req.url, 401, 'No token provided');
+        return RequestLog(req.method, req.url, 401, 'Invalid token.');
       }
 
       try {
-        const data = (await (
-          await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
-            method: 'GET',
-            headers: {
-              authorization: `Bearer ${token}`,
-            },
-          })
-        ).json()) as TBotApi.GuildData[];
-
-        if (!data) {
-          res.sendStatus(500);
-          return RequestLog('get', req.url, 500, 'No guild data');
-        }
-
-        // Allowed flag is true if the bot is in the guild
-        const guilds = data.map((g) => {
-          return {
-            ...g,
-            allowed: Boolean(client.guilds.cache.get(g.id)),
-          };
-        });
-
+        const guilds = await getUserGuilds(payload?.discordUser.id);
         res.send(guilds);
-        return RequestLog('get', req.url, 200, guilds);
+        return RequestLog(req.method, req.url, 200, guilds);
       } catch (error) {
         console.error(`Error `, error);
         res.status(500).send(error);
-        return RequestLog('get', req.url, 500, null, error);
+        return RequestLog(req.method, req.url, 500, null, error);
       }
     }
 

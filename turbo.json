@@ -10,7 +10,8 @@
         "API_HOSTNAME",
         "API_PORT",
         "NEXT_PUBLIC_API_URL",
-        "NEXT_PUBLIC_CLIENT_URL"
+        "NEXT_PUBLIC_CLIENT_URL",
+        "SESSION_COOKIE_PASSWORD"
       ]
     },
     "lint": {
@@ -35,15 +36,12 @@
         "POCKETBASE_ADMIN_PASSWORD",
         "REDIS_HOSTNAME",
         "REDIS_PORT",
-        "OPENAI_API_KEY"
+        "OPENAI_API_KEY",
+        "SESSION_COOKIE_PASSWORD"
       ]
     },
     "web#build": {
-      "env": [
-        "NEXT_PUBLIC_API_URL",
-        "NEXT_PUBLIC_CLIENT_URL",
-        "SECRET_COOKIE_PASSWORD"
-      ]
+      "env": ["NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_CLIENT_URL", "SECRET_COOKIE_PASSWORD"]
     }
   },
   "globalDependencies": [".env", "package.json", "tsconfig.json"]

@@ -41,9 +41,8 @@ function Page() {
     try {
       const authData = await fetchAuth(code);
       if (authData) {
-        setCookie('accessToken', authData.accessToken);
-        setCookie('refreshToken', authData.refreshToken);
-
+        setCookie('token', authData.token);
+        setCookie('expiresAt', authData.expiresAt);
         redirectUser();
       }
     } catch (error) {
