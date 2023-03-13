@@ -12,9 +12,6 @@ import { RequestLog } from '@/tasks/logs';
 import { APIConnection } from 'discord.js';
 import botProvider from '..';
 
-// TODO: properly handle errors from Discord API
-// TODO: get guilds from discord.js client instead of fetching from Discord API
-
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
 
@@ -229,15 +226,15 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/guilds/:guildId/channels', async (req: Request, res: Response) => {
     async function handler() {
       const guildId = req.params.guildId;
-      const channels = (await getGuildChannels(guildId))?.map((channel) =>
-        JSON.parse(stringifyCircular(channel)),
-      ) ?? [];
+      const channels =
+        (await getGuildChannels(guildId))?.map((channel) =>
+          JSON.parse(stringifyCircular(channel)),
+        ) ?? [];
       res.send(channels);
       return RequestLog('get', req.url, 200, channels);
     }
     pushRequest(req, handler);
   });
-
 
   /**
    * Sets guild roles available for users to self-assign
@@ -248,7 +245,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    */
   router.put('/guilds/:guildId/roles', async (req: Request, res: Response) => {
     async function handler() {
-      const guildModel = (await botProvider).getDataProvider().guild
+      const guildModel = (await botProvider).getDataProvider().guild;
       const guildRecord = await guildModel.get(req.params.guildId);
 
       if (!guildRecord) {
@@ -260,8 +257,8 @@ const DiscordRouter: APIRouter = (pushRequest) => {
       try {
         const updatedRecord = await guildModel.update({
           ...guildRecord,
-          userRoles: [...req.body]
-        })
+          userRoles: [...req.body],
+        });
         if (!updatedRecord || !updatedRecord.rolesChannelId) return;
         const channelId = updatedRecord.rolesChannelId;
         const roleMessage = await setRolesMessage(req.params.guildId, channelId, req.body);

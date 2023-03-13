@@ -103,7 +103,7 @@ class HabitTracker {
       if (!challengesCaterory) {
         logger.Error('HabitTracker', `Could not find challenges category for guild ${guildId}`);
         continue;
-      }; //TODO
+      }
 
       // Initialize category map
       this.categoryChannelMap.set(guildId, challengesCaterory);

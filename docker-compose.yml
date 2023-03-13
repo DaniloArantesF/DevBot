@@ -6,6 +6,9 @@ services:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_CLIENT_URL: '${PUBLIC_CLIENT_URL}'
+        NEXT_PUBLIC_API_URL: '${PUBLIC_API_URL}'
     restart: always
     ports:
       - 3000:3000
@@ -67,6 +70,11 @@ services:
       - benji_network
     volumes:
       - ./data/redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 # Allow containers to communicate using their container name as a hostname
 networks:

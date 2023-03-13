@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import AdminRouter from '@/api/adminRouter';
-import { CLIENT_URL, ENVIRONMENT, API_PORT } from '@config';
+import { ENVIRONMENT, API_PORT } from '@config';
 import AuthRouter from '@/api/authRouter';
 import DiscordRouter from '@/api/discordRouter';
 import type { apiHandler, BotProvider } from '@/utils/types';

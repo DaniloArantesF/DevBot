@@ -13,7 +13,6 @@
 
 - [ ] User role setup wizard
 - [ ] Guild events view
-- [ ] Collab rooms
 
 ### Admin Panel
 
