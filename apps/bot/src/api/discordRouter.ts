@@ -11,8 +11,9 @@ import { getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
 import { APIConnection } from 'discord.js';
 import botProvider from '..';
-import AuthController from '@/controllers/authController';
 import { getUserGuilds } from '@/tasks/user';
+import { authMiddleware } from './middleware/auth';
+import { logger } from 'shared/logger';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -26,24 +27,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/user', async (req: Request, res: Response) => {
+  router.get('/user', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
-      const token = req.cookies?.token || (req.query?.token as string);
-      if (!token) {
-        res.sendStatus(401);
-        return RequestLog('get', req.url, 401, 'No token provided');
-      }
-
       try {
-        const authController = AuthController.getInstance();
-        const data = await authController.verifySessionToken(token);
-
-        if (!data) {
-          res.sendStatus(401);
-          return RequestLog('get', req.url, 401, 'Invalid token');
-        }
-
-        res.status(200).send(data.discordUser);
+        const data = req.discordUser;
+        res.status(200).send(data);
         return RequestLog('get', req.url, 200, data);
       } catch (error) {
         console.error(`Error `, error);
@@ -65,13 +53,9 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/user/connections', async (req: Request, res: Response) => {
+  router.get('/user/connections', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
-      const token = req.cookies?.token || (req.query?.token as string);
-      if (!token) {
-        res.sendStatus(401);
-        return RequestLog('get', req.url, 401, 'No token provided');
-      }
+      const token = req.discordAuth!.accessToken;
 
       try {
         const data = (await (
@@ -109,25 +93,17 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   });
 
   /**
-   * Fetches guilds data from Discord
+   * Returns guilds data from Discord
    *
    * @route GET /api/discord/guilds
-   * @apiparam {string} token
    * @apiresponse {200} GuildData[]
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/guilds', async (req: Request, res: Response) => {
+  router.get('/guilds', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler(client: DiscordClient) {
-      const token = req.cookies?.token || (req.query?.token as string);
-      const payload = await AuthController.getInstance().verifySessionToken(token || '');
-      if (!token || !payload) {
-        res.sendStatus(401);
-        return RequestLog(req.method, req.url, 401, 'Invalid token.');
-      }
-
       try {
-        const guilds = await getUserGuilds(payload?.discordUser.id);
+        const guilds = await getUserGuilds(req.discordUser!.id);
         res.send(guilds);
         return RequestLog(req.method, req.url, 200, guilds);
       } catch (error) {
@@ -150,14 +126,10 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/guilds/:guildId', async (req: Request, res: Response) => {
+  router.get('/guilds/:guildId', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler(client: DiscordClient) {
       const guildId = req.params.guildId;
-      const token = req.query.token as string;
-      if (!token) {
-        res.sendStatus(401);
-        return RequestLog('get', req.url, 401, 'No token provided');
-      }
+      const token = req.discordAuth!.accessToken;
 
       try {
         const guild = (await getGuild(guildId))?.toJSON() ?? {};
@@ -181,7 +153,8 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiparam {string} guildId
    * @apiresponse {200} Role[]
    */
-  router.get('/guilds/:guildId/roles', async (req: Request, res: Response) => {
+  router.get('/guilds/:guildId/roles', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+    // TODO: check if user belongs to guild
     async function handler() {
       const guildId = req.params.guildId;
       const roles = (await getGuildRoles(guildId))?.map((role) =>
@@ -200,7 +173,8 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiparam {string} guildId
    * @apiresponse {200} GuildChannelJSON[]
    */
-  router.get('/guilds/:guildId/channels', async (req: Request, res: Response) => {
+  router.get('/guilds/:guildId/channels', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+    // TODO: check if user belongs to guild
     async function handler() {
       const guildId = req.params.guildId;
       const channels =
@@ -220,7 +194,7 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiparam {string} guildId
    * @apiresponse {200} Role[]
    */
-  router.put('/guilds/:guildId/roles', async (req: Request, res: Response) => {
+  router.put('/guilds/:guildId/roles', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
       const guildModel = (await botProvider).getDataProvider().guild;
       const guildRecord = await guildModel.get(req.params.guildId);
@@ -236,7 +210,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           ...guildRecord,
           userRoles: [...req.body],
         });
-        if (!updatedRecord || !updatedRecord.rolesChannelId) return;
+        if (!updatedRecord || !updatedRecord.rolesChannelId) {
+          logger.Warning('ApiController', `Roles channel not set for guild ${req.params.guildId}. Aborting role update.`);
+          res.status(400).send('Roles channel not set');
+          return;
+        };
         const channelId = updatedRecord.rolesChannelId;
         const roleMessage = await setRolesMessage(req.params.guildId, channelId, req.body);
         data = { updatedRecord, roleMessage };

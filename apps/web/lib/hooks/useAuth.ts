@@ -23,6 +23,7 @@ export async function fetchAuth(code: string, opts?: RequestInit) {
 
 export type AuthData = { isLogged: boolean } & TBotApi.Session;
 
+// TODO: refresh tokens
 export default function useAuth() {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -5,22 +5,26 @@ import { useEffect, useRef } from 'react';
 import { PUBLIC_API_URL } from 'shared/config';
 import { getCookie } from 'cookies-next';
 
-const guildEndpoint = (guildId: string, token: string) =>
-  `${PUBLIC_API_URL}/discord/guilds/${guildId}?token=${token}`;
-const guildsEndpoint = (token: string) => `${PUBLIC_API_URL}/discord/guilds?token=${token}`;
+const guildEndpoint = (guildId: string) =>
+  `${PUBLIC_API_URL}/discord/guilds/${guildId}`;
+const guildsEndpoint = () => `${PUBLIC_API_URL}/discord/guilds`;
 
 export async function fetchGuild(guildId: string, token: string) {
-  const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId, token), {
+  const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId), {
     method: 'GET',
-    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    }
   });
   return data;
 }
 
 export async function fetchGuilds(token: string) {
-  const data = await fetchJson<TBotApi.GuildData[]>(guildsEndpoint(token), {
+  const data = await fetchJson<TBotApi.GuildData[]>(guildsEndpoint(), {
     method: 'GET',
-    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    }
   });
   return data;
 }
@@ -28,7 +32,7 @@ export async function fetchGuilds(token: string) {
 export default function useGuilds() {
   const mounted = useRef(false);
   const { data: guilds, mutate: mutateGuilds } = useSWR<TBotApi.GuildData[]>(
-    getCookie('token') ? guildsEndpoint(getCookie('token') as string) : null,
+    getCookie('token') ? guildsEndpoint() : null,
     {
       revalidateOnMount: false,
       revalidateOnFocus: false,

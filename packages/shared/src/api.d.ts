@@ -1,3 +1,5 @@
+import type { Request } from 'express';
+
 export interface DiscordAuthResponse {
   access_token: string;
   expires_in: number;
@@ -62,9 +64,11 @@ declare namespace TBotApi {
 
   export type CookiePayload = {
     userId: string; // pb user id
-    auth: AuthData;
+    discordAuth: AuthData;
     discordUser: UserData;
   };
+
+  export type AuthenticatedRequest = Request & Partial<CookiePayload>;
 
   export type Session = {
     token: string;

@@ -1,3 +1,5 @@
+import { getCookie } from 'cookies-next';
+
 interface FetchErrorProps {
   message: string;
   response: Response;
@@ -30,7 +32,14 @@ export default async function fetchJson<JSON = unknown>(
   input: RequestInfo,
   init?: RequestInit,
 ): Promise<JSON> {
-  const response = await fetch(input, { ...init });
+  const token = getCookie('token');
+  const headers = init?.headers ? new Headers(init.headers) : new Headers();
+
+  if (!headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  const response = await fetch(input, { ...init, headers });
   const data = await response.json();
 
   if (!response.ok) {

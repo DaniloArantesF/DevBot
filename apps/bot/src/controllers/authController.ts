@@ -10,7 +10,7 @@ class AuthController {
   config = {
     cookieName: 'benji-session',
     password: process.env.SESSION_COOKIE_PASSWORD || '',
-    ttl: 1000 * 60 * 60 * 24, // 1 day
+    ttl: 1000 * 60 * 60 * 24 * 1, // 1 day
   };
   sessions = new Map<string, TBotApi.Session>(); // discordUserId -> session
   userModel!: UserModel;
@@ -32,23 +32,23 @@ class AuthController {
 
   async createSession(code: string) {
     const data = await this.createOAuthUser(code);
-    if (!data || !data.discordAuth || !data.discordUser) {
+    if (!data || !data?.discordAuth?.accessToken || !data?.discordUser?.id) {
       return null;
     }
 
     const payload = {
-      auth: data.discordAuth,
+      discordAuth: data.discordAuth,
       discordUser: data.discordUser,
       userId: data.id,
     } as TBotApi.CookiePayload;
 
     const token = jwt.sign(payload, this.config.password, {
-      expiresIn: this.config.ttl,
+      expiresIn: data.discordAuth.expiresAt - Date.now(),
     });
 
     const session = {
       token,
-      expiresAt: Date.now() + this.config.ttl,
+      expiresAt: data.discordAuth.expiresAt,
     } as TBotApi.Session;
 
     this.sessions.set(data.discordUser.id, session);
@@ -66,9 +66,9 @@ class AuthController {
         passwordConfirm: userData.id,
         username: userData.username,
         discordId: userData.id,
-        avatar: userData.avatar,
-        auth: authData,
-        user: userData,
+        avatar: '',
+        discordAuth: authData,
+        discordUser: userData,
         isAdmin: false,
       } as TPocketbase.UserData;
 
@@ -91,7 +91,7 @@ class AuthController {
           userId = userRecord?.id;
         }
 
-        return await this.userModel.update({ id: userId, ...data });
+        return  await this.userModel.update({ id: userId, ...data });
       } catch (error) {
         logger.Debug('AuthController', `Creating new user: ${data.username} (${data.discordId})`);
         return await this.userModel.create(data);
@@ -111,13 +111,14 @@ class AuthController {
     try {
       const payload = jwt.verify(token, this.config.password) as TBotApi.CookiePayload;
 
-      const isExpired = Date.now() > payload.auth.expiresAt;
+      const isExpired = Date.now() > payload.discordAuth.expiresAt;
       if (!payload?.discordUser?.id || isExpired) {
         if (this.sessions.get(payload.discordUser.id)) this.deleteSession(payload.discordUser.id);
         return null;
       }
       return payload;
     } catch (error) {
+      console.log(error);
       return null;
     }
   }
