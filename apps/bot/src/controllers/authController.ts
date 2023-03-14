@@ -12,7 +12,7 @@ class AuthController {
     password: process.env.SESSION_COOKIE_PASSWORD || '',
     ttl: 1000 * 60 * 60 * 24, // 1 day
   };
-  sessions = new Map<string, TBotApi.Session>(); // userId -> session
+  sessions = new Map<string, TBotApi.Session>(); // discordUserId -> session
   userModel!: UserModel;
 
   private constructor() {
@@ -32,13 +32,13 @@ class AuthController {
 
   async createSession(code: string) {
     const data = await this.createOAuthUser(code);
-    if (!data || !data.auth || !data.user) {
+    if (!data || !data.discordAuth || !data.discordUser) {
       return null;
     }
 
     const payload = {
-      auth: data.auth,
-      discordUser: data.user,
+      auth: data.discordAuth,
+      discordUser: data.discordUser,
       userId: data.id,
     } as TBotApi.CookiePayload;
 
@@ -51,7 +51,7 @@ class AuthController {
       expiresAt: Date.now() + this.config.ttl,
     } as TBotApi.Session;
 
-    this.sessions.set(data.user.id, session);
+    this.sessions.set(data.discordUser.id, session);
     return session;
   }
 
@@ -102,10 +102,18 @@ class AuthController {
     }
   }
 
+  /**
+   * Verifies a session token. Returns null if token is invalid or expired.
+   * @param token Token to be verfieid
+   * @returns {TBotApi.CookiePayload | null}
+   */
   async verifySessionToken(token: string) {
     try {
       const payload = jwt.verify(token, this.config.password) as TBotApi.CookiePayload;
-      if (!payload?.discordUser?.id) {
+
+      const isExpired = Date.now() > payload.auth.expiresAt;
+      if (!payload?.discordUser?.id || isExpired) {
+        if (this.sessions.get(payload.discordUser.id)) this.deleteSession(payload.discordUser.id);
         return null;
       }
       return payload;
@@ -114,7 +122,7 @@ class AuthController {
     }
   }
 
-  async deleteSession(userId: string) {
+  deleteSession(userId: string) {
     this.sessions.delete(userId);
   }
 }

@@ -21,8 +21,8 @@ declare namespace TPocketbase {
     emailVisibility: boolean;
     username: string;
     isAdmin: boolean;
-    auth?: TBotApi.AuthData;
-    user?: TBotApi.UserData;
+    discordAuth?: TBotApi.AuthData;
+    discordUser?: TBotApi.UserData;
   };
 
   // aka server

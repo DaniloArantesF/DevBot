@@ -6,6 +6,33 @@
     "system": false,
     "schema": [
       {
+        "id": "users_name",
+        "name": "name",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "users_avatar",
+        "name": "avatar",
+        "type": "file",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
+          "thumbs": null
+        }
+      },
+      {
         "id": "us1lsgqj",
         "name": "discordId",
         "type": "text",
@@ -19,48 +46,31 @@
         }
       },
       {
-        "id": "cwx8xtcw",
-        "name": "auth",
-        "type": "json",
-        "system": false,
-        "required": false,
-        "unique": false,
-        "options": {}
-      },
-      {
-        "id": "bc1lo9hz",
-        "name": "user",
-        "type": "json",
-        "system": false,
-        "required": false,
-        "unique": false,
-        "options": {}
-      },
-      {
-        "id": "h8gykspl",
-        "name": "avatar",
-        "type": "text",
-        "system": false,
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null,
-          "pattern": ""
-        }
-      },
-      {
-        "id": "dbwzzjtw",
+        "id": "0jqckfgg",
         "name": "isAdmin",
-        "type": "text",
+        "type": "bool",
         "system": false,
-        "required": true,
+        "required": false,
         "unique": false,
-        "options": {
-          "min": null,
-          "max": null,
-          "pattern": ""
-        }
+        "options": {}
+      },
+      {
+        "id": "kwkvqthb",
+        "name": "discordUser",
+        "type": "json",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "g05u0a2n",
+        "name": "discordAuth",
+        "type": "json",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {}
       }
     ],
     "listRule": "id = @request.auth.id",
