@@ -7,10 +7,9 @@ import {
   deleteGuildSlashCommands,
 } from '@/tasks/commands';
 import { RequestLog } from '@/tasks/logs';
-import { setRolesMessage } from '@/tasks/roles';
 import { purgeChannel } from '@/tasks/channels';
-import { stringifyCircular } from '@/utils';
-import botProvider from '..';
+import { authMiddleware } from './middleware/auth';
+import { TBot, TBotApi } from 'shared/types';
 
 const AdminRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -18,12 +17,12 @@ const AdminRouter: APIRouter = (pushRequest) => {
   /**
    * Registers slash commands globally or for a specific guild
    *
-   * @route POST /api/admin/register-commands
+   * @route POST /admin/register-commands
    * @apiparam {string} guildId
    * @apiresponse {200} SlashCommandBuilder[]
    * @apiresponse {500}
    */
-  router.post('/register-commands', async (req: Request, res: Response) => {
+  router.post('/register-commands', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
       const guildId = req.body?.guildId as string;
       try {
@@ -48,13 +47,13 @@ const AdminRouter: APIRouter = (pushRequest) => {
   /**
    * Removes slash commands globally or for a specific guild
    *
-   * @route POST /api/admin/purge-commands
+   * @route POST /admin/purge-commands
    * @apiparam {string} guildId
    * @apiresponse {200} SlashCommandBuilder[]
    * @apiresponse {500}
    */
   // TODO: optionally remove all commands for all guilds individually
-  router.post('/purge-commands', async (req: Request, res: Response) => {
+  router.post('/purge-commands', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
       const guildId = req.body?.guildId;
       try {
@@ -76,51 +75,18 @@ const AdminRouter: APIRouter = (pushRequest) => {
     pushRequest(req, handler);
   });
 
-  /**
-   * Sets or updates the roles message for a guild
-   *
-   * @route POST /api/admin/roles/message
-   * @apiparam {string} guildId
-   * @apiresponse {200}
-   * @apiresponse {400} Missing guildId or channelId
-   * @apiresponse {500}
-   */
-  router.post('/roles/message', async (req: Request, res: Response) => {
-    async function handler() {
-      const guildId = req.body?.guildId;
-      const channelId = req.body?.channelId;
-
-      if (!guildId || !channelId) {
-        res.status(400).send('Missing guildId or channelId');
-        return RequestLog(req.method, req.url, 400, null, 'Missing guildId or channelId');
-      }
-
-      try {
-        const roles = (await ((await botProvider).getDataProvider()).guild.get(guildId)).userRoles;
-        const data = await setRolesMessage(guildId, channelId, roles);
-        res.send(stringifyCircular(data));
-        return RequestLog(req.method, req.url, 200, data);
-      } catch (error) {
-        console.error('Error setting roles message', error);
-        res.status(500).send(error);
-        return RequestLog(req.method, req.url, 500, null, error);
-      }
-    }
-
-    pushRequest(req, handler);
-  });
 
   /**
    * Purges a channel
    *
-   * @route POST /api/admin/channel/purge
+   * @route POST /admin/channel/purge
    * @apiparam {string} guildId
    * @apiparam {string} channelId
    * @apiresponse {200}
    * @apiresponse {400} Missing guildId or channelId
    * @apiresponse {500}
    */
-  router.post('/channel/purge', async (req: Request, res: Response) => {
+  router.post('/channel/purge', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
       const guildId = req.body?.guildId;
       const channelId = req.body?.channelId;

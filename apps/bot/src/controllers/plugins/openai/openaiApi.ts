@@ -11,8 +11,6 @@ class OpenAiPluginApi {
   constructor(router: Router, openAiController: OpenAI) {
     this.openAiController = openAiController;
 
-    /* Endpoints */
-    router.patch('/openai/:guildId/status', this.setPluginStatus.bind(this));
     this.init();
   }
 

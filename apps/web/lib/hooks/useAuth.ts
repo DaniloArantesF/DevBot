@@ -1,6 +1,5 @@
 import { TBotApi } from '@lib/types';
-import fetchJson from '@lib/fetch';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
 import { PUBLIC_API_URL } from 'shared/config';

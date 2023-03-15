@@ -17,6 +17,7 @@ import { OPENAI_API_KEY } from '@/utils/config';
 import OpenAiPluginApi from './openaiApi';
 
 class OpenAI extends OpenAIApi {
+  id = 'openAi';
   api?: OpenAiPluginApi;
   guildRecordMap = new Map<string, TOpenAi.Record>();
   channels = new Map<string, { [key: string]: string }>();

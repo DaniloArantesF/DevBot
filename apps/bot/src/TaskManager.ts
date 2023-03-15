@@ -29,9 +29,13 @@ export const queueSettings: Queue.QueueSettings = {
  */
 function TaskManager(provider: BotProvider) {
   logger.Info('TaskManager', 'Initializing ...');
+
+  // Task controllers
   const apiController = new ApiController();
   const commandController = new CommandController();
   const eventController = new EventController();
+
+  // Plugins
   const openAIController = new OpenAI();
   const habitTrackerController = new HabitTracker(provider);
 
@@ -39,9 +43,12 @@ function TaskManager(provider: BotProvider) {
     apiController,
     commandController,
     eventController,
+  ];
+
+  const plugins = [
     openAIController,
     habitTrackerController,
-  ];
+  ]
 
   // Process tasks
   async function initProcessing() {
@@ -57,7 +64,7 @@ function TaskManager(provider: BotProvider) {
   }
 
   async function shutdown() {
-    for (const controller of controllers) {
+    for (const controller of [...controllers, ...plugins]) {
       await controller.queue.close();
     }
   }
@@ -70,6 +77,8 @@ function TaskManager(provider: BotProvider) {
     habitTrackerController,
     initProcessing,
     setupPlugins,
+    controllers,
+    plugins,
     shutdown,
   };
 }

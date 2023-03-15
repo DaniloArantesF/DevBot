@@ -13,7 +13,6 @@ import { APIConnection } from 'discord.js';
 import botProvider from '..';
 import { getUserGuilds } from '@/tasks/user';
 import { authMiddleware } from './middleware/auth';
-import { logger } from 'shared/logger';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -53,118 +52,178 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/user/connections', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    async function handler() {
-      const token = req.discordAuth!.accessToken;
+  router.get(
+    '/user/connections',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler() {
+        const token = req.discordAuth!.accessToken;
 
-      try {
-        const data = (await (
-          await fetch(`${DISCORD_API_BASE_URL}/users/@me/connections`, {
-            method: 'GET',
-            headers: {
-              authorization: `Bearer ${token}`,
-            },
-          })
-        ).json()) as APIConnection[];
+        try {
+          const data = (await (
+            await fetch(`${DISCORD_API_BASE_URL}/users/@me/connections`, {
+              method: 'GET',
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            })
+          ).json()) as APIConnection[];
 
-        const payload = data.map(
-          ({ id, type, name, visibility, verified, friend_sync, show_activity }) =>
-            ({
-              id,
-              type,
-              name,
-              visibility,
-              verified,
-              friendSync: friend_sync,
-              showActivity: show_activity,
-            } as TBotApi.UserConnectionData),
-        );
-        res.status(200).send(payload);
-        return RequestLog('get', req.url, 200, payload);
-      } catch (error) {
-        console.error(`Error `, error);
-        res.status(500).send(error);
-        return RequestLog('get', req.url, 500, null, error);
+          const payload = data.map(
+            ({ id, type, name, visibility, verified, friend_sync, show_activity }) =>
+              ({
+                id,
+                type,
+                name,
+                visibility,
+                verified,
+                friendSync: friend_sync,
+                showActivity: show_activity,
+              } as TBotApi.UserConnectionData),
+          );
+          res.status(200).send(payload);
+          return RequestLog('get', req.url, 200, payload);
+        } catch (error) {
+          console.error(`Error `, error);
+          res.status(500).send(error);
+          return RequestLog('get', req.url, 500, null, error);
+        }
       }
-    }
 
-    // Push to request queue
-    pushRequest(req, handler);
-  });
+      // Push to request queue
+      pushRequest(req, handler);
+    },
+  );
 
   /**
    * Returns guilds data from Discord
    *
-   * @route GET /api/discord/guilds
+   * @route GET /discord/user/guilds
    * @apiresponse {200} GuildData[]
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/guilds', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    async function handler(client: DiscordClient) {
-      try {
-        const guilds = await getUserGuilds(req.discordUser!.id);
-        res.send(guilds);
-        return RequestLog(req.method, req.url, 200, guilds);
-      } catch (error) {
-        console.error(`Error `, error);
-        res.status(500).send(error);
-        return RequestLog(req.method, req.url, 500, null, error);
+  router.get(
+    '/user/guilds',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler(client: DiscordClient) {
+        try {
+          const guilds = await getUserGuilds(req.discordUser!.id);
+          res.send(guilds);
+          return RequestLog(req.method, req.url, 200, guilds);
+        } catch (error) {
+          console.error(`Error `, error);
+          res.status(500).send(error);
+          return RequestLog(req.method, req.url, 500, null, error);
+        }
       }
-    }
 
-    // Push to request queue
-    pushRequest(req, handler);
-  });
+      // Push to request queue
+      pushRequest(req, handler);
+    },
+  );
 
   /**
    * Fetches guild data from Discord
    *
-   * @route GET /api/discord/guilds/:guildId
+   * @route GET /discord/guilds/:guildId
    * @apiparam {string} token
    * @apiresponse {200} GuildData
    * @apiresponse {401} Unauthorized
    * @apiresponse {500}
    */
-  router.get('/guilds/:guildId', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    async function handler(client: DiscordClient) {
-      const guildId = req.params.guildId;
-      const token = req.discordAuth!.accessToken;
+  router.get(
+    '/guilds/:guildId',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler(client: DiscordClient) {
+        const guildId = req.params.guildId;
+        const guild = await getGuild(guildId);
 
-      try {
-        const guild = (await getGuild(guildId))?.toJSON() ?? {};
+        if (!guild) {
+          res.status(404).send('Guild not found');
+          return RequestLog(req.method, req.url, 404, null);
+        }
+
         res.send(guild);
-        return RequestLog('get', req.url, 200, guild);
-      } catch (error) {
-        console.error(`Error `, error);
-        res.status(500).send(error);
-        return RequestLog('get', req.url, 500, null, error);
+        return RequestLog(req.method, req.url, 200, guild);
       }
-    }
 
-    // Push to request queue
-    pushRequest(req, handler);
-  });
+      // Push to request queue
+      pushRequest(req, handler);
+    },
+  );
 
   /**
-   * Returns guild roles
+   * Returns all guild roles
    *
    * @route GET /discord/guilds/:guildId/roles
    * @apiparam {string} guildId
    * @apiresponse {200} Role[]
    */
-  router.get('/guilds/:guildId/roles', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    // TODO: check if user belongs to guild
-    async function handler() {
-      const guildId = req.params.guildId;
-      const roles = (await getGuildRoles(guildId))?.map((role) =>
-        JSON.parse(stringifyCircular(role)),
-      );
-      res.send(roles ?? []);
-      return RequestLog('get', req.url, 200, roles);
-    }
-    pushRequest(req, handler);
-  });
+  router.get(
+    '/guilds/:guildId/roles',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      // TODO: check if user belongs to guild
+      async function handler() {
+        const guildId = req.params.guildId;
+        const roles = (await getGuildRoles(guildId))?.map((role) =>
+          JSON.parse(stringifyCircular(role)),
+        );
+        res.send(roles ?? []);
+        return RequestLog('get', req.url, 200, roles);
+      }
+      pushRequest(req, handler);
+    },
+  );
+
+  /**
+   * Sets or updates the roles message for a guild
+   *
+   * @route POST /api/admin/roles/message
+   * @apiparam {string} guildId
+   * @apiresponse {200}
+   * @apiresponse {400} Missing guildId or channelId
+   * @apiresponse {500}
+   */
+  router.post(
+    '/guilds/:guildId/roles/message',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler() {
+        const guildId = req.params.guildId;
+        const channelId = req.body?.channelId;
+
+        const guild = await getGuild(guildId);
+
+        if (!guild) {
+          res.status(404).send('Guild not found');
+          return RequestLog(req.method, req.url, 404, null);
+        }
+
+        // TODO: check that guild is valid & that user is guild admin
+        if (!channelId) {
+          res.status(400).send('Missing guildId or channelId');
+          return RequestLog(req.method, req.url, 400, null, 'Missing guildId or channelId');
+        }
+
+        try {
+          const roles = (await (await botProvider).getDataProvider().guild.get(guildId)).userRoles;
+          const data = await setRolesMessage(guildId, channelId, roles);
+          res.send(stringifyCircular(data));
+          return RequestLog(req.method, req.url, 200, data);
+        } catch (error) {
+          console.error('Error setting roles message', error);
+          res.status(500).send(error);
+          return RequestLog(req.method, req.url, 500, null, error);
+        }
+      }
+
+      pushRequest(req, handler);
+    },
+  );
 
   /**
    * Returns guild channels
@@ -173,60 +232,29 @@ const DiscordRouter: APIRouter = (pushRequest) => {
    * @apiparam {string} guildId
    * @apiresponse {200} GuildChannelJSON[]
    */
-  router.get('/guilds/:guildId/channels', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    // TODO: check if user belongs to guild
-    async function handler() {
-      const guildId = req.params.guildId;
-      const channels =
-        (await getGuildChannels(guildId))?.map((channel) =>
+  router.get(
+    '/guilds/:guildId/channels',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      // TODO: check if user belongs to guild
+      async function handler() {
+        const guildId = req.params.guildId;
+        const guild = await getGuild(guildId);
+
+        if (!guild) {
+          res.status(404).send('Guild not found');
+          return RequestLog(req.method, req.url, 404, null);
+        }
+
+        const channels = (await getGuildChannels(guildId))?.map((channel) =>
           JSON.parse(stringifyCircular(channel)),
-        ) ?? [];
-      res.send(channels);
-      return RequestLog('get', req.url, 200, channels);
-    }
-    pushRequest(req, handler);
-  });
-
-  /**
-   * Sets guild roles available for users to self-assign
-   *
-   * @route PUT /discord/guilds/:guildId/roles
-   * @apiparam {string} guildId
-   * @apiresponse {200} Role[]
-   */
-  router.put('/guilds/:guildId/roles', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    async function handler() {
-      const guildModel = (await botProvider).getDataProvider().guild;
-      const guildRecord = await guildModel.get(req.params.guildId);
-
-      if (!guildRecord) {
-        res.status(404).send('Guild not found');
-        return RequestLog('patch', req.url, 404, 'Guild not found');
+        );
+        res.send(channels);
+        return RequestLog(req.method, req.url, 200, channels);
       }
-
-      let data = {};
-      try {
-        const updatedRecord = await guildModel.update({
-          ...guildRecord,
-          userRoles: [...req.body],
-        });
-        if (!updatedRecord || !updatedRecord.rolesChannelId) {
-          logger.Warning('ApiController', `Roles channel not set for guild ${req.params.guildId}. Aborting role update.`);
-          res.status(400).send('Roles channel not set');
-          return;
-        };
-        const channelId = updatedRecord.rolesChannelId;
-        const roleMessage = await setRolesMessage(req.params.guildId, channelId, req.body);
-        data = { updatedRecord, roleMessage };
-      } catch (error) {
-        data = { error: stringifyCircular(error) };
-      }
-
-      res.send(data);
-      return RequestLog(req.method, req.url, 200, data);
-    }
-    pushRequest(req, handler);
-  });
+      pushRequest(req, handler);
+    },
+  );
 
   return router;
 };

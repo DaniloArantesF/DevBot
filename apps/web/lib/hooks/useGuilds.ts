@@ -7,7 +7,7 @@ import { getCookie } from 'cookies-next';
 
 const guildEndpoint = (guildId: string) =>
   `${PUBLIC_API_URL}/discord/guilds/${guildId}`;
-const guildsEndpoint = () => `${PUBLIC_API_URL}/discord/guilds`;
+const guildsEndpoint = () => `${PUBLIC_API_URL}/discord/user/guilds`;
 
 export async function fetchGuild(guildId: string, token: string) {
   const data = await fetchJson<TBotApi.GuildData>(guildEndpoint(guildId), {

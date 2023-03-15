@@ -28,7 +28,7 @@ export async function getUserToken(code: string): Promise<TBotApi.AuthData> {
 
   return {
     accessToken: data.access_token,
-    expiresAt: Date.now() + data.expires_in,
+    expiresAt: Date.now() + (data.expires_in * 1000), //expires_in is in seconds
     refreshToken: data.refresh_token,
     scope: data.scope,
     tokenType: data.token_type,

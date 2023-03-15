@@ -68,8 +68,8 @@ const GuildRepository = (provider: BotProvider) => {
       .getFullList<TPocketbase.Guild>(1, { $autoCancel: false });
   }
 
-  async function update(guild: TPocketbase.Guild) {
-    if (!cacheMap.has(guild.guildId)) return null;
+  async function update(guild: { guildId: string } & Partial<TPocketbase.GuildData>) {
+    // if (!cacheMap.has(guild.guildId)) throw new Error('Guild not found');
     const record = await pocketbase
       .collection('servers')
       .update<TPocketbase.Guild>(cacheMap.get(guild.guildId)!, guild);

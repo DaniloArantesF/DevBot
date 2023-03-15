@@ -12,7 +12,7 @@ const AuthRouter: APIRouter = (pushRequest) => {
   /**
    * Fetches access token given an authorization code
    *
-   * @route POST /api/auth/code
+   * @route POST /auth/code
    * @apiparam {string} code Discord authorization code
    * @apiresponse {200} DiscordAuthResponse
    * @apiresponse {401} Unauthorized (no code provided)

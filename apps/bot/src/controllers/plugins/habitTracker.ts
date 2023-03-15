@@ -45,6 +45,8 @@ interface RoutineTaskData {
 }
 
 class HabitTracker {
+  id = 'habitTracker';
+
   constructor(provider: BotProvider) {
     this.provider = provider;
     this.pocketbase = provider.getDataProvider().pocketbase;

@@ -34,6 +34,18 @@ declare namespace TBot {
   };
 
   type CommandData = Omit<Command, 'execute' | 'buttonHandler' | 'messageHandler'>;
+
+  // TODO: use this
+  type PluginController = {
+    id: string;
+    setup: () => Promise<void>;
+    setupApi?: () => Promise<void>;
+    setStatus: (guildId: string, status: boolean) => Promise<void>;
+    getStatus: (guildId: string) => Promise<boolean>;
+  }
+
+  
+
 }
 
 export type { TBot };
