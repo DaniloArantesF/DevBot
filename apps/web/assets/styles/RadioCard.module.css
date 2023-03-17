@@ -12,15 +12,16 @@
 }
 
 .item {
-  --item-size: 1rem;
+  --item-size: 1.25rem;
   background: white;
   width: var(--item-size);
   height: var(--item-size);
   border-radius: 100%;
-  /* box-shadow: 0 0px 0 1px var(--blackA10); */
+  box-shadow: 0 0px 0 1px var(--blackA10);
   user-select: none;
   display: flex;
   align-items: center;
+  border: none;
 }
 
 .item[data-state='checked'] {
@@ -28,11 +29,7 @@
 }
 
 .item:hover {
-  background-color: var(--violet3);
-}
-
-.item:focus {
-  /* box-shadow: 0 0 0 1px black; */
+  background-color: var(--violet4);
 }
 
 .indicator {
@@ -55,7 +52,7 @@
 
 .label {
   color: white;
-  font-size: 0.7rem;
-  line-height: 0.5;
-  padding-left: 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  padding-left: 1rem;
 }

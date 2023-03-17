@@ -16,7 +16,7 @@ function AvatarList({ items = [], direction = 'column' }: AvatarListProps) {
           {items.map(({ alt, src, href }, index) =>
             href ? (
               <Link key={index} className={classes.item} href={href}>
-                <AvatarIcon src={src} alt={alt} />
+                <AvatarIcon src={src} alt={alt} clickable />
               </Link>
             ) : (
               <div key={index} className={classes.item}>

@@ -20,7 +20,7 @@
   border: 1px solid var(--indigo10);
   padding: 0.75rem 1rem;
   border-radius: calc(0.5 * var(--border-radius));
-  color: var(--violet4);
+  color: var(--indigo10);
 }
 
 .link {
@@ -31,10 +31,15 @@
 }
 
 .button:hover {
-  background: var(--violet12);
+  background: var(--violet4);
+  color: var(--violet10);
   border: 1px solid var(--violet10);
 }
 
 .link:hover {
   color: var(--violet10);
+}
+
+.slim {
+  padding: 0.5rem 0.75rem;
 }

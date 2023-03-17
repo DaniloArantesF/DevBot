@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCookie, setCookie } from 'cookies-next';
 import { DISCORD_AUTH_URL } from 'shared/config';
+import Widget from '@components/Widget';
 
 function Page() {
   const router = useRouter();
@@ -53,9 +54,9 @@ function Page() {
   return (
     <div className={classes.container}>
       <section className={classes.body}>
-        <Button label={'Discord Login'} href={DISCORD_AUTH_URL} />
-        {/* <Widget title="Login" style={{ maxWidth: '300px' }}>
-        </Widget> */}
+        <Widget title="Login" style={{ maxWidth: '300px' }}>
+          <Button label={'Discord Login'} href={DISCORD_AUTH_URL} />
+        </Widget>
       </section>
     </div>
   );

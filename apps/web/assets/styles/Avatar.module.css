@@ -5,15 +5,15 @@
   vertical-align: middle;
   overflow: hidden;
   user-select: none;
-  width: 45px;
-  height: 45px;
-  border-radius: calc(2 * var(--border-radius));
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   background-color: var(--blackA3);
   transition: border-radius 50ms ease-out;
 }
 
-.root:hover {
-  border-radius: var(--border-radius);
+.root.clickable:hover {
+  border-radius: calc(2 * var(--border-radius));
 }
 
 .image {

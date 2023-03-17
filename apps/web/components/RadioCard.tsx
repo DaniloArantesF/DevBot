@@ -22,23 +22,22 @@ export function RadioItem({ id, label, value, ...props }: RadioItemProps) {
 }
 
 type RadioCardProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
-  title: string;
+  title?: string;
+  children?: React.ReactNode[];
 };
 
-const RadioCard = forwardRef<HTMLFormElement, RadioCardProps>(({ title }, forwardedRef) => {
-  const items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
-
-  return (
-    <form className={classes.container}>
-      <label>{title}</label>
-      <RadioGroupPrimitive.Root className={classes.root}>
-        {items.map((item, index) => (
-          <RadioItem key={index} id={`item-${index}`} label={item} value={item} />
-        ))}
-      </RadioGroupPrimitive.Root>
-    </form>
-  );
-});
+const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
+  ({ title, children }, forwardedRef) => {
+    return (
+      <form className={classes.container}>
+        {title && <label>{title}</label>}
+        <RadioGroupPrimitive.Root ref={forwardedRef} className={classes.root}>
+          {children}
+        </RadioGroupPrimitive.Root>
+      </form>
+    );
+  },
+);
 
 RadioCard.displayName = 'RadioCard';
 export default RadioCard;

@@ -1,11 +1,13 @@
 import classes from '@styles/Button.module.css';
 import React, { useMemo, useRef } from 'react';
+import clsx from 'clsx';
 
 export type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
   label: string;
   onClick?: () => void;
   href?: string;
   type?: 'button' | 'link';
+  variant?: 'default' | 'slim';
 };
 
 const Button = React.forwardRef((props: ButtonProps, ref) => {
@@ -13,11 +15,15 @@ const Button = React.forwardRef((props: ButtonProps, ref) => {
   const onClick = useMemo(() => props.onClick, [props.onClick]);
   const href = useMemo(() => props.href, [props.href]);
   const type = useMemo(() => props.type || 'button', [props.type]);
+  const variant = useMemo(() => props.variant || 'default', [props.variant]);
 
   return onClick ? (
     <div className={classes.container}>
       <button
-        className={type === 'button' ? classes.button : classes.link}
+        className={clsx(
+          type === 'button' ? classes.button : classes.link,
+          variant === 'slim' && classes.slim,
+        )}
         onClick={onClick}
         style={props.style}
       >

@@ -4,11 +4,12 @@ import classes from '@styles/Avatar.module.css';
 interface AvatarProps {
   src: string;
   alt: string;
+  clickable?: boolean;
 }
 
-const AvatarIcon = ({ src, alt }: AvatarProps) => (
+const AvatarIcon = ({ src, alt, clickable = false }: AvatarProps) => (
   <div className={classes.container}>
-    <Avatar.Root className={classes.root}>
+    <Avatar.Root className={`${classes.root} ${clickable && classes.clickable}`}>
       <Avatar.Image className={classes.image} src={src} alt={alt} />
       <Avatar.Fallback className={classes.fallback} delayMs={600}>
         {

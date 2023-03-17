@@ -1,0 +1,9 @@
+.body {
+  padding: 1rem 0.5rem;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+}
