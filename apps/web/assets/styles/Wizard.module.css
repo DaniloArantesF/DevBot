@@ -1,5 +1,7 @@
 .body {
   padding: 1rem 0.5rem;
+  display: inline-block;
+  height: 100%;
 }
 
 .controls {

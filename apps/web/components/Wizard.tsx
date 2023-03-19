@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Widget from './Widget';
 import Button from './Button';
 import classes from '@styles/Wizard.module.css';
+import ScrollArea from './ScrollArea';
 
 interface WizardProps {
   children: React.ReactElement[]; //| React.ReactElement;
@@ -43,8 +44,10 @@ function Wizard({ children, onSubmit }: WizardProps) {
   };
 
   return (
-    <Widget title={'Guild Config Wizard'}>
-      <div className={classes.body}>{children[currentStep]}</div>
+    <Widget title={'Guild Config Wizard'} style={{ maxHeight: '350px', gridColumn: 'span 2' }}>
+      <div className={classes.body}>
+        <ScrollArea>{children[currentStep]}</ScrollArea>
+      </div>
       <div className={classes.controls}>
         {currentStep > 0 && <Button label={'Back'} onClick={back} variant="slim" />}
         {currentStep < children.length - 1 && (

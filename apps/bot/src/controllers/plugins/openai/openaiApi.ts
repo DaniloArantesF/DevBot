@@ -3,15 +3,20 @@ import OpenAI from './openai';
 import { PocketBase } from '@/DataProvider';
 import botProvider from '@/index';
 import { TOpenAi } from 'shared/types';
+// import FastText from 'fasttext';
+// import path from 'path';
 
 class OpenAiPluginApi {
   openAiController: OpenAI;
   pocketbase?: PocketBase;
+  // model = path.resolve(__dirname, 'lid.176.bin');
+  // // classifier = new FastText.Classifier(this.model);
 
   constructor(router: Router, openAiController: OpenAI) {
     this.openAiController = openAiController;
-
     this.init();
+
+    // router.post('/language', this.detectLanguage.bind(this));
   }
 
   async init() {
@@ -48,6 +53,12 @@ class OpenAiPluginApi {
 
     response.sendStatus(200);
   };
+
+  // detectLanguage = async (request: Request, response: Response) => {
+  //   const message = request.body.message;
+  //   const data = await this.classifier.predict(message, 5);
+  //   response.send(data);
+  // };
 
   updateConfig = async (request: Request, response: Response) => {
     /** TODO */
