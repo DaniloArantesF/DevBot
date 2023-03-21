@@ -1,6 +1,6 @@
-import ScrollArea from './ScrollArea';
+import ScrollArea from '../primitives/ScrollArea';
 import classes from '@styles/AvatarList.module.css';
-import AvatarIcon from './Avatar';
+import AvatarIcon from '../primitives/Avatar';
 import Link from 'next/link';
 
 interface AvatarListProps {

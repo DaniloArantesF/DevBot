@@ -1,7 +1,7 @@
 'use client';
-import RadioCard, { RadioItem } from '@components/RadioCard';
-import UserCard from '@components/UserCard';
-import Wizard, { WizardStep } from '@components/Wizard';
+import RadioCard, { RadioItem } from '@components/ui/RadioCard';
+import UserCard from '@components/features/UserCard';
+import Wizard, { WizardStep } from '@components/ui/Wizard';
 import ChannelCreationDialog from '@components/features/ChannelCreationDialog';
 import { useDashboardContext } from '@lib/context/dashboardContext';
 

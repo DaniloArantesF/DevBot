@@ -1,9 +1,9 @@
 import React from 'react';
 import { useState } from 'react';
 import Widget from './Widget';
-import Button from './Button';
+import Button from '../primitives/Button';
 import classes from '@styles/Wizard.module.css';
-import ScrollArea from './ScrollArea';
+import ScrollArea from '../primitives/ScrollArea';
 
 interface WizardProps {
   children: React.ReactElement[]; //| React.ReactElement;
@@ -49,13 +49,9 @@ function Wizard({ children, onSubmit }: WizardProps) {
         <ScrollArea>{children[currentStep]}</ScrollArea>
       </div>
       <div className={classes.controls}>
-        {currentStep > 0 && <Button label={'Back'} onClick={back} variant="slim" />}
-        {currentStep < children.length - 1 && (
-          <Button label={'Next'} onClick={next} variant="slim" />
-        )}
-        {currentStep === children.length - 1 && (
-          <Button label={'Submit'} onClick={handleSubmit} variant="slim" />
-        )}
+        {currentStep > 0 && <Button label={'Back'} onClick={back} />}
+        {currentStep < children.length - 1 && <Button label={'Next'} onClick={next} />}
+        {currentStep === children.length - 1 && <Button label={'Submit'} onClick={handleSubmit} />}
       </div>
     </Widget>
   );

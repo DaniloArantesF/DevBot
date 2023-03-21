@@ -1,5 +1,5 @@
 'use client';
-import Sidebar from '@components/Sidebar';
+import Sidebar from '@components/ui/Sidebar';
 import { DashboardProvider } from '@lib/context/dashboardContext';
 import fetchJson from '@lib/fetch';
 import classes from '@styles/DashboardLayout.module.css';

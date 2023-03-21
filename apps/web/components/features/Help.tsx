@@ -1,7 +1,7 @@
 import type { TBot } from '@lib/types';
 import classes from '@styles/Help.module.css';
-import ScrollArea from './ScrollArea';
-import Separator from './Separator';
+import ScrollArea from '../primitives/ScrollArea';
+import Separator from '../primitives/Separator';
 
 interface HelpProps {
   commands: TBot.CommandData[];

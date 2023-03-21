@@ -1,5 +1,5 @@
-import Separator from './Separator';
-import ScrollArea from '@components/ScrollArea';
+import Separator from '../primitives/Separator';
+import ScrollArea from '@components/primitives/ScrollArea';
 import classes from '@styles/Widget.module.css';
 
 type WidgetProps = React.ComponentProps<'div'> & {

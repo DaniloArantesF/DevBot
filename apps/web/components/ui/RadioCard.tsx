@@ -2,6 +2,11 @@ import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
 import React, { forwardRef } from 'react';
 import classes from '@styles/RadioCard.module.css';
 
+type RadioCardProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
+  title?: string;
+  children?: React.ReactNode[];
+};
+
 interface RadioItemProps {
   id: string;
   label: string;
@@ -20,11 +25,6 @@ export function RadioItem({ id, label, value, ...props }: RadioItemProps) {
     </div>
   );
 }
-
-type RadioCardProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
-  title?: string;
-  children?: React.ReactNode[];
-};
 
 const RadioCard = forwardRef<HTMLDivElement, RadioCardProps>(
   ({ title, children }, forwardedRef) => {

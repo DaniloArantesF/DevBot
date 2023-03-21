@@ -1,14 +1,15 @@
 import { getDiscordAvatar } from 'shared/utils';
 import { useMemo } from 'react';
-import AvatarList from './AvatarList';
-import Button from './Button';
-import Modal from './Modal';
-import Help from './Help';
+import AvatarList from '@components/ui/AvatarList';
+import Button from '@components/primitives/Button';
+import Modal from '@components/ui/Modal';
+import Help from '@components/features/Help';
 import Link from 'next/link';
 import classes from '@styles/Sidebar.module.css';
 import { useDashboardContext } from '@lib/context/dashboardContext';
 import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
+import Notifications from '@components/features/Notifications';
 
 function Sidebar() {
   const router = useRouter();
@@ -47,6 +48,7 @@ function Sidebar() {
       </div>
 
       <div className={classes.footer}>
+        <Notifications />
         <Modal
           heading="Help"
           description="Currently available commands"

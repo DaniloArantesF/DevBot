@@ -81,13 +81,17 @@ button.button {
 
 .button {
   font-family: inherit;
-  height: 35px;
-  width: 35px;
+  height: 2rem;
+  width: 2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--slate12);
   box-shadow: 0 2px 10px var(--blackA7);
+}
+
+.button:hover {
+  color: var(--violet10);
 }
 
 .alignRight {

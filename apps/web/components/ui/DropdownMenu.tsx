@@ -19,8 +19,8 @@ interface DropdownCheckboxProps {
 }
 
 interface DropdownRadioGroupProps {
-  options: { value: string; label: string; default?: boolean }[];
   onChange?: (value: string) => void;
+  options: { value: string; label: string; default?: boolean }[];
 }
 
 interface DropdownMenuProps {
@@ -48,12 +48,10 @@ export function DropdownSubMenu({ children }: DropdownSubMenuProps) {
   </DropdownMenuPrimitive.Sub>;
 }
 
-export function DropdownRadioGroup({ options }: DropdownRadioGroupProps) {
+export function DropdownRadioGroup({ options, onChange }: DropdownRadioGroupProps) {
   const defaultOption = useMemo(() => options.find((opt) => opt.default) ?? options[0], [options]);
-  const [value, setValue] = useState(defaultOption.value);
-
   return (
-    <DropdownMenuPrimitive.RadioGroup value={value} onValueChange={setValue}>
+    <DropdownMenuPrimitive.RadioGroup value={defaultOption.value} onValueChange={onChange}>
       {options.map((opt, index) => (
         <DropdownMenuPrimitive.RadioItem
           key={opt.value}
@@ -74,8 +72,17 @@ export function DropdownMenuSeparator() {
   return <DropdownMenuPrimitive.Separator className={classes.separator} />;
 }
 
-export function DropdownMenuItem({ label }: { label: string }) {
-  return <DropdownMenuPrimitive.Item className={classes.item}>{label}</DropdownMenuPrimitive.Item>;
+interface DropdownMenuItemProps {
+  label: string;
+  onClick?: () => void;
+}
+
+export function DropdownMenuItem({ label, onClick }: DropdownMenuItemProps) {
+  return (
+    <DropdownMenuPrimitive.Item className={classes.item} onClick={onClick}>
+      {label}
+    </DropdownMenuPrimitive.Item>
+  );
 }
 
 export function DropdownMenuCheckbox({
@@ -110,7 +117,7 @@ function DropdownMenu({ children }: DropdownMenuProps) {
   return (
     <DropdownMenuPrimitive.Root>
       <DropdownMenuPrimitive.Trigger asChild>
-        <button className={classes.button} aria-label="Customise options">
+        <button className={classes.button} /*aria-label="Customise options" */>
           <DotsVerticalIcon />
         </button>
       </DropdownMenuPrimitive.Trigger>

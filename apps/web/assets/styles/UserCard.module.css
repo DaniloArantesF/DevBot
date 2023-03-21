@@ -19,6 +19,7 @@
   font-weight: 500;
 }
 
+/* discriminator  */
 .info div:last-child {
   color: var(--slate10);
 }

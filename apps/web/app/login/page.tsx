@@ -1,12 +1,12 @@
 'use client';
-import Button from '@components/Button';
+import Button from '@components/primitives/Button';
 import { fetchAuth } from '@lib/hooks/useAuth';
 import classes from '@styles/Login.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCookie, setCookie } from 'cookies-next';
 import { DISCORD_AUTH_URL } from 'shared/config';
-import Widget from '@components/Widget';
+import Widget from '@components/ui/Widget';
 
 function Page() {
   const router = useRouter();

@@ -2,8 +2,8 @@ import { forwardRef } from 'react';
 import classes from '@styles/MultiSelectCard.module.css';
 
 interface MultiSelectCardProps {
-  title?: string;
   children?: React.ReactNode[];
+  title?: string;
 }
 
 const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(

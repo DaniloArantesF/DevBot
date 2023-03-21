@@ -11,7 +11,8 @@
     "./config": "./src/config.ts",
     "./session": "./src/session.ts",
     "./utils": "./src/utils.ts",
-    "./logger": "./src/logger.ts"
+    "./logger": "./src/logger.ts",
+    "./client": "./src/client.ts"
   },
   "typesVersions": {
     "*": {
@@ -32,6 +33,9 @@
       ],
       "logger": [
         "src/logger.ts"
+      ],
+      "client": [
+        "src/client.ts"
       ]
     }
   },

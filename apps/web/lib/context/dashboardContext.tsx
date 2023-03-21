@@ -5,26 +5,25 @@ import useGuilds from '@lib/hooks/useGuilds';
 import useUser from '@lib/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { TBot, TBotApi } from 'shared/types';
+import { TBot, TBotApi, TClient } from 'shared/types';
 
 type DashboardProviderProps = {
   children: React.ReactNode;
 };
 
-interface DashboardContext {
-  commands: TBot.CommandData[];
-  currentGuild: TBotApi.GuildData | null;
-  guilds: TBotApi.GuildData[];
-  modal: null | React.RefObject<HTMLDivElement>;
-  user: TBotApi.UserData | null;
-}
+export const defaultSettings: TClient.DashboardSettings = {
+  theme: 'dark',
+  notifications: false,
+};
 
-export const initialDashboardContext: DashboardContext = {
+export const initialDashboardContext: TClient.DashboardContext = {
   commands: [],
   currentGuild: null,
   guilds: [],
   modal: null,
   user: null,
+  settings: defaultSettings,
+  updateSettings: (settings) => {},
 };
 
 const DashboardContext = createContext(initialDashboardContext);
@@ -36,6 +35,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
   const { guilds } = useGuilds();
   const { commands } = useCommands();
   const { user } = useUser();
+  const [settings, setSettings] = useState<TClient.DashboardSettings>(defaultSettings);
 
   useEffect(() => {
     if (!mounted.current && !auth.isLogged) {
@@ -60,6 +60,9 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
         currentGuild: guild,
         guilds: guilds || [],
         user: user || null,
+        settings,
+        updateSettings: (newSettings) =>
+          setSettings((settings) => ({ ...settings, ...newSettings })),
       }}
     >
       {children}

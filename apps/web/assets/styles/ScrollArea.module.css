@@ -12,6 +12,10 @@
   border-radius: var(--border-radius);
 }
 
+.viewport > div {
+  height: 100%;
+}
+
 .scrollbar {
   /* display: flex; */
   display: none;

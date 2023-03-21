@@ -1,8 +1,8 @@
 import classes from '@styles/Card.module.css';
 
 interface CardProps {
-  title: string;
   children?: React.ReactNode;
+  title: string;
 }
 
 // TODO: card link
