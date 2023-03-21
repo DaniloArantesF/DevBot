@@ -36,12 +36,10 @@ function Notifications() {
             <ScrollArea>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {notifications.map((_, index) => (
-                  <>
-                    <div key={index} className={classes.notification}>
-                      {`Notification #${index}`}
-                    </div>
+                  <div key={index} className={classes.notification}>
+                    {`Notification #${index}`}
                     <Separator />
-                  </>
+                  </div>
                 ))}
               </div>
             </ScrollArea>

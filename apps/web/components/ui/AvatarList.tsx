@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 interface AvatarListProps {
   direction?: 'row' | 'column';
-  items: { src: string; alt: string; href?: string }[];
+  items: { src?: string; alt: string; href?: string }[];
 }
 
 function AvatarList({ items = [], direction = 'column' }: AvatarListProps) {

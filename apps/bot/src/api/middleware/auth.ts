@@ -3,7 +3,12 @@ import { TBotApi } from 'shared/types';
 import AuthController from '@/controllers/authController';
 
 // TODO: add admin data
-export async function authMiddleware(req: TBotApi.AuthenticatedRequest, res: Response, next: NextFunction) {
+// TODO: check user has proper permissions
+export async function authMiddleware(
+  req: TBotApi.AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
   const authHeader = req.headers.authorization;
   if (!authHeader || authHeader.split(' ').length !== 2) {
     return res.status(401).send({

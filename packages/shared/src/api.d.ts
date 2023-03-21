@@ -1,3 +1,4 @@
+import { PermissionsString } from 'discord.js';
 import type { Request } from 'express';
 
 export interface DiscordAuthResponse {
@@ -32,7 +33,7 @@ export interface GuildDiscordData {
   icon: string;
   owner: boolean;
   features: string[];
-  // permissions: number;
+  permissions: number;
   // permissions_new: string;
 }
 
@@ -54,9 +55,9 @@ declare namespace TBotApi {
     | 'premium_type'
     | 'public_flags'
   > & {
+    accentColor: number | null;
     avatarDecoration: string | null;
     bannerColor: string | null;
-    accentColor: number | null;
     mfaEnabled: boolean;
     premiumType: number;
     publicFlags: number;
@@ -76,16 +77,47 @@ declare namespace TBotApi {
   };
 
   type UserConnectionData = {
-    id: string;
-    type: string;
-    name: string;
-    visibility: number;
     friendSync: boolean;
+    id: string;
+    name: string;
     showActivity: boolean;
+    type: string;
     verified: boolean;
+    visibility: number;
   };
 
-  type GuildData = Omit<GuildDiscordData, 'permissions_new'> & { permissionsNew: string };
+  type GuildData = {
+    id: string;
+    name: string;
+    icon: string | null;
+    isOwner: boolean;
+    features: string[];
+    permissions: PermissionsString[];
+    isOwner: boolean;
+  };
+
+  type ChannelData = {
+    createdTimestamp: number;
+    flags: number;
+    guildId: string;
+    id: string;
+    name: string;
+    parentId: string | null;
+    rawPosition: number;
+    type: number;
+  };
+
+  /* Api Response types  */
+  type BasicResponse = {
+    message: string;
+  };
+  type ErrorResponse = BasicResponse;
+
+  type GetUserResponse = UserData;
+  type GetUserConnectionsResponse = UserConnectionData[];
+  type GetChannelsResponse = ChannelData[];
+  type CreateChannelResponse = ChannelData;
+  type DeleteChannelResponse = BasicResponse;
 }
 
 export type { TBotApi };

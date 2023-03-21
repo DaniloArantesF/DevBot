@@ -2,7 +2,7 @@ import * as Avatar from '@radix-ui/react-avatar';
 import classes from '@styles/Avatar.module.css';
 
 interface AvatarProps {
-  src: string;
+  src?: string;
   alt: string;
   clickable?: boolean;
 }

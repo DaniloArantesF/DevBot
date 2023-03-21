@@ -10,6 +10,7 @@ import {
   TextChannel,
   ThreadChannel,
   PermissionsBitField,
+  GuildChannelTypes,
 } from 'discord.js';
 import ChallengeModel from '@/models/challenge';
 import Queue from 'bee-queue';
@@ -120,7 +121,7 @@ class HabitTracker {
             'HabitTracker',
             `[${guildId}] Creating channel for challenge ${challenge.id}...`,
           );
-          channel = await createChannel(guildId, {
+          channel = await createChannel<ChannelType.GuildText>(guildId, {
             name: `${challenge.duration}day-${challenge.goal}`,
             type: ChannelType.GuildText,
             parent: this.categoryChannelMap.get(guildId),
@@ -185,7 +186,7 @@ class HabitTracker {
 
     if (!category) {
       console.debug(`[${guildId}] Creating challenges category...`);
-      category = await createChannel<CategoryChannel>(guildId, {
+      category = await createChannel<ChannelType.GuildCategory>(guildId, {
         name: 'Challenges',
         type: ChannelType.GuildCategory,
       });

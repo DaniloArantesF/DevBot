@@ -7,12 +7,14 @@ import { APIRouter } from '@/api';
 import { getGuild } from '@/tasks/guild';
 import { getGuildRoles, setRolesMessage } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
-import { getGuildChannels } from '@/tasks/channels';
+import { createChannel, deleteChannel, getGuildChannel, getGuildChannels } from '@/tasks/channels';
 import { RequestLog } from '@/tasks/logs';
-import { APIConnection } from 'discord.js';
+import { APIConnection, ChannelType } from 'discord.js';
 import botProvider from '..';
 import { getUserGuilds } from '@/tasks/user';
 import { authMiddleware } from './middleware/auth';
+import { logger } from 'shared/logger';
+import { getGuildMember } from '@/tasks/members';
 
 const DiscordRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -29,12 +31,14 @@ const DiscordRouter: APIRouter = (pushRequest) => {
   router.get('/user', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
     async function handler() {
       try {
-        const data = req.discordUser;
-        res.status(200).send(data);
+        const data = req.discordUser!;
+        res.status(200).send(data as TBotApi.GetUserResponse);
         return RequestLog('get', req.url, 200, data);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error `, error);
-        res.status(500).send(error);
+        res
+          .status(500)
+          .send({ message: error?.message || 'Error fetching user data' } as TBotApi.ErrorResponse);
         return RequestLog('get', req.url, 500, null, error);
       }
     }
@@ -69,23 +73,26 @@ const DiscordRouter: APIRouter = (pushRequest) => {
             })
           ).json()) as APIConnection[];
 
-          const payload = data.map(
-            ({ id, type, name, visibility, verified, friend_sync, show_activity }) =>
-              ({
-                id,
-                type,
-                name,
-                visibility,
-                verified,
-                friendSync: friend_sync,
-                showActivity: show_activity,
-              } as TBotApi.UserConnectionData),
+          const payload: TBotApi.UserConnectionData[] = data.map(
+            ({ id, type, name, visibility, verified, friend_sync, show_activity }) => ({
+              id,
+              type,
+              name,
+              visibility,
+              verified,
+              friendSync: friend_sync,
+              showActivity: show_activity,
+            }),
           );
-          res.status(200).send(payload);
+          res.status(200).send(payload as TBotApi.GetUserConnectionsResponse);
           return RequestLog('get', req.url, 200, payload);
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error `, error);
-          res.status(500).send(error);
+          res
+            .status(500)
+            .send({
+              message: error?.message || 'Error fetching user data',
+            } as TBotApi.ErrorResponse);
           return RequestLog('get', req.url, 500, null, error);
         }
       }
@@ -146,6 +153,11 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           return RequestLog(req.method, req.url, 404, null);
         }
 
+        if (!guild.members.cache.has(req.discordUser!.id)) {
+          res.status(403).send({ message: 'Forbidden' });
+          return RequestLog(req.method, req.url, 403, null);
+        }
+
         res.send(guild);
         return RequestLog(req.method, req.url, 200, guild);
       }
@@ -195,7 +207,6 @@ const DiscordRouter: APIRouter = (pushRequest) => {
       async function handler() {
         const guildId = req.params.guildId;
         const channelId = req.body?.channelId;
-
         const guild = await getGuild(guildId);
 
         if (!guild) {
@@ -236,7 +247,6 @@ const DiscordRouter: APIRouter = (pushRequest) => {
     '/guilds/:guildId/channels',
     authMiddleware,
     async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-      // TODO: check if user belongs to guild
       async function handler() {
         const guildId = req.params.guildId;
         const guild = await getGuild(guildId);
@@ -246,12 +256,162 @@ const DiscordRouter: APIRouter = (pushRequest) => {
           return RequestLog(req.method, req.url, 404, null);
         }
 
-        const channels = (await getGuildChannels(guildId))?.map((channel) =>
-          JSON.parse(stringifyCircular(channel)),
+        // Check that user is in guild
+        if (!guild.members.cache.has(req.discordUser!.id)) {
+          res.status(403).send('Forbidden');
+          return RequestLog(req.method, req.url, 403, null);
+        }
+
+        const channels = await getGuildChannels(guildId);
+
+        if (!channels) {
+          res.status(404).send('Guild not found');
+          return RequestLog(req.method, req.url, 404, null);
+        }
+
+        // const guildMember = await getGuildMember(guildId, req.discordUser!.id)!;
+        const channelData: TBotApi.ChannelData[] = channels.map(
+          ({ id, name, createdTimestamp, flags, guildId, parentId, type, ...channel }) => ({
+            createdTimestamp: createdTimestamp ?? 0,
+            flags: flags.toJSON(),
+            guildId,
+            id,
+            name,
+            parentId,
+            rawPosition: 0,
+            type,
+          }),
         );
-        res.send(channels);
-        return RequestLog(req.method, req.url, 200, channels);
+
+        res.send({
+          channels: channelData,
+        });
+        return RequestLog(req.method, req.url, 200, channelData);
       }
+      pushRequest(req, handler);
+    },
+  );
+
+  /**
+   * Creates a new channel in a guild
+   */
+  router.post(
+    '/guilds/:guildId/channel',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler() {
+        let reply;
+        let channelType: ChannelType;
+        const guildId = req.params.guildId;
+        const guild = await getGuild(guildId);
+        const channelName = req.body?.channelName as string;
+        let channelParent = req.body?.channelParent as string;
+
+        // Check that guild exists
+        if (!guild) {
+          reply = 'Guild not found';
+          res.status(404).send(reply);
+          return RequestLog(req.method, req.url, 404, reply);
+        }
+
+        // Get channel type
+        switch (req.body?.channelType) {
+          case 'GUILD_TEXT':
+            channelType = ChannelType.GuildText;
+            break;
+          case 'GUILD_VOICE':
+            channelType = ChannelType.GuildVoice;
+            break;
+          case 'GUILD_CATEGORY':
+            channelType = ChannelType.GuildCategory;
+            channelParent = '';
+            break;
+          default:
+            reply = 'Invalid channel type';
+            res.status(400).send(reply);
+            return RequestLog(req.method, req.url, 400, reply);
+        }
+
+        if (channelParent) {
+          // Check that parent channel exists
+          const parentChannel = await getGuildChannel(guildId, channelParent);
+          if (!parentChannel || parentChannel.type !== ChannelType.GuildCategory) {
+            reply = 'Invalid parent channel';
+            res.status(404).send(reply);
+            return RequestLog(req.method, req.url, 404, reply);
+          }
+        }
+
+        try {
+          const channel = await createChannel(guildId, {
+            name: channelName,
+            type: channelType,
+            ...(channelParent && { parent: channelParent }),
+          });
+
+          const channelData: TBotApi.ChannelData = {
+            createdTimestamp: channel.createdTimestamp,
+            flags: 0,
+            guildId: channel.guildId,
+            id: channel.id,
+            name: channel.name,
+            parentId: channel.parent?.id ?? null,
+            rawPosition: channel.rawPosition,
+            type: channel.type,
+          };
+
+          res.send(channelData as TBotApi.CreateChannelResponse);
+          return RequestLog(req.method, req.url, 200, channelData);
+        } catch (error) {
+          reply = 'Error creating channel';
+          logger.Error('APIController', reply);
+          console.error(error);
+          res.status(500).send({ message: reply });
+          return RequestLog(req.method, req.url, 500, reply, error);
+        }
+      }
+
+      pushRequest(req, handler);
+    },
+  );
+
+  router.delete(
+    '/guilds/:guildId/channel',
+    authMiddleware,
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler() {
+        let reply;
+        const guildId = req.params.guildId;
+        const channelId = req.body?.channelId as string;
+
+        if (!channelId) {
+          reply = 'Missing channelId';
+          res.status(400).send(reply);
+          return RequestLog(req.method, req.url, 400, reply);
+        }
+
+        // Check that guild exists
+        const guild = await getGuild(guildId);
+        if (!guild) {
+          reply = 'Guild not found';
+          res.status(404).send(reply);
+          return RequestLog(req.method, req.url, 404, reply);
+        }
+
+        try {
+          await deleteChannel(guildId, channelId);
+          reply = 'Ok';
+          res.send({ message: reply });
+          return RequestLog(req.method, req.url, 200, reply);
+        } catch (error) {
+          reply = 'Error deleting channel';
+          logger.Error('APIController', reply);
+          console.error(error);
+          res.status(500).send({ message: reply });
+          return RequestLog(req.method, req.url, 500, reply, error);
+        }
+      }
+
       pushRequest(req, handler);
     },
   );

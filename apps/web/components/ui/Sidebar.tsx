@@ -14,13 +14,15 @@ import Notifications from '@components/features/Notifications';
 function Sidebar() {
   const router = useRouter();
   const { guilds, commands } = useDashboardContext();
-  const guildAvatars = useMemo(() => {
-    return guilds.map((guild) => ({
-      href: `/dashboard/${guild.id}`,
-      src: getDiscordAvatar('guild', guild.id, guild.icon),
-      alt: guild.name,
-    }));
-  }, [guilds]);
+  const guildAvatars = useMemo(
+    () =>
+      guilds.map((guild) => ({
+        href: `/dashboard/${guild.id}`,
+        ...(guild.icon && { src: getDiscordAvatar('guild', guild.id, guild.icon) }),
+        alt: guild.name,
+      })),
+    [guilds],
+  );
 
   function toggleHelp() {
     console.log('help');

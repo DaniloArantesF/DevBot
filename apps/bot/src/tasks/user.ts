@@ -1,6 +1,6 @@
 import { CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
 import { DISCORD_API_BASE_URL, PUBLIC_CLIENT_URL } from 'shared/config';
-import { DiscordAuthResponse, TBotApi, UserDiscordResponse } from 'shared/types';
+import { DiscordAuthResponse, GuildDiscordData, TBotApi, UserDiscordResponse } from 'shared/types';
 import botProvider from '..';
 
 // Returns the network of active users in a user's guilds
@@ -28,7 +28,7 @@ export async function getUserToken(code: string): Promise<TBotApi.AuthData> {
 
   return {
     accessToken: data.access_token,
-    expiresAt: Date.now() + (data.expires_in * 1000), //expires_in is in seconds
+    expiresAt: Date.now() + data.expires_in * 1000, //expires_in is in seconds
     refreshToken: data.refresh_token,
     scope: data.scope,
     tokenType: data.token_type,
@@ -67,23 +67,23 @@ export async function getUserGuilds(userId: string): Promise<TBotApi.GuildData[]
   const discordClient = (await botProvider).getDiscordClient();
   return discordClient.guilds.cache
     .filter((guild) => guild.members.cache.has(userId))
-    .map(({ name, id, icon, ownerId, features }) => ({
+    .map(({ name, id, icon, ownerId, features, members }) => ({
       name,
       id,
       icon,
-      owner: ownerId === userId,
+      isOwner: ownerId === userId,
       features,
-      allowed: true,
-    })) as TBotApi.GuildData[]; //TODO: fix linter issues
+      permissions: members.cache.get(userId)!.permissions.toArray(),
+    }));
 }
 
-export async function getUserAllGuilds(token: string): Promise<TBotApi.GuildData[]> {
-  return (await (
+export async function getUserAllGuilds(token: string): Promise<GuildDiscordData[]> {
+  return await (
     await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
       method: 'GET',
       headers: {
         authorization: `Bearer ${token}`,
       },
     })
-  ).json()) as TBotApi.GuildData[];
+  ).json();
 }
