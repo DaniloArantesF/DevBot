@@ -75,11 +75,10 @@ declare namespace TPocketbase {
 
   type ChallengeCreateOptions = Omit<TPocketbase.ChallengeData, 'channelId' | 'status' | 'roleId'>;
 
-
   export type PluginData = {
     name: string;
     description: string;
-  }
+  };
 
   export type User = AuthBase & UserData;
   export type Guild = GuildData & Base;

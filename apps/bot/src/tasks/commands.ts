@@ -50,7 +50,7 @@ export async function setSlashCommands(commands: TBot.Command[], guildId?: strin
         if (isSlashCommand) {
           return command.data.toJSON();
         }
-        return (command as any)?.toJSON() ;
+        return (command as any)?.toJSON();
       }),
   })) as any[];
 }

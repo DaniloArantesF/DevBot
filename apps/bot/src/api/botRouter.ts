@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { getCommands } from '@/tasks/commands';
 import { APIRouter } from '@/api';
-import { RequestLog } from '@/tasks/logs';
 import botProvider from '..';
 import { authMiddleware } from './middleware/auth';
 import { TBotApi } from 'shared/types';
+import logRequest from './middleware/log';
 
 const BotRouter: APIRouter = (pushRequest) => {
   const router = Router();
@@ -18,7 +18,6 @@ const BotRouter: APIRouter = (pushRequest) => {
   router.get('/status', async (req: Request, res: Response) => {
     async function handler() {
       res.send('Online');
-      return RequestLog(req.method, req.url, 200, 'OK');
     }
     pushRequest(req, handler);
   });
@@ -33,7 +32,6 @@ const BotRouter: APIRouter = (pushRequest) => {
     async function handler() {
       const commands = (await getCommands()).map(({ execute, ...data }) => data);
       res.send(commands);
-      return RequestLog('get', req.url, 200, commands);
     }
     pushRequest(req, handler);
   });
@@ -43,37 +41,40 @@ const BotRouter: APIRouter = (pushRequest) => {
    * Updates the rolesChannel, userRoles and plugins
    * @route POST bot/config/:guildId
    */
-  router.post('/config/:guildId', authMiddleware, async (req: TBotApi.AuthenticatedRequest, res: Response) => {
-    async function handler() {
-      const rolesChannelId = req.body.rolesChannelId;
-      const userRoles = req.body.userRoles;
-      const plugins = req.body.plugins;
-      const guildId = req.params.guildId;
+  router.post(
+    '/config/:guildId',
+    authMiddleware,
 
-      // At least one of the fields must be set
-      if (!rolesChannelId && !userRoles && !plugins) {
-        res.status(400).send('Missing at least one required field');
-        return RequestLog('post', req.url, 400, 'Missing at least one required field');
-      }
+    async (req: TBotApi.AuthenticatedRequest, res: Response) => {
+      async function handler() {
+        const rolesChannelId = req.body.rolesChannelId;
+        const userRoles = req.body.userRoles;
+        const plugins = req.body.plugins;
+        const guildId = req.params.guildId;
 
-      const guildModel = (await botProvider).getDataProvider().guild;
-      try {
-        const updatedRecord = await guildModel.update({
-          guildId: guildId as string,
-          ...(rolesChannelId && { rolesChannelId }),
-          ...(userRoles && { userRoles }),
-          ...(plugins && { plugins }),
-        });
-        res.send(updatedRecord);
-        return RequestLog(req.method, req.url, 200, updatedRecord);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send('Error updating guild config.');
-        return RequestLog(req.method, req.url, 500, error);
+        // At least one of the fields must be set
+        if (!rolesChannelId && !userRoles && !plugins) {
+          res.status(400).send('Missing at least one required field');
+          return;
+        }
+
+        const guildModel = (await botProvider).getDataProvider().guild;
+        try {
+          const updatedRecord = await guildModel.update({
+            guildId: guildId as string,
+            ...(rolesChannelId && { rolesChannelId }),
+            ...(userRoles && { userRoles }),
+            ...(plugins && { plugins }),
+          });
+          res.send(updatedRecord);
+        } catch (error) {
+          console.error(error);
+          res.status(500).send('Error updating guild config.');
+        }
       }
-    }
-    pushRequest(req, handler);
-  });
+      pushRequest(req, handler);
+    },
+  );
 
   /**
    * Returns guild roles available for users to self-assign
@@ -85,6 +86,7 @@ const BotRouter: APIRouter = (pushRequest) => {
   router.get(
     '/config/:guildId/userRoles',
     authMiddleware,
+
     async (req: TBotApi.AuthenticatedRequest, res: Response) => {
       async function handler() {
         const guildModel = (await botProvider).getDataProvider().guild;
@@ -93,10 +95,8 @@ const BotRouter: APIRouter = (pushRequest) => {
           const guildRecord = await guildModel.get(req.params.guildId);
           const userRoles = guildRecord.userRoles;
           res.send({ userRoles });
-          return RequestLog(req.method, req.url, 200, { userRoles });
         } catch (error) {
           res.status(404).send('Guild not found');
-          return RequestLog(req.method, req.url, 404, 'Guild not found');
         }
       }
       pushRequest(req, handler);
@@ -120,7 +120,7 @@ const BotRouter: APIRouter = (pushRequest) => {
 
         if (!Array.isArray(newUserRoles)) {
           res.status(400).send('Missing or invalid userRoles array');
-          return RequestLog(req.method, req.url, 400, 'Missing or invalid userRoles array');
+          return;
         }
 
         try {
@@ -130,8 +130,7 @@ const BotRouter: APIRouter = (pushRequest) => {
           });
           res.send({ userRoles: updatedRecord.userRoles });
         } catch (error: any) {
-          res.status(error.status).send({ message: error.message })
-          return RequestLog(req.method, req.url, error.status, error.message);
+          res.status(error.status).send({ message: error.message });
         }
       }
       pushRequest(req, handler);

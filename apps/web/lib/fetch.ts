@@ -38,7 +38,7 @@ export default async function fetchJson<JSON = unknown>(
   if (!headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  
+
   const response = await fetch(input, { ...init, headers });
   const data = await response.json();
 

@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PUBLIC_CLIENT_URL } from '@/utils/config';
 import { APIRouter } from '@/api';
-import { RequestLog } from '@/tasks/logs';
 import { logger } from 'shared/logger';
 import AuthController from '@/controllers/authController';
 
@@ -25,19 +24,17 @@ const AuthRouter: APIRouter = (pushRequest) => {
 
       if (!code) {
         res.sendStatus(401);
-        return RequestLog(req.method, req.url, 401, 'No code provided');
+        return;
       }
 
       const data = await authController.createSession(code);
       if (!data) {
         res.sendStatus(500);
-        return RequestLog(req.method, req.url, 500, 'Error fetching access token');
+        return;
       }
 
       res.status(200).send(data);
-      return RequestLog(req.method, req.url, 200, 'OK');
     }
-
     pushRequest(req, handler);
   });
 

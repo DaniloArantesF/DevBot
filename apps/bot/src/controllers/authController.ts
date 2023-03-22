@@ -91,7 +91,7 @@ class AuthController {
           userId = userRecord?.id;
         }
 
-        return  await this.userModel.update({ id: userId, ...data });
+        return await this.userModel.update({ id: userId, ...data });
       } catch (error) {
         logger.Debug('AuthController', `Creating new user: ${data.username} (${data.discordId})`);
         return await this.userModel.create(data);

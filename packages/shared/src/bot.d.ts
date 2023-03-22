@@ -10,7 +10,7 @@ declare namespace TBot {
     logLevel: 'debug' | 'minimal';
     cooldownMs: number;
     autoProcess: boolean;
-  }
+  };
 
   type CommandHandler = SlashCommandHandler | ButtonCommandHandler | MessageCommandHandler;
 
@@ -42,10 +42,7 @@ declare namespace TBot {
     setupApi?: () => Promise<void>;
     setStatus: (guildId: string, status: boolean) => Promise<void>;
     getStatus: (guildId: string) => Promise<boolean>;
-  }
-
-  
-
+  };
 }
 
 export type { TBot };

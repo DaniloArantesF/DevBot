@@ -13,7 +13,7 @@ declare namespace TDiscord {
 
   export type RoleData = DiscordRoleData;
 
-  export type Reply = string | (MessagePayload | MessageReplyOptions) | InteractionReplyOptions
+  export type Reply = string | (MessagePayload | MessageReplyOptions) | InteractionReplyOptions;
 }
 
 export type { TDiscord };

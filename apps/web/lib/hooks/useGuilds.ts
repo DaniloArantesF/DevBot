@@ -5,8 +5,7 @@ import { useEffect, useRef } from 'react';
 import { PUBLIC_API_URL } from 'shared/config';
 import { getCookie } from 'cookies-next';
 
-const guildEndpoint = (guildId: string) =>
-  `${PUBLIC_API_URL}/discord/guilds/${guildId}`;
+const guildEndpoint = (guildId: string) => `${PUBLIC_API_URL}/discord/guilds/${guildId}`;
 const guildsEndpoint = () => `${PUBLIC_API_URL}/discord/user/guilds`;
 
 export async function fetchGuild(guildId: string, token: string) {
@@ -14,7 +13,7 @@ export async function fetchGuild(guildId: string, token: string) {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-    }
+    },
   });
   return data;
 }
@@ -24,7 +23,7 @@ export async function fetchGuilds(token: string) {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-    }
+    },
   });
   return data;
 }

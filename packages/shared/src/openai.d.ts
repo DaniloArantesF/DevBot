@@ -5,20 +5,24 @@ declare namespace TOpenAi {
 
   export type BotConfig = {
     name: string;
-  } & ({
-    type: 'chat';
-    baseMessages: ChatCompletionRequestMessage[];
-  } | {
-    type: 'image';
-    promptPrefix: string;
-  } | {
-    type: 'completion';
-    promptPrefix: string;
-  } | {
-    type: 'code';
-    promptPrefix: string;
-    })
-
+  } & (
+    | {
+        type: 'chat';
+        baseMessages: ChatCompletionRequestMessage[];
+      }
+    | {
+        type: 'image';
+        promptPrefix: string;
+      }
+    | {
+        type: 'completion';
+        promptPrefix: string;
+      }
+    | {
+        type: 'code';
+        promptPrefix: string;
+      }
+  );
 
   export interface RequestTask {
     messageId: string;
@@ -56,8 +60,7 @@ declare namespace TOpenAi {
     channels: {
       [key: string]: string;
     };
-  }
-
+  };
 }
 
 export { TOpenAi };

@@ -39,16 +39,9 @@ function TaskManager(provider: BotProvider) {
   const openAIController = new OpenAI();
   const habitTrackerController = new HabitTracker(provider);
 
-  const controllers = [
-    apiController,
-    commandController,
-    eventController,
-  ];
+  const controllers = [apiController, commandController, eventController];
 
-  const plugins = [
-    openAIController,
-    habitTrackerController,
-  ]
+  const plugins = [openAIController, habitTrackerController];
 
   // Process tasks
   async function initProcessing() {
