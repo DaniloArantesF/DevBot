@@ -3,7 +3,6 @@ import { APIRouter } from '@/api';
 import botProvider from '..';
 import { authMiddleware } from './middleware/auth';
 import { TBotApi } from 'shared/types';
-import logRequest from './middleware/log';
 
 const PluginRouter: APIRouter = (pushRequest) => {
   const router = Router();

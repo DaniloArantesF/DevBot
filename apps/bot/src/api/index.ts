@@ -28,7 +28,7 @@ function API(provider: BotProvider) {
   const apiController = provider.getTaskManager().apiController;
   const routers = {
     '/': rootRouter,
-    '/bot': BotRouter(pushRequest),
+    '/bot': BotRouter.router,
     '/admin': AdminRouter(pushRequest),
     '/auth': AuthRouter(pushRequest),
     '/discord': DiscordRouter(pushRequest),
@@ -57,7 +57,7 @@ function API(provider: BotProvider) {
     api.use(express.urlencoded({ extended: true }));
     api.use(express.json());
     api.use(cookie());
-    api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
+    // api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
 
     // Rate limit requests - 10/sec
     api.use(

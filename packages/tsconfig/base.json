@@ -7,6 +7,8 @@
     "declarationMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "inlineSources": false,
     "isolatedModules": true,
     "moduleResolution": "node",

@@ -6,7 +6,7 @@ import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
 class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
-  queue = new Queue<QueueTaskData>('api-queue', queueSettings);
+  queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, ApiTask['execute']>();
   config = {
     taskTimeout: 2000,
@@ -14,6 +14,10 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
   };
 
   constructor() {}
+
+  init() {
+    this.queue = new Queue<QueueTaskData>('api-queue', queueSettings);
+  }
 
   async addTask({ id, execute }: ApiTask) {
     const job = this.queue.createJob({ id });
@@ -45,4 +49,5 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
   }
 }
 
-export default ApiController;
+const apiController = new ApiController();
+export default apiController;

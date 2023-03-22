@@ -1,5 +1,5 @@
 import { PermissionsString } from 'discord.js';
-import type { Request } from 'express';
+import type { Router, Request } from 'express';
 
 export interface DiscordAuthResponse {
   access_token: string;
@@ -118,6 +118,25 @@ declare namespace TBotApi {
   type GetChannelsResponse = ChannelData[];
   type CreateChannelResponse = ChannelData;
   type DeleteChannelResponse = BasicResponse;
+}
+
+export interface TRouter {
+  router: Router;
+}
+
+type RequestHandler = (...args: any[]) => Promise<void> | void;
+
+// TODO: include typing for Request Request<{}, {}, SetConfigBody>
+export interface TBotRouter {
+  getStatus: RequestHandler;
+  getCommands: RequestHandler;
+  setConfig: RequestHandler;
+}
+
+export interface TGuildRouter {
+  getGuilds: RequestHandler;
+  getUserRoles: RequestHandler;
+  setUserRoles: RequestHandler;
 }
 
 export type { TBotApi };

@@ -2,43 +2,43 @@
 
 ---
 
-## Todos
+## Requirements
 
-### Modules
+### Backend Requirements
 
-- [x] DiscordClient
-- [x] DataProvider
-- [x] TaskManager
-- [x] API
-- [ ] ServiceControllers
-- [ ] Logger
+- [ ] Per user cooldown and throttling
 
-### API
+- [ ] All requests, commands and events get logged
 
-- [x] Secure client sessions w/ cookies
+- [ ] Message/Slash Commands w/ support for aliases
 
-### Discord
+- [ ] Command/API permission checks
 
-- [x] Command aliases
-- [ ] Command permission checks
-- [ ] Webhook support
+- [ ] Bot setup and configuration wizard (through dm & web)
 
-### Task Queue & Storage
+* Export/Import configuration to file
+* Create checks for guild validation and prompt to delete old channels
 
-- [x] Throttling and cooldown
-- [x] Save task results to storage and log interactions
+- [ ] User role management
 
----
+  - Set and update user assignable roles
+  - Create/Update/Delete role assignment messages
+  - Save to database
 
-## Features
+- [ ] Guild moderation
 
-### Basic
+  - Make users agree to rules
+  - Language moderation (let automod take care of the rest)
 
-- [x] Role assignment
-- [ ] Scheduled Server Events and Channel
-- [ ] Automated server announcements
-- [ ] Language moderation
+- [ ] Server announcements
 
-### Optional
+### Web Requirements
+
+- Setup config wizard
+- Update config
+
+### Future Requirements
 
 - i18n support (changing languages & proving translations)
+- Support channels where users submit questions one at a time
+- Consume GraphQL

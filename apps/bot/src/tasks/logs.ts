@@ -2,13 +2,7 @@ import { stringifyCircular } from '@/utils';
 import type { TCache } from '@utils/types';
 import { CommandInteractionOption } from 'discord.js';
 
-export async function RequestLog(
-  method: string,
-  url: string,
-  status: number,
-  data?: any,
-  error?: any,
-) {
+export function RequestLog(method: string, url: string, status: number, data?: any, error?: any) {
   return {
     method,
     url,

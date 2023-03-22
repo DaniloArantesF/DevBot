@@ -1,7 +1,7 @@
 import Queue from 'bee-queue';
 import type { BotProvider } from '@/utils/types';
 import { REDIS_HOSTNAME, REDIS_PORT } from '@/utils/config';
-import ApiController from '@/controllers/apiController';
+import apiController from '@/controllers/apiController';
 import CommandController from '@/controllers/commandController';
 import EventController from '@/controllers/eventController';
 import HabitTracker from '@/controllers/plugins/habitTracker';
@@ -30,8 +30,7 @@ export const queueSettings: Queue.QueueSettings = {
 function TaskManager(provider: BotProvider) {
   logger.Info('TaskManager', 'Initializing ...');
 
-  // Task controllers
-  const apiController = new ApiController();
+  apiController.init();
   const commandController = new CommandController();
   const eventController = new EventController();
 

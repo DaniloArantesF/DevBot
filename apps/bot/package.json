@@ -8,7 +8,7 @@
     "clean": "rm -rf dist",
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts",
-    "lint": "tsc --noEmit && eslint src/**/*.ts --fix",
+    "lint": "tsc --noEmit --emitDecoratorMetadata --experimentalDecorators && eslint src/**/*.ts --fix",
     "test": "vitest",
     "test:ui": "vitest --ui"
   },
