@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -7,46 +7,39 @@ import AdminRouter from '@/api/adminRouter';
 import { ENVIRONMENT, API_PORT } from '@config';
 import AuthRouter from '@/api/authRouter';
 import DiscordRouter from '@/api/discordRouter';
-import type { apiHandler, BotProvider } from '@/utils/types';
 import BotRouter from '@/api/botRouter';
 import PluginRouter from './pluginRouter';
 import { logger } from 'shared/logger';
 import cookie from 'cookie-parser';
 
-export type APIRouter = (
-  pushRequest: (req: Request, execute: apiHandler) => void,
-) => express.Router;
-
-/**
- * API
- * @param provider BotProvider
- */
-function API(provider: BotProvider) {
-  const api = express();
-  const server = http.createServer(api);
-  const rootRouter = express.Router();
-  const apiController = provider.getTaskManager().apiController;
-  const routers = {
-    '/': rootRouter,
+class Api {
+  api = express();
+  server = http.createServer(this.api);
+  rootRouter = express.Router();
+  routers = {
+    '/': this.rootRouter,
     '/bot': BotRouter.router,
-    '/admin': AdminRouter(pushRequest),
-    '/auth': AuthRouter(pushRequest),
-    '/discord': DiscordRouter(pushRequest),
-    '/plugins': PluginRouter(pushRequest),
+    '/admin': AdminRouter.router,
+    '/auth': AuthRouter.router,
+    '/discord': DiscordRouter.router,
+    '/plugins': PluginRouter.router,
   };
 
-  function setupRoutes() {
-    for (const [path, router] of Object.entries(routers)) {
-      api.use(path, router);
+  constructor() {
+    for (const [path, router] of Object.entries(this.routers)) {
+      this.api.use(path, router);
     }
-
-    // Status route, does not go through task manager
-    rootRouter.get('/status', async (req: Request, res: Response) => res.send('Online'));
   }
 
-  function setupMiddleware() {
-    api.use(cors());
-    api.options(
+  async start() {
+    this.server.listen(API_PORT, () => {
+      logger.Info('API', `Listening on port ${API_PORT}`);
+    });
+  }
+
+  setupMiddleware() {
+    this.api.use(cors());
+    this.api.options(
       '*',
       cors({
         origin: ['http://localhost:3000', 'https://darflix.dev'],
@@ -54,13 +47,13 @@ function API(provider: BotProvider) {
         credentials: true,
       }),
     );
-    api.use(express.urlencoded({ extended: true }));
-    api.use(express.json());
-    api.use(cookie());
-    // api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
+    this.api.use(express.urlencoded({ extended: true }));
+    this.api.use(express.json());
+    this.api.use(cookie());
+    this.api.use(morgan(ENVIRONMENT === 'dev' ? 'dev' : 'combined'));
 
     // Rate limit requests - 10/sec
-    api.use(
+    this.api.use(
       rateLimit({
         windowMs: 1000,
         max: 10,
@@ -69,22 +62,7 @@ function API(provider: BotProvider) {
       }),
     );
   }
-
-  function pushRequest(req: Request, execute: apiHandler) {
-    apiController.addTask({
-      id: `${req.method}:${req.originalUrl}@${new Date().toISOString()}`,
-      execute,
-    });
-  }
-
-  // Setup server and listen for connections
-  setupMiddleware();
-  setupRoutes();
-  server.listen(API_PORT, () => {
-    logger.Info('API', `Listening on port ${API_PORT}`);
-  });
-
-  return { api, server, routers };
 }
 
-export default API;
+const api = new Api();
+export default api;

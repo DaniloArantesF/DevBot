@@ -12,7 +12,7 @@ export function withApiLogging() {
       res.send = function (body?: any) {
         if (!logged) {
           const requestLog = RequestLog(req.method, req.originalUrl, res.statusCode, body);
-          console.log(requestLog); // TODO
+          // console.log(requestLog); // TODO
           logged = true;
         }
         return originalSend(body);

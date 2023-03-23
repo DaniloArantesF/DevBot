@@ -8,6 +8,7 @@ import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'share
 import { logger } from 'shared/logger';
 import { POCKETBASE_BASE_URL } from './utils/config';
 import AuthController from './controllers/authController';
+import api from '@/api';
 
 async function Bot() {
   logger.Header([
@@ -44,15 +45,15 @@ async function Bot() {
   botProvider.addService('dataProvider', new DataProvider(botProvider));
   botProvider.addService('discordClient', new DiscordClient(botProvider));
   botProvider.addService('taskManager', TaskManager(botProvider));
-  botProvider.addService('api', API(botProvider));
+  botProvider.addService('api', API);
 
   const discordClient = botProvider.getDiscordClient();
   const dataProvider = botProvider.getDataProvider();
   const taskManager = botProvider.getTaskManager();
 
   async function main() {
-    const authController = AuthController.getInstance();
     await guildSetup();
+    api.start();
 
     if (BOT_CONFIG.autoProcess) {
       await taskManager.initProcessing();

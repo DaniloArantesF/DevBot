@@ -1,44 +1,42 @@
 import { Router, Request, Response } from 'express';
 import { PUBLIC_CLIENT_URL } from '@/utils/config';
-import { APIRouter } from '@/api';
 import { logger } from 'shared/logger';
 import AuthController from '@/controllers/authController';
+import { useApiQueue } from './decorators/queue';
+import { withApiLogging } from './decorators/log';
 
-const AuthRouter: APIRouter = (pushRequest) => {
-  const router = Router();
-  logger.Debug('AuthRouter', `OAuth RedirectURL: ${PUBLIC_CLIENT_URL}/login`);
+class AuthRouter {
+  router = Router();
 
-  /**
-   * Fetches access token given an authorization code
-   *
-   * @route POST /auth/code
-   * @apiparam {string} code Discord authorization code
-   * @apiresponse {200} DiscordAuthResponse
-   * @apiresponse {401} Unauthorized (no code provided)
-   * @apiresponse {500} Internal Server Error (error fetching access token)
-   */
-  router.post('/login', async (req: Request, res: Response) => {
-    async function handler() {
-      const authController = AuthController.getInstance();
-      const { code } = req.body;
+  constructor() {
+    this.init();
+    logger.Debug('AuthRouter', `OAuth RedirectURL: ${PUBLIC_CLIENT_URL}/login`);
+  }
 
-      if (!code) {
-        res.sendStatus(401);
-        return;
-      }
+  init() {
+    this.router.post('/login', this.login.bind(this));
+  }
 
-      const data = await authController.createSession(code);
-      if (!data) {
-        res.sendStatus(500);
-        return;
-      }
+  @useApiQueue()
+  @withApiLogging()
+  async login(req: Request, res: Response) {
+    const authController = AuthController.getInstance();
+    const { code } = req.body;
 
-      res.status(200).send(data);
+    if (!code) {
+      res.sendStatus(401);
+      return;
     }
-    pushRequest(req, handler);
-  });
 
-  return router;
-};
+    const data = await authController.createSession(code);
+    if (!data) {
+      res.sendStatus(500);
+      return;
+    }
 
-export default AuthRouter;
+    res.status(200).send(data);
+  }
+}
+
+const authRouter = new AuthRouter();
+export default authRouter;

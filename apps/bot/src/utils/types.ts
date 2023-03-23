@@ -12,7 +12,7 @@ export interface BotProvider {
   services: Partial<{
     [key: string]: any;
     discordClient: DiscordClient;
-    api: ReturnType<typeof API>;
+    api: typeof API;
     dataProvider: DataProvider;
     taskManager: ReturnType<typeof TaskManager>;
   }>;
@@ -22,7 +22,7 @@ export interface BotProvider {
   getDiscordClient: () => DiscordClient;
   getTaskManager: () => ReturnType<typeof TaskManager>;
   getDataProvider: () => DataProvider;
-  getApi: () => ReturnType<typeof API>;
+  getApi: () => typeof API;
 }
 
 /*     DiscordClient Types     */

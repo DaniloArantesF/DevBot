@@ -15,7 +15,10 @@ class BotRouter implements TBotRouter {
   init() {
     this.router.get('/status', this.getStatus.bind(this));
     this.router.get('/commands', this.getCommands.bind(this));
+    // this.router.get('/config/:guildId', this.getConfig.bind(this));
     this.router.put('/config/:guildId', this.setConfig.bind(this));
+    this.router.get('/config/:guildId/userRoles', this.getUserRoles.bind(this));
+    this.router.put('/config/:guildId/userRoles', this.setUserRoles.bind(this));
   }
 
   @withApiLogging()
@@ -61,6 +64,44 @@ class BotRouter implements TBotRouter {
       res.status((error as any)?.status ?? 500).send({
         message: 'Failed to update guild config',
       });
+    }
+  }
+
+  @withAuth(['user'])
+  @useApiQueue()
+  @withApiLogging()
+  async getUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildModel = (await botProvider).getDataProvider().guild;
+
+    try {
+      const guildRecord = await guildModel.get(req.params.guildId);
+      const userRoles = guildRecord.userRoles;
+      res.send({ userRoles });
+    } catch (error) {
+      res.status(404).send('Guild not found');
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async setUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildModel = (await botProvider).getDataProvider().guild;
+    const newUserRoles = req.body.userRoles;
+
+    if (!Array.isArray(newUserRoles)) {
+      res.status(400).send('Missing or invalid userRoles array');
+      return;
+    }
+
+    try {
+      const updatedRecord = await guildModel.update({
+        guildId: req.params.guildId,
+        userRoles: [...newUserRoles],
+      });
+      res.send({ userRoles: updatedRecord.userRoles });
+    } catch (error: any) {
+      res.status(error.status).send({ message: error.message });
     }
   }
 }
