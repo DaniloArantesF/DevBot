@@ -1,13 +1,11 @@
 import DiscordClient from '@/DiscordClient';
 import DataProvider from '@/DataProvider';
-import API from '@/api';
 import TaskManager from '@/TaskManager';
 import type { BotProvider } from '@/utils/types';
 import { setRolesMessage } from '@/tasks/roles';
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
 import { POCKETBASE_BASE_URL } from './utils/config';
-import AuthController from './controllers/authController';
 import api from '@/api';
 
 async function Bot() {
@@ -45,7 +43,7 @@ async function Bot() {
   botProvider.addService('dataProvider', new DataProvider(botProvider));
   botProvider.addService('discordClient', new DiscordClient(botProvider));
   botProvider.addService('taskManager', TaskManager(botProvider));
-  botProvider.addService('api', API);
+  botProvider.addService('api', api);
 
   const discordClient = botProvider.getDiscordClient();
   const dataProvider = botProvider.getDataProvider();
@@ -94,6 +92,6 @@ async function Bot() {
   });
 }
 
-console.clear();
+// console.clear();
 const botProvider = Bot();
 export default botProvider;

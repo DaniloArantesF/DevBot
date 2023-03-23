@@ -26,6 +26,9 @@ class Api {
   };
 
   constructor() {
+    this.setupMiddleware();
+
+    // Setup routers
     for (const [path, router] of Object.entries(this.routers)) {
       this.api.use(path, router);
     }
