@@ -45,4 +45,56 @@ declare namespace TBot {
   };
 }
 
+export type GuildConfigUserRole = {
+  color: number;
+  hoist: boolean;
+  icon: string | null;
+  mentionable: boolean;
+  name: string;
+  permissions: PermissionsString[];
+  unicodeEmoji: string | null;
+  // premiumSubscriber: boolean;
+  managed: boolean;
+  userAssignable: boolean;
+};
+
+export type GuildConfigModerationRule = {
+  enabled: boolean;
+  allowed: string[];
+  roleExceptions: string[];
+};
+
+export type GuildConfigChannel = {
+  name: string;
+  description: string;
+  type: string; // improve this
+  subChannels: {
+    // only possible for category channels
+    [key: string]: Omit<GuildConfigChannel, 'subChannels'>;
+  };
+  allowedRoles: string[];
+  moderation: {
+    language: GuildConfigModerationRule;
+    content: GuildConfigModerationRule;
+  };
+  flags: string[];
+  plugin: string | null;
+};
+
+export type ConfigCollection<V> = {
+  [key: string]: V;
+};
+
+export type GuildConfigExport = {
+  roles: ConfigCollection<GuildConfigUserRole>;
+  rules: {
+    channelName: string;
+    message: string;
+  };
+  channels: {
+    [key: number]: GuildConfigChannel;
+  };
+  plugins: string[]; // ??
+};
+
 export type { TBot };

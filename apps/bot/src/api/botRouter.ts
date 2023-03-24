@@ -5,6 +5,7 @@ import { withAuth } from './decorators/auth';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 import dataProvider from '@/DataProvider';
+import bot from '..';
 
 class BotRouter implements TBotRouter {
   router = Router();
@@ -19,6 +20,7 @@ class BotRouter implements TBotRouter {
     this.router.put('/config/:guildId', this.setConfig.bind(this));
     this.router.get('/config/:guildId/userRoles', this.getUserRoles.bind(this));
     this.router.put('/config/:guildId/userRoles', this.setUserRoles.bind(this));
+    this.router.get('/config/:guildId/export', this.getGuildConfigExport.bind(this));
   }
 
   @withApiLogging()
@@ -64,6 +66,18 @@ class BotRouter implements TBotRouter {
       res.status((error as any)?.status ?? 500).send({
         message: 'Failed to update guild config',
       });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async getGuildConfigExport(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const data = await bot.exportGuildConfig(req.params.guildId);
+    if (data) {
+      res.send({ ...data });
+    } else {
+      res.status(404).send('Invalid guildId');
     }
   }
 

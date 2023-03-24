@@ -27,7 +27,7 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
   }
 
   async processTasks() {
-    logger.Info('APIController', 'Processing API tasks.');
+    logger.Info('APIController', 'Processing API tasks ...');
     this.queue.process(async (job) => {
       const handler = this.taskMap.get(job.id);
       if (!handler) return;

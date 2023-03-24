@@ -23,14 +23,13 @@ export const queueSettings: Queue.QueueSettings = {
 
 class TaskManager {
   // TODO: add typing to this
-  controllers: Controller<any, any>[]
-  plugins: any[]
+  controllers: Controller<any, any>[];
+  plugins: any[];
 
   constructor() {
     logger.Info('TaskManager', 'Initializing ...');
     this.controllers = [apiController, commandController, eventController];
-    this.plugins= [openAIPlugin, habitTrackerPlugin];
-
+    this.plugins = [openAIPlugin, habitTrackerPlugin];
   }
 
   // Process tasks
@@ -48,7 +47,7 @@ class TaskManager {
   }
 
   async setupPlugins() {
-    logger.Info('TaskManager', 'Initializing plugins...');
+    logger.Info('TaskManager', 'Initializing plugins ...');
     await openAIPlugin.init();
     habitTrackerPlugin.init();
   }

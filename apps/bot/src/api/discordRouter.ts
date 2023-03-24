@@ -191,7 +191,7 @@ class DiscordRouter {
           id,
           name,
           parentId,
-          rawPosition: 0,
+          rawPosition: (channel as any).rawPosition ?? 0,
           type,
         }),
       ) ?? [];
