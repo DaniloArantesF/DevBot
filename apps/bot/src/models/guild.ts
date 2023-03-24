@@ -25,6 +25,8 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
           guildId: guild.id,
           name: guild.name,
           userRoles: [],
+          description: '',
+          memberRoleId: '',
         });
         if (!record) continue;
         cacheMap.set(guild.id, record.id);

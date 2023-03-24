@@ -1,6 +1,7 @@
 import type { CommandInteraction, Message, MessageComponentInteraction } from 'discord.js';
 import { TDiscord } from './discord';
 import { TCache } from './cache';
+import { TBotApi } from './api';
 
 declare namespace TBot {
   type LogLevel = 'debug' | 'minimal';
@@ -45,16 +46,13 @@ declare namespace TBot {
   };
 }
 
-export type GuildConfigUserRole = {
-  color: number;
-  hoist: boolean;
-  icon: string | null;
-  mentionable: boolean;
-  name: string;
-  permissions: PermissionsString[];
-  unicodeEmoji: string | null;
-  // premiumSubscriber: boolean;
-  managed: boolean;
+export type GuildBotContext = {
+  rulesChannel: GuildChannel | null;
+  rulesMessage: Message | null;
+  memberRole: Role | null;
+};
+
+export type GuildConfigUserRole = Omit<TBotApi.RoleData, 'id' | 'guildId'> & {
   userAssignable: boolean;
 };
 

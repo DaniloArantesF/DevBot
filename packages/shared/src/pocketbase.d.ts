@@ -33,6 +33,9 @@ declare namespace TPocketbase {
     rolesChannelId?: string;
     rolesMessageId?: string;
     userRoles: string[];
+    description?: string;
+    memberRoleId?: string;
+    rules?: string;
   };
 
   export type ChallengeData = {

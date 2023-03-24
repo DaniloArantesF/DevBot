@@ -120,10 +120,32 @@ class DiscordRouter {
   @withApiLogging()
   async getGuildRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId;
-    // TODO: improve this
-    const roles = (await getGuildRoles(guildId))?.map((role) =>
-      JSON.parse(stringifyCircular(role)),
-    );
+    const roles: TBotApi.RoleData[] =
+      getGuildRoles(guildId)?.map(
+        ({
+          id,
+          color,
+          hoist,
+          icon,
+          mentionable,
+          name,
+          permissions,
+          unicodeEmoji,
+          managed,
+          guild,
+        }) => ({
+          color,
+          hoist,
+          icon,
+          mentionable,
+          name,
+          permissions: permissions.toArray(),
+          unicodeEmoji,
+          managed,
+          guildId: guild.id,
+          id,
+        }),
+      ) ?? [];
     res.send(roles ?? []);
   }
 

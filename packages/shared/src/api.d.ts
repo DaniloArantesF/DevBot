@@ -107,6 +107,20 @@ declare namespace TBotApi {
     type: number;
   };
 
+  type RoleData = {
+    id: string;
+    guildId: string;
+    color: number;
+    hoist: boolean;
+    icon: string | null;
+    mentionable: boolean;
+    name: string;
+    permissions: PermissionsString[];
+    unicodeEmoji: string | null;
+    managed: boolean;
+    // premiumSubscriber: boolean;
+  };
+
   /* Api Response types  */
   type BasicResponse = {
     message: string;

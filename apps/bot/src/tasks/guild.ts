@@ -2,7 +2,7 @@ import { ChannelType } from 'discord.js';
 import { getGuildChannels } from './channels';
 import discordClient from '@/DiscordClient';
 
-export async function getGuild(guildId: string) {
+export function getGuild(guildId: string) {
   return discordClient.guilds.cache.get(guildId);
 }
 

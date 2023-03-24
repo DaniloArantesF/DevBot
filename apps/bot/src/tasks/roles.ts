@@ -94,28 +94,24 @@ export async function setRolesMessage(guildId: string, channelId: string, userRo
   }
 }
 
-export async function getUserRoles(userId: string, guildId: string) {
-
+export function getUserRoles(userId: string, guildId: string) {
   const guild = discordClient.guilds.cache.get(guildId);
   const member = guild?.members.cache.get(userId);
   return member?.roles.cache;
 }
 
-export async function setUserRoles(guildId: string, userId: string, roles: string[]) {
-
+export function setUserRoles(guildId: string, userId: string, roles: string[]) {
   const guild = discordClient.guilds.cache.get(guildId);
   const member = guild?.members.cache.get(userId);
   return member?.roles.set(roles.map((role) => guild?.roles.cache.get(role)!));
 }
 
-export async function getGuildRoles(guildId: string) {
-
+export function getGuildRoles(guildId: string) {
   const guild = discordClient.guilds.cache.get(guildId);
   return guild?.roles.cache;
 }
 
 export async function addUserRole(userId: string, guildId: string, roleId: string) {
-
   const guild = discordClient.guilds.cache.get(guildId);
   const member = guild?.members.cache.get(userId);
   const role = guild?.roles.cache.get(roleId);
@@ -124,7 +120,6 @@ export async function addUserRole(userId: string, guildId: string, roleId: strin
 }
 
 export async function removeUserRole(userId: string, guildId: string, roleId: string) {
-
   const guild = discordClient.guilds.cache.get(guildId);
   const member = guild?.members.cache.get(userId);
   const role = guild?.roles.cache.get(roleId);
@@ -132,8 +127,7 @@ export async function removeUserRole(userId: string, guildId: string, roleId: st
   await member?.roles.remove(role);
 }
 
-export async function getGuildRole(guildId: string, roleId?: string, roleName?: string) {
-
+export function getGuildRole(guildId: string, roleId?: string, roleName?: string) {
   const guild = discordClient.guilds.cache.get(guildId);
   if (roleName) return guild?.roles.cache.find((role) => role.name === roleName);
   try {
@@ -144,12 +138,15 @@ export async function getGuildRole(guildId: string, roleId?: string, roleName?: 
 }
 
 export async function hasRole(userId: string, guildId: string, roleId: string) {
-
   const guild = discordClient.guilds.cache.get(guildId);
   const member = guild?.members.cache.get(userId);
   const role = guild?.roles.cache.get(roleId);
   if (!role) return false;
   return member?.roles.cache.has(role.id);
+}
+
+export function getEveryoneRole(guildId: string) {
+  return getGuildRole(guildId, undefined, '@everyone')!;
 }
 
 const emojis = [

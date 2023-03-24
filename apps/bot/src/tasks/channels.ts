@@ -8,11 +8,11 @@ import {
   TextChannel,
 } from 'discord.js';
 
-export async function createChannel<T extends GuildChannelTypes>(
+export function createChannel<T extends GuildChannelTypes>(
   guildId: string,
   options: GuildChannelCreateOptions,
 ) {
-  const guild = await getGuild(guildId);
+  const guild = getGuild(guildId);
   return guild?.channels.create(options) as Promise<MappedGuildChannelTypes[T]>;
 }
 
@@ -35,8 +35,8 @@ export async function getGuildChannel(guildId: string, channelId?: string, chann
 }
 
 // Returns current members of a channel
-export async function getGuildChannelPresence(guildId: string, channelId: string) {
-  const guild = await getGuild(guildId);
+export function getGuildChannelPresence(guildId: string, channelId: string) {
+  const guild = getGuild(guildId);
   const channel = guild?.channels.cache.get(channelId);
   return channel?.members ?? null;
 }
@@ -45,4 +45,9 @@ export async function purgeChannel(guildId: string, channelId: string, limit = 1
   const channel = (await getGuildChannel(guildId, channelId)) as TextChannel;
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.bulkDelete(limit, true);
+}
+
+export function getRulesChannel(guildId: string) {
+  const guild = getGuild(guildId);
+  return guild?.rulesChannel;
 }
