@@ -1,4 +1,4 @@
-import type { BotProvider } from '@/utils/types';
+import type { TPluginController } from '@/utils/types';
 import PocketBase from 'pocketbase';
 import { getGuild } from '@/tasks/guild';
 import { createChannel, getGuildChannel } from '@/tasks/channels';
@@ -22,16 +22,16 @@ import { notifySponsor } from '@/commands/challenge';
 import { getGuildMember } from '@/tasks/members';
 import { TPocketbase } from 'shared';
 import { logger } from 'shared/logger';
+import dataProvider from '@/DataProvider';
 
-interface HabitTracker {
+// TODO: fix challenge creation not saving to db
+interface HabitTracker extends TPluginController<RoutineTaskData> {
   activeThreads: Map<string, ThreadChannel>; // challengeId -> threadId
   categoryChannelMap: Map<string, CategoryChannel>;
   challengeModel: ChallengeModel;
   enabledGuilds: string[];
   ongoingChallenges: TPocketbase.Challenge[];
   pocketbase: PocketBase;
-  provider: BotProvider;
-  queue: Queue<RoutineTaskData>;
   participants: Map<string, TPocketbase.ChallengeParticipant[]>; // challengeId -> participants
 
   // Jobs map
@@ -48,12 +48,10 @@ interface RoutineTaskData {
 class HabitTracker {
   id = 'habitTracker';
 
-  constructor(provider: BotProvider) {
-    this.provider = provider;
-    this.pocketbase = provider.getDataProvider().pocketbase;
+  constructor() {
+    this.pocketbase = dataProvider.pocketbase;
     this.enabledGuilds = [];
     this.categoryChannelMap = new Map();
-    this.queue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
     this.scheduledTasks = new Map();
     this.activeThreads = new Map();
     this.participants = new Map();
@@ -62,12 +60,13 @@ class HabitTracker {
   // Reads in challenges from database
   // Schedules routine checks
   // Executes overdue tasks
-  async setup() {
-    if (!(await this.provider.getDataProvider().pocketbase.isAdmin)) {
+  async init() {
+    this.queue = new Queue<RoutineTaskData>('habit-queue', queueSettings);
+    if (!(await dataProvider.pocketbase.isAdmin)) {
       logger.Warning('HabitTracker', 'Aborting setup. Pocketbase is not admin.');
     }
     this.ongoingChallenges = await this.getOnGoingChallenges();
-    this.challengeModel = this.provider.getDataProvider().challenge;
+    this.challengeModel = dataProvider.challenge;
 
     // Save participants
     const participants = await this.challengeModel.getParticipants();
@@ -196,7 +195,7 @@ class HabitTracker {
 
   // Enables habit tracking for a guild
   async enable(guildId: string) {
-    const guildRepository = this.provider.getDataProvider().guild;
+    const guildRepository = dataProvider.guild;
     const serverRecord = await guildRepository.get(guildId);
     const currentPlugins: string[] = serverRecord.plugins || [];
     if (currentPlugins.includes('habitTracker')) {
@@ -209,7 +208,7 @@ class HabitTracker {
 
   // Disables habit tracking for a guild
   async disable(guildId: string) {
-    const guildRepository = this.provider.getDataProvider().guild;
+    const guildRepository = dataProvider.guild;
     const serverRecord = await guildRepository.get(guildId);
     const currentPlugins = serverRecord.plugins as string[];
     if (!currentPlugins || !currentPlugins.includes('habitTracker')) return serverRecord;
@@ -711,4 +710,5 @@ class HabitTracker {
   }
 }
 
-export default HabitTracker;
+const habitTracker = new HabitTracker();
+export default habitTracker;

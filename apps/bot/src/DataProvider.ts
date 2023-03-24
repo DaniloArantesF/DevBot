@@ -1,7 +1,6 @@
 import { Client } from 'redis-om';
 import { REDIS_URL } from 'shared/config';
 import GuildRepository from './models/guild';
-import type { BotProvider } from '@utils/types';
 import PocketBaseSDK, { Collection } from 'pocketbase';
 import UserModel from './models/user';
 import {
@@ -14,7 +13,6 @@ import { logger } from 'shared/logger';
 import dbSchema from '../pb_schema.json';
 
 interface DataProvider {
-  botProvider: Awaited<BotProvider>;
   redis: Client;
   pocketbase: PocketBase;
   guild: ReturnType<typeof GuildRepository>;
@@ -68,9 +66,8 @@ export class PocketBase extends PocketBaseSDK {
 }
 
 class DataProvider {
-  constructor(botProvider: Awaited<BotProvider>) {
+  constructor() {
     logger.Info('DataProvider', 'Initializing ...');
-    this.botProvider = botProvider;
     this.pocketbase = new PocketBase();
     this.redis = new Client();
   }
@@ -87,11 +84,12 @@ class DataProvider {
     }
 
     this.challenge = new ChallengeModel(this.pocketbase);
-    this.guild = GuildRepository(this.botProvider);
+    this.guild = GuildRepository(this.pocketbase);
     this.user = new UserModel(this.pocketbase);
   }
 
   async cleanUp() {}
 }
 
-export default DataProvider;
+const dataProvider = new DataProvider();
+export default dataProvider;

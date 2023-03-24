@@ -8,9 +8,10 @@ import {
   MessageComponentInteraction,
   ContextMenuCommandInteraction,
 } from 'discord.js';
-import botProvider from '@/index';
 import { BOT_CONFIG } from 'shared/config';
 import { logger } from 'shared/logger';
+import bot from '@/index';
+import discordClient from '@/DiscordClient';
 
 const COOLDOWN_MS = BOT_CONFIG.cooldownMs;
 const PREFIX = BOT_CONFIG.prefix;
@@ -22,7 +23,7 @@ export type CommandInteraction =
   | ContextMenuCommandInteraction;
 
 class CommandController implements Controller<QueueTaskData, CommandInteraction> {
-  queue = new Queue<QueueTaskData>('command-queue', queueSettings);
+  queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, CommandInteraction>();
   config = {
     taskTimeout: 5000,
@@ -31,6 +32,10 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
 
   constructor() {}
 
+  init() {
+    this.queue = new Queue<QueueTaskData>('command-queue', queueSettings);
+  }
+
   async addTask(interaction: CommandInteraction) {
     const job = this.queue.createJob({ id: interaction.id });
 
@@ -38,13 +43,13 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
 
     // Check if user is in cooldown
     if (interaction.member) {
-      const cooldownMap = (await botProvider).userCooldown;
+      const cooldownMap = bot.userCooldown;
       const lastInteraction = cooldownMap.get(interaction.member!.user.id) ?? -1;
       const timeLeft = lastInteraction === -1 ? 0 : lastInteraction + COOLDOWN_MS - Date.now();
 
       if (timeLeft > 0) {
-        console.info(
-          `Delaying command from ${interaction.member!.user.username} for ${timeLeft}ms}`,
+        logger.Info('CommandController',
+          `Delaying command from ${interaction.member!.user.username} for ${timeLeft}ms`,
         );
         job.delayUntil(Date.now() + timeLeft);
       }
@@ -58,7 +63,8 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
     return job;
   }
 
-  async processTasks(commands: Map<string, TBot.Command>) {
+  async processTasks() {
+    const commands = discordClient.commands;
     logger.Info('CommandController', 'Processing tasks ...');
     this.queue.process(async (job) => {
       const interaction = this.taskMap.get(job.id);
@@ -115,4 +121,5 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
   }
 }
 
-export default CommandController;
+const commandController = new CommandController();
+export default commandController;

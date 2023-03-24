@@ -6,7 +6,6 @@ import {
   ImagesResponse,
   CreateCompletionResponse,
 } from 'openai';
-import botProvider from '@/index';
 import { getGuildChannel } from '@/tasks/channels';
 import { Message, TextChannel } from 'discord.js';
 import { getLatestChannelMessages } from '@/tasks/message';
@@ -15,13 +14,15 @@ import { queueSettings } from '@/TaskManager';
 import { TOpenAi } from 'shared/types';
 import { OPENAI_API_KEY } from '@/utils/config';
 import OpenAiPluginApi from './openaiApi';
+import dataProvider from '@/DataProvider';
+import api from '@/api';
 
 class OpenAI extends OpenAIApi {
+  queue!: Queue<TOpenAi.RequestTaskData>;
   id = 'openAi';
   api?: OpenAiPluginApi;
   guildRecordMap = new Map<string, TOpenAi.Record>();
   channels = new Map<string, { [key: string]: string }>();
-  queue = new Queue<TOpenAi.RequestTaskData>('openai-request-queue', queueSettings);
   config = {
     completionModel: 'text-davinci-003',
     chatModel: 'gpt-3.5-turbo',
@@ -35,8 +36,8 @@ class OpenAI extends OpenAIApi {
     super(new Configuration({ apiKey: OPENAI_API_KEY }));
   }
 
-  async setup() {
-    await botProvider;
+  async init() {
+    this.queue = new Queue<TOpenAi.RequestTaskData>('openai-request-queue', queueSettings);
     const guildConfigList = await this.getPluginData();
 
     for (const guildConfig of guildConfigList) {
@@ -55,16 +56,15 @@ class OpenAI extends OpenAIApi {
 
   // Waits for bot provider to be ready before setting up the api
   async setupApi() {
-    await botProvider;
     // Setup plugin api
-    const pluginRouter = (await botProvider).getApi().routers['/plugins'];
-    this.api = new OpenAiPluginApi(pluginRouter, this);
+    const pluginRouter = api.routers['/plugins'];
+    this.api = new OpenAiPluginApi(pluginRouter);
   }
 
   // Retrieves plugin config data from database
   async getPluginData() {
-    const pocketbase = (await botProvider).getDataProvider().pocketbase;
-
+    const pocketbase = dataProvider.pocketbase;
+    await pocketbase.isAdmin;
     return await pocketbase.collection('openai_plugin').getFullList<TOpenAi.Record>();
   }
 
@@ -252,4 +252,5 @@ class OpenAI extends OpenAIApi {
   });
 }
 
-export default OpenAI;
+const openAiPlugin = new OpenAI();
+export default openAiPlugin;

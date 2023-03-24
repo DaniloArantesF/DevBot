@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { getCommands } from '@/tasks/commands';
-import botProvider from '..';
 import { TBotApi, TBotRouter } from 'shared/types';
 import { withAuth } from './decorators/auth';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
+import dataProvider from '@/DataProvider';
 
 class BotRouter implements TBotRouter {
   router = Router();
@@ -50,7 +50,7 @@ class BotRouter implements TBotRouter {
       return;
     }
 
-    const guildModel = (await botProvider).getDataProvider().guild;
+    const guildModel = dataProvider.guild;
     try {
       const updatedRecord = await guildModel.update({
         guildId: guildId as string,
@@ -71,7 +71,7 @@ class BotRouter implements TBotRouter {
   @useApiQueue()
   @withApiLogging()
   async getUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
-    const guildModel = (await botProvider).getDataProvider().guild;
+    const guildModel = dataProvider.guild;
 
     try {
       const guildRecord = await guildModel.get(req.params.guildId);
@@ -86,7 +86,7 @@ class BotRouter implements TBotRouter {
   @useApiQueue()
   @withApiLogging()
   async setUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
-    const guildModel = (await botProvider).getDataProvider().guild;
+    const guildModel = dataProvider.guild;
     const newUserRoles = req.body.userRoles;
 
     if (!Array.isArray(newUserRoles)) {

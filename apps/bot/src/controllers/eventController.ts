@@ -5,7 +5,7 @@ import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
 class EventController implements Controller<QueueTaskData, EventTask> {
-  queue = new Queue<QueueTaskData>('event-queue', queueSettings);
+  queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, EventTask>();
   config = {
     taskTimeout: 3000,
@@ -13,6 +13,10 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   };
 
   constructor() {}
+
+  init() {
+    this.queue = new Queue<QueueTaskData>('event-queue', queueSettings);
+  }
 
   async addTask(event: DiscordEvent, args: any[] = []) {
     const job = this.queue.createJob({ id: `${event.name}@${new Date().toISOString()}` });
@@ -44,4 +48,5 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   }
 }
 
-export default EventController;
+const eventController = new EventController();
+export default eventController;

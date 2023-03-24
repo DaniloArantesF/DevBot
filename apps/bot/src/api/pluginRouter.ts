@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
-import botProvider from '..';
 import { TBotApi } from 'shared/types';
 import { withAuth } from './decorators/auth';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
+import dataProvider from '@/DataProvider';
+import taskManager from '@/TaskManager';
 
 class PluginRouter {
   router = Router();
@@ -21,7 +22,6 @@ class PluginRouter {
   @useApiQueue()
   @withApiLogging()
   async getPlugins(req: TBotApi.AuthenticatedRequest, res: Response) {
-    const taskManager = (await botProvider).getTaskManager();
     const plugins = taskManager.plugins;
     try {
       const pluginIds = plugins.map((p) => p.id);
@@ -50,7 +50,7 @@ class PluginRouter {
   @useApiQueue()
   @withApiLogging()
   async getGuildPlugins(req: TBotApi.AuthenticatedRequest, res: Response) {
-    const guildModel = (await botProvider).getDataProvider().guild;
+    const guildModel = dataProvider.guild;
 
     try {
       const guildRecord = await guildModel.get(req.params.guildId);

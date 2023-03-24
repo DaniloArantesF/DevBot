@@ -1,9 +1,9 @@
 import { TBotApi, TPocketbase } from 'shared/types';
-import botProvider from '..';
 import { getUserData, getUserToken } from '@/tasks/user';
 import jwt from 'jsonwebtoken';
 import UserModel from '@/models/user';
 import { logger } from 'shared/logger';
+import dataProvider from '@/DataProvider';
 
 class AuthController {
   private static instance: AuthController;
@@ -27,7 +27,7 @@ class AuthController {
   }
 
   async init() {
-    this.userModel = (await botProvider).getDataProvider().user;
+    this.userModel = dataProvider.user;
   }
 
   async createSession(code: string) {

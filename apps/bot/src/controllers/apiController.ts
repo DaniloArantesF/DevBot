@@ -1,4 +1,4 @@
-import DiscordClient from '@/DiscordClient';
+import discordClient from '@/DiscordClient';
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
 import { ApiTask, Controller, QueueTaskData } from '@/utils/types';
@@ -26,13 +26,13 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
     return job;
   }
 
-  async processTasks(client: DiscordClient) {
+  async processTasks() {
     logger.Info('APIController', 'Processing API tasks.');
     this.queue.process(async (job) => {
       const handler = this.taskMap.get(job.id);
       if (!handler) return;
 
-      const data = await handler(client);
+      const data = await handler();
       if (data) {
         job.data.result = stringifyCircular(data);
       }

@@ -9,11 +9,12 @@ import {
 } from 'discord.js';
 import { TBot, TDiscord } from '@/utils/types';
 import { replyInteraction } from '@/tasks/commands';
-import botProvider from '..';
 import { getDiscordAvatar } from 'shared/utils';
 import { getUserMention } from '@/tasks/message';
 import { getGuildMember } from '@/tasks/members';
 import { TPocketbase } from '@/utils/types';
+import habitTrackerController from '@/controllers/plugins/habitTracker';
+import dataProvider from '@/DataProvider';
 
 const DEBUG_CHALLENGE_PERIOD = 5 * 60 * 1000; // 5 minutes
 
@@ -48,7 +49,7 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
     if (collected.size === 0) {
       await dmChannel.send(':/');
     } else {
-      const challengeModel = (await botProvider).getDataProvider().challenge;
+      const challengeModel = dataProvider.challenge;
       const participant = (await challengeModel.getParticipants()).find(
         (p) => p.userId === user.id && p.challenge === challenge.id,
       );
@@ -61,8 +62,6 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
         sponsorId: sponsor.user.id,
         sponsorVerified: true,
       });
-
-      const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
 
       // Update participant cache
       await habitTrackerController.updateChallengeParticipants(challenge);
@@ -110,7 +109,6 @@ export const command: TBot.Command = {
     const periodDays = interaction.options.get('period')?.value as number;
     const period = periodDays ? periodDays * 24 * 60 * 60 * 1000 : DEBUG_CHALLENGE_PERIOD;
 
-    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
     const record = await habitTrackerController.createChallenge({
       goal,
       duration,
@@ -164,7 +162,6 @@ export const challangeJoin: TBot.Command = {
     };
   },
   async execute(interaction) {
-    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
     let reply = 'You have joined a challenge!';
 
     let channelId = interaction.channelId;
@@ -252,8 +249,6 @@ export const challengeSubmit: TBot.Command = {
       ],
     };
 
-    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
-
     if (interaction.channel!.isThread()) {
       channelId = interaction.channel.parentId!;
     }
@@ -325,8 +320,6 @@ export const challengeUpdate: TBot.Command = {
     if (!channelId) channelId = interaction.channelId;
     let reply = 'Successfully updated the challenge.';
 
-    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
-
     let goal = interaction.options.get('goal')?.value as string;
     let duration = interaction.options.get('duration')?.value as number;
     let period = interaction.options.get('period')?.value as number;
@@ -395,7 +388,6 @@ export const challengeLeave: TBot.Command = {
     let channelId = interaction.options.get('challenge')?.value as string;
     if (!channelId) channelId = interaction.channelId;
     let reply = 'Successfully removed you from the challenge :(';
-    const habitTrackerController = (await botProvider).getTaskManager().habitTrackerController;
 
     // Remove participant from challenge. If no participants left, delete challenge
     try {

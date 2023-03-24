@@ -1,6 +1,6 @@
 import { Events, Interaction } from 'discord.js';
 import { DiscordEvent } from '@utils/types';
-import botProvider from '@/index';
+import commandController from '@/controllers/commandController';
 
 export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
   name: Events.InteractionCreate,
@@ -18,7 +18,7 @@ export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
       interaction.isContextMenuCommand()
     ) {
       // Push interactions to task queue
-      (await botProvider).getTaskManager().commandController.addTask(interaction);
+      commandController.addTask(interaction);
     }
   },
 };

@@ -1,10 +1,9 @@
-import { BotProvider } from '@/utils/types';
+import dataProvider from '@/DataProvider';
 import discord from 'discord.js';
 import { TPocketbase } from 'shared/types';
 
-const GuildRepository = (provider: BotProvider) => {
+const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
   const cacheMap = new Map<string, string>(); // guildId -> entityId
-  const pocketbase = provider.getDataProvider().pocketbase;
 
   // Syncs guilds with database
   // Stores mapping in cache

@@ -1,7 +1,7 @@
+import discordClient from '@/DiscordClient';
 import { CLIENT_ID, CLIENT_SECRET } from '@/utils/config';
 import { DISCORD_API_BASE_URL, PUBLIC_CLIENT_URL } from 'shared/config';
 import { DiscordAuthResponse, GuildDiscordData, TBotApi, UserDiscordResponse } from 'shared/types';
-import botProvider from '..';
 
 // Returns the network of active users in a user's guilds
 export async function getUserNetwork() {}
@@ -64,7 +64,6 @@ export async function getUserData(token: string): Promise<TBotApi.UserData> {
 }
 
 export async function getUserGuilds(userId: string): Promise<TBotApi.GuildData[]> {
-  const discordClient = (await botProvider).getDiscordClient();
   return discordClient.guilds.cache
     .filter((guild) => guild.members.cache.has(userId))
     .map(({ name, id, icon, ownerId, features, members }) => ({

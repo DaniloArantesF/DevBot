@@ -7,12 +7,12 @@ import { getGuildRoles, setRolesMessage } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
 import { createChannel, deleteChannel, getGuildChannel, getGuildChannels } from '@/tasks/channels';
 import { APIConnection, ChannelType } from 'discord.js';
-import botProvider from '..';
 import { getUserGuilds } from '@/tasks/user';
 import { logger } from 'shared/logger';
 import { withAuth } from './decorators/auth';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
+import dataProvider from '@/DataProvider';
 
 class DiscordRouter {
   router = Router();
@@ -149,7 +149,7 @@ class DiscordRouter {
     }
 
     try {
-      const roles = (await (await botProvider).getDataProvider().guild.get(guildId)).userRoles;
+      const roles = (await dataProvider.guild.get(guildId)).userRoles;
       const data = await setRolesMessage(guildId, channelId, roles);
       res.send(stringifyCircular(data));
     } catch (error) {

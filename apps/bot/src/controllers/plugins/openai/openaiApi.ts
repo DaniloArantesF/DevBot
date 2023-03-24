@@ -1,26 +1,23 @@
 import { Router, Request, Response } from 'express';
-import OpenAI from './openai';
-import { PocketBase } from '@/DataProvider';
-import botProvider from '@/index';
+import openAiController from './openai';
+import dataProvider, { PocketBase } from '@/DataProvider';
 import { TOpenAi } from 'shared/types';
 // import FastText from 'fasttext';
 // import path from 'path';
 
 class OpenAiPluginApi {
-  openAiController: OpenAI;
   pocketbase?: PocketBase;
   // model = path.resolve(__dirname, 'lid.176.bin');
   // // classifier = new FastText.Classifier(this.model);
 
-  constructor(router: Router, openAiController: OpenAI) {
-    this.openAiController = openAiController;
+  constructor(router: Router) {
     this.init();
 
     // router.post('/language', this.detectLanguage.bind(this));
   }
 
   async init() {
-    this.pocketbase = (await botProvider).getDataProvider().pocketbase;
+    this.pocketbase = dataProvider.pocketbase;
   }
 
   /**
@@ -29,9 +26,9 @@ class OpenAiPluginApi {
   setPluginStatus = async (request: Request, response: Response) => {
     const { guildId } = request.params;
 
-    if (!this.openAiController.guildRecordMap.has(guildId)) {
+    if (!openAiController.guildRecordMap.has(guildId)) {
       // Create new record
-      const guildRecord = await (await botProvider).getDataProvider().guild.get(guildId);
+      const guildRecord = await dataProvider.guild.get(guildId);
       if (!guildRecord) {
         response.status(400).send('Invalid guildId');
         return;
@@ -43,9 +40,9 @@ class OpenAiPluginApi {
         guild: guildRecord.id,
       });
 
-      this.openAiController.guildRecordMap.set(guildId, record);
+      openAiController.guildRecordMap.set(guildId, record);
     } else {
-      const record = this.openAiController.guildRecordMap.get(guildId);
+      const record = openAiController.guildRecordMap.get(guildId);
       if (record) {
         await this.pocketbase!.collection('openai_plugin').delete(record.id);
       }

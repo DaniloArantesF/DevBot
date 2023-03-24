@@ -8,22 +8,6 @@ import type { ClientEvents } from 'discord.js';
 import type { TCache } from '@/utils/types';
 import type Queue from 'bee-queue';
 
-export interface BotProvider {
-  services: Partial<{
-    [key: string]: any;
-    discordClient: DiscordClient;
-    api: typeof API;
-    dataProvider: DataProvider;
-    taskManager: ReturnType<typeof TaskManager>;
-  }>;
-  userCooldown: Map<string, number>;
-  addService: (name: string, service: any) => void;
-  getService: (name: string) => any;
-  getDiscordClient: () => DiscordClient;
-  getTaskManager: () => ReturnType<typeof TaskManager>;
-  getDataProvider: () => DataProvider;
-  getApi: () => typeof API;
-}
 
 /*     DiscordClient Types     */
 export interface DiscordConnection {
@@ -51,13 +35,18 @@ export interface Controller<T, E, C = {}> {
   removeTask(id: string): Promise<void>;
 }
 
+export interface TPluginController<T> {
+  queue: Queue<T>;
+  init: () => void;
+}
+
 export interface QueueTaskData {
   id: string;
   result?: string;
   timestamp?: number;
 }
 
-export type apiHandler = (client: DiscordClient) => Promise<void | TCache.Request> | void;
+export type apiHandler = () => Promise<void | TCache.Request> | void;
 
 export interface ApiTask {
   id: string;

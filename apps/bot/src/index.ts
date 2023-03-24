@@ -1,58 +1,50 @@
-import DiscordClient from '@/DiscordClient';
-import DataProvider from '@/DataProvider';
-import TaskManager from '@/TaskManager';
-import type { BotProvider } from '@/utils/types';
+import discordClient from '@/DiscordClient';
+import dataProvider from '@/DataProvider';
+import taskManager from '@/TaskManager';
 import { setRolesMessage } from '@/tasks/roles';
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
 import { POCKETBASE_BASE_URL } from './utils/config';
 import api from '@/api';
 
-async function Bot() {
-  logger.Header([
-    `Client: ${CLIENT_URL}`,
-    `API: ${API_HOSTNAME}:${API_PORT}`,
-    `Pocketbase: ${POCKETBASE_BASE_URL}`,
-    `Redis: ${REDIS_URL}`,
-  ]);
+class Bot {
+  isReady: Promise<void>;
+  userCooldown = new Map<string, number>();
 
-  const botProvider: BotProvider = {
-    services: {},
-    userCooldown: new Map(),
-    addService(name, service) {
-      this.services[name] = service;
-    },
-    getService(name) {
-      return this.services[name];
-    },
-    getDiscordClient() {
-      return this.services.discordClient!;
-    },
-    getTaskManager() {
-      return this.services.taskManager!;
-    },
-    getDataProvider() {
-      return this.services.dataProvider!;
-    },
-    getApi() {
-      return this.services.api!;
-    },
-  };
+  constructor() {
+    logger.Header([
+      `Client: ${CLIENT_URL}`,
+      `API: ${API_HOSTNAME}:${API_PORT}`,
+      `Pocketbase: ${POCKETBASE_BASE_URL}`,
+      `Redis: ${REDIS_URL}`,
+    ]);
+    this.isReady = this.setup();
+  }
 
-  // Add services
-  botProvider.addService('dataProvider', new DataProvider(botProvider));
-  botProvider.addService('discordClient', new DiscordClient(botProvider));
-  botProvider.addService('taskManager', TaskManager(botProvider));
-  botProvider.addService('api', api);
+  async setup() {
+    return new Promise<void>((resolve, reject) => {
+      // Setup
+      discordClient.on('ready', async () => {
+        try {
+          await dataProvider.connect();
+          this.main();
+          resolve();
+        } catch (error) {
+          console.info(error);
+          console.info('Shutting down ...');
+          taskManager.shutdown();
+          discordClient.destroy();
+          process.exit(1);
+        }
+      });
+    });
+  }
 
-  const discordClient = botProvider.getDiscordClient();
-  const dataProvider = botProvider.getDataProvider();
-  const taskManager = botProvider.getTaskManager();
-
-  async function main() {
-    await guildSetup();
+  async main() {
+    await this.guildSetup();
     api.start();
 
+    await taskManager.setupTaskControllers();
     if (BOT_CONFIG.autoProcess) {
       await taskManager.initProcessing();
     }
@@ -62,7 +54,7 @@ async function Bot() {
   // Guild setup checks
   // Create guilds in database if they don't exist
   // Add/Update roles message
-  async function guildSetup() {
+  async guildSetup() {
     const guildRepository = dataProvider.guild;
     await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
 
@@ -74,24 +66,8 @@ async function Bot() {
     }
   }
 
-  return new Promise<BotProvider>((resolve, reject) => {
-    // Setup
-    discordClient.on('ready', async () => {
-      try {
-        await dataProvider.connect();
-        resolve(botProvider);
-        main();
-      } catch (error) {
-        console.info(error);
-        console.info('Shutting down ...');
-        taskManager.shutdown();
-        discordClient.destroy();
-        process.exit(1);
-      }
-    });
-  });
 }
 
 // console.clear();
-const botProvider = Bot();
-export default botProvider;
+const bot = new Bot();
+export default bot;

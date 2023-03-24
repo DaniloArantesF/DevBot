@@ -1,15 +1,13 @@
-import botProvider from '@/index';
 import { ChannelType } from 'discord.js';
 import { getGuildChannels } from './channels';
+import discordClient from '@/DiscordClient';
 
 export async function getGuild(guildId: string) {
-  const client = (await botProvider).getDiscordClient();
-  return client.guilds.cache.get(guildId);
+  return discordClient.guilds.cache.get(guildId);
 }
 
 export async function getGuildByName(guildName: string) {
-  const client = (await botProvider).getDiscordClient();
-  return client.guilds.cache.find((guild) => guild.name === guildName);
+  return discordClient.guilds.cache.find((guild) => guild.name === guildName);
 }
 
 /**
