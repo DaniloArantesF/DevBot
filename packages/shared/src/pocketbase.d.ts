@@ -1,20 +1,20 @@
 import { DiscordAuthResponse, TBotApi } from './api';
 
 declare namespace TPocketbase {
-  export type Base = {
+  type Base = {
     id: string;
     created: string;
     updated: string;
   };
 
-  export type AuthBase = Base & {
+  type AuthBase = Base & {
     username: string;
     email: string;
     emailVisibility: boolean;
     verified: boolean;
   };
 
-  export type UserData = {
+  type UserData = {
     avatar: string;
     discordId: string;
     email: string;
@@ -26,19 +26,27 @@ declare namespace TPocketbase {
   };
 
   // aka server
-  export type GuildData = {
+  type GuildData = {
     guildId: string;
     name: string;
     plugins?: string[];
     rolesChannelId?: string;
     rolesMessageId?: string;
-    userRoles: string[];
+    userRoles: UserRoleItem[];
     description?: string;
     memberRoleId?: string;
     rules?: string;
   };
 
-  export type ChallengeData = {
+  type UserRoleItem = {
+    name: string;
+    description: string;
+    emoji: string;
+    position: number;
+    category: string;
+  };
+
+  type ChallengeData = {
     allowedSubmissionTypes?: string[];
     channelId: string;
     description?: string;
@@ -57,7 +65,7 @@ declare namespace TPocketbase {
     user: string;
   };
 
-  export type ChallengeParticipantData = {
+  type ChallengeParticipantData = {
     challenge: string;
     userId: string;
     streak: number;
@@ -68,7 +76,7 @@ declare namespace TPocketbase {
     // TODO: sponsorNotificationFrequency?
   };
 
-  export type ChallengeSubmissionData = {
+  type ChallengeSubmissionData = {
     challenge: string;
     userId: string;
     type: 'text' | 'url' | 'image' | 'commit';
@@ -78,17 +86,17 @@ declare namespace TPocketbase {
 
   type ChallengeCreateOptions = Omit<TPocketbase.ChallengeData, 'channelId' | 'status' | 'roleId'>;
 
-  export type PluginData = {
+  type PluginData = {
     name: string;
     description: string;
   };
 
-  export type User = AuthBase & UserData;
-  export type Guild = GuildData & Base;
-  export type Challenge = ChallengeData & Base;
-  export type ChallengeParticipant = ChallengeParticipantData & Base;
-  export type ChallengeSubmission = ChallengeSubmissionData & Base;
-  export type Plugin = Base & PluginData;
+  type User = AuthBase & UserData;
+  type Guild = GuildData & Base;
+  type Challenge = ChallengeData & Base;
+  type ChallengeParticipant = ChallengeParticipantData & Base;
+  type ChallengeSubmission = ChallengeSubmissionData & Base;
+  type Plugin = Base & PluginData;
 }
 
 export { TPocketbase };

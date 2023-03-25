@@ -12,6 +12,7 @@ import {
 import { getGuild } from './guild';
 import dataProvider from '@/DataProvider';
 import discordClient from '@/DiscordClient';
+import { TPocketbase } from 'shared/types';
 
 export async function createRole(guildId: string, options: CreateRoleOptions) {
   const guild = await getGuild(guildId);
@@ -55,7 +56,11 @@ export async function getRoleButtons(guildId: string, userRoles: string[]) {
 
 // Sets the roles message for a guild
 // If a message is already set, delete it
-export async function setRolesMessage(guildId: string, channelId: string, userRoles: string[]) {
+export async function setRolesMessage(
+  guildId: string,
+  channelId: string,
+  userRoles: TPocketbase.UserRoleItem[],
+) {
   if (!userRoles || !userRoles.length) return;
   const guildRepository = dataProvider.guild;
   const guildCacheItem = await guildRepository.get(guildId);
@@ -63,7 +68,7 @@ export async function setRolesMessage(guildId: string, channelId: string, userRo
 
   const rolesMessage: MessageCreateOptions = {
     content: 'Toggle roles by clicking the buttons below.',
-    components: [await getRoleButtons(guildId, userRoles)],
+    components: [],
   };
 
   if (channel?.isTextBased()) {

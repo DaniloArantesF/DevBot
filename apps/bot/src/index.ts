@@ -106,7 +106,7 @@ class Bot {
     for (const guild of guilds) {
       if (guild.guildId !== '817654492782657566') continue;
       try {
-        this.guildRoleSetup(guild);
+        this.guildMemberRulesSetup(guild);
       } catch (error) {
         console.error(error);
         logger.Error('Bot', (error as any).message);
@@ -116,7 +116,7 @@ class Bot {
 
   // Make sure all roles are created
   // Update database with new roles
-  async guildRoleSetup(guild: TPocketbase.Guild) {
+  async guildMemberRulesSetup(guild: TPocketbase.Guild) {
     this.guilds.set(guild.guildId, {
       rulesChannel: null,
       rulesMessage: null,
@@ -206,10 +206,10 @@ class Bot {
     );
 
     this.listenRuleReactions(guild.guildId);
-
-    // TODO: continue and add user roles / channels
     logger.Debug('Bot', `Finished ${guild.guildId} role setup.`);
   }
+
+  async guildUserRoleSetup(guild: TPocketbase.Guild) {}
 
   async listenRuleReactions(guildId: string) {
     const guildContext = this.guilds.get(guildId);
