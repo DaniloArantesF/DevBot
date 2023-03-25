@@ -1,4 +1,16 @@
-import type { CommandInteraction, Message, MessageComponentInteraction } from 'discord.js';
+import type Discord, {
+  CommandInteraction,
+  Message,
+  MessageComponentInteraction,
+  GuildChannel,
+  ChannelType,
+  PermissionsString,
+  TextChannel,
+  Message,
+  Role,
+  Colors,
+  CategoryChannel,
+} from 'discord.js';
 import { TDiscord } from './discord';
 import { TCache } from './cache';
 import { TBotApi } from './api';
@@ -46,12 +58,6 @@ declare namespace TBot {
   };
 }
 
-export type GuildBotContext = {
-  rulesChannel: GuildChannel | null;
-  rulesMessage: Message | null;
-  memberRole: Role | null;
-};
-
 export type GuildConfigUserRole = Omit<TBotApi.RoleData, 'id' | 'guildId'> & {
   userAssignable: boolean;
 };
@@ -94,5 +100,17 @@ export type GuildConfigExport = {
   };
   plugins: string[]; // ??
 };
+
+export type GuildBotContext = {
+  rulesChannel: Discord.GuildChannel | null;
+  rulesMessage: Discord.Message | null;
+  memberRole: Discord.Role | null;
+  rolesCategory: Discord.CategoryChannel | null;
+};
+
+export type ReactionHandler = (
+  reaction: Discord.MessageReaction | Discord.PartialMessageReaction,
+  user: Discord.User | Discord.PartialUser,
+) => void;
 
 export type { TBot };

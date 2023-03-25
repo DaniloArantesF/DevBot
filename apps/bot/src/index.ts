@@ -1,61 +1,29 @@
 import discordClient from '@/DiscordClient';
 import dataProvider from '@/DataProvider';
 import taskManager from '@/TaskManager';
-import { createRole, getEveryoneRole, setRolesMessage } from '@/tasks/roles';
+import { createRole, getEveryoneRole } from '@/tasks/roles';
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
-import { POCKETBASE_BASE_URL } from './utils/config';
+import { BASE_MEMBER_PERMISSIONS, POCKETBASE_BASE_URL } from './utils/config';
 import api from '@/api';
 import { getGuild } from './tasks/guild';
-import {
-  GuildChannel,
-  ChannelType,
-  PermissionsString,
-  TextChannel,
-  Message,
-  MessageReaction,
-  User,
-  Role,
-} from 'discord.js';
+import Discord from 'discord.js';
 import {
   ConfigCollection,
   GuildBotContext,
   GuildConfigChannel,
   GuildConfigExport,
   GuildConfigUserRole,
+  ReactionHandler,
   TPocketbase,
 } from 'shared/types';
 import { createChannel, getRulesChannel } from './tasks/channels';
+import { getRolesMessage } from './tasks/message';
 
 class Bot {
   isReady: Promise<boolean>;
   userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
-
-  baseMemberPermissions: PermissionsString[] = [
-    'CreateInstantInvite',
-    'AddReactions',
-    'Stream',
-    'ViewChannel',
-    'SendMessages',
-    'SendTTSMessages',
-    'EmbedLinks',
-    'AttachFiles',
-    'ReadMessageHistory',
-    'MentionEveryone',
-    'UseExternalEmojis',
-    'Connect',
-    'Speak',
-    'UseVAD',
-    'ChangeNickname',
-    'UseApplicationCommands',
-    'RequestToSpeak',
-    'CreatePublicThreads',
-    'CreatePrivateThreads',
-    'UseExternalStickers',
-    'SendMessagesInThreads',
-    'UseEmbeddedActivities',
-  ];
 
   constructor() {
     logger.Header([
@@ -85,10 +53,11 @@ class Bot {
   }
 
   async main() {
+    await taskManager.setupTaskControllers();
+
     await this.guildSetup();
     api.start();
 
-    await taskManager.setupTaskControllers();
     if (BOT_CONFIG.autoProcess) {
       await taskManager.initProcessing();
     }
@@ -105,8 +74,18 @@ class Bot {
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
       if (guild.guildId !== '817654492782657566') continue;
+
+      // Init guild context
+      this.guilds.set(guild.guildId, {
+        rulesChannel: null,
+        rulesMessage: null,
+        memberRole: null,
+        rolesCategory: null,
+      });
+
       try {
-        this.guildMemberRulesSetup(guild);
+        await this.guildMemberRulesSetup(guild);
+        await this.guildUserRolesSetup(guild);
       } catch (error) {
         console.error(error);
         logger.Error('Bot', (error as any).message);
@@ -117,18 +96,13 @@ class Bot {
   // Make sure all roles are created
   // Update database with new roles
   async guildMemberRulesSetup(guild: TPocketbase.Guild) {
-    this.guilds.set(guild.guildId, {
-      rulesChannel: null,
-      rulesMessage: null,
-      memberRole: null,
-    });
     const everyone = getEveryoneRole(guild.guildId);
 
     // Remove all permissions from everyone
     everyone.setPermissions([]);
 
     // Make sure there is a rules channel
-    const rulesChannelPermissions: PermissionsString[] = [
+    const rulesChannelPermissions: Discord.PermissionsString[] = [
       'ViewChannel',
       'AddReactions',
       'ReadMessageHistory',
@@ -136,9 +110,9 @@ class Bot {
     let rulesChannel = getRulesChannel(guild.guildId);
     if (!rulesChannel) {
       // Creates the only channel that can be viewed by non members
-      rulesChannel = await createChannel<ChannelType.GuildText>(guild.guildId, {
+      rulesChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
         name: 'rules',
-        type: ChannelType.GuildText,
+        type: Discord.ChannelType.GuildText,
         permissionOverwrites: [
           {
             id: everyone.id,
@@ -178,7 +152,7 @@ class Bot {
         color: 'Green',
         hoist: false,
         mentionable: false,
-        permissions: this.baseMemberPermissions,
+        permissions: BASE_MEMBER_PERMISSIONS,
       });
       this.guilds.get(guild.guildId)!.memberRole = memberRole ?? null;
 
@@ -199,17 +173,167 @@ class Bot {
         if (user.bot) return;
         const member = await getGuild(guild.guildId)?.members.fetch(user.id);
         if (!member?.roles.cache.has(memberRoleId!)) {
-          logger.Debug('Bot', `Adding member role to ${user.id}.`);
+          logger.Debug('Bot', `Adding basic member role to ${user.id}.`);
           await member?.roles.add(memberRoleId!);
         }
       }),
     );
 
     this.listenRuleReactions(guild.guildId);
-    logger.Debug('Bot', `Finished ${guild.guildId} role setup.`);
+    logger.Debug('Bot', `Finished ${guild.guildId} rules setup.`);
   }
 
-  async guildUserRoleSetup(guild: TPocketbase.Guild) {}
+  async guildUserRolesSetup(guild: TPocketbase.Guild) {
+    logger.Debug('Bot', `Starting ${guild.guildId} role setup.`);
+    // TODO: reset all user roles when on startup?
+    const guildRolesCollection = (await getGuild(guild.guildId)!.roles.fetch()).map((r) => r);
+
+    // Make sure all roles are created, only create if they don't exist
+    const newUserRoles = [...guild.userRoles] ?? [];
+
+    // Maps role names to role
+    const roleNameMap = new Map<string, Discord.Role>();
+    const roleEmojiMap = new Map<string, Discord.Role>();
+
+    for (let i = 0; i < guildRolesCollection.length; i++) {
+      const role = guildRolesCollection[i];
+
+      // Match is found by name, remove from new entries then update discord if necessary
+      const matchIndex = newUserRoles.findIndex((r) => r.name === role.name);
+      if (matchIndex === -1) {
+        continue;
+      } else {
+        logger.Debug('Bot', `Found role ${role.name} in ${guild.guildId}.`);
+      }
+      // ${newUserRoles[matchIndex]}/
+      roleNameMap.set(`${role.name}`, role);
+      roleEmojiMap.set(`${newUserRoles[matchIndex].emoji}`, role);
+      newUserRoles.splice(matchIndex, 1);
+
+      // TODO: reset update role permissions
+      // const toUpdate = {
+      //   ...((newUserRoles[matchIndex].color && newUserRoles[matchIndex].color! !== role.color.)&& { color: newUserRoles[matchIndex].color }),
+      // }
+      // await role.edit({
+      //   unicodeEmoji: newUserRoles[matchIndex].emoji,
+      //   position: newUserRoles[matchIndex].position,
+      //   // ...(newUserRoles[matchIndex].color && { color: newUserRoles[matchIndex].color }),
+      // });
+    }
+
+    // Create new roles
+    if (newUserRoles.length > 0) logger.Debug('Bot', `Creating ${newUserRoles.length} roles.`);
+    for (const roleData of newUserRoles) {
+      const randomColor = Object.keys(Discord.Colors)[
+        Math.floor(Math.random() * Object.keys(Discord.Colors).length)
+      ];
+      const role = await createRole(guild.guildId, {
+        name: roleData.name,
+        color: Discord.Colors[randomColor as keyof typeof Discord.Colors],
+        hoist: false,
+        mentionable: true,
+        permissions: BASE_MEMBER_PERMISSIONS,
+        // unicodeEmoji: roleData.emoji,
+      });
+      roleNameMap.set(roleData.name, role!);
+      roleEmojiMap.set(roleData.emoji, role!);
+    }
+
+    // Make sure reaction roles category exists
+    const channels = await getGuild(guild.guildId)!.channels.fetch();
+    let rolesCategory = channels.find(
+      (c) => c && c.name === 'Roles' && c.type === Discord.ChannelType.GuildCategory,
+    );
+    if (!rolesCategory) {
+      rolesCategory = await createChannel<Discord.ChannelType.GuildCategory>(guild.guildId, {
+        name: 'Roles',
+        type: Discord.ChannelType.GuildCategory,
+        position: 0,
+      });
+    }
+    this.guilds.get(guild.guildId)!.rolesCategory = rolesCategory as Discord.CategoryChannel;
+
+    // For each user role category, create a reaction channel and send a message
+    const categories = new Set(guild.userRoles.map((r) => r.category));
+    for (const category of categories) {
+      const categoryRoles = guild.userRoles
+        .filter((r) => r.category === category)
+        .map((r) => ({
+          id: roleNameMap.get(r.name)!.id,
+          emoji: r.emoji,
+        }));
+      let categoryChannel = channels.find(
+        (c) => c && c.name === category && c.type === Discord.ChannelType.GuildText,
+      ) as Discord.TextChannel;
+      if (!categoryChannel) {
+        logger.Debug('Bot', `Creating "${category}" role reaction channel.`);
+        categoryChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
+          name: category,
+          type: Discord.ChannelType.GuildText,
+          parent: rolesCategory!.id,
+        });
+      }
+
+      let categoryMessage = (await categoryChannel.messages.fetchPinned()).first();
+      const messageContent = getRolesMessage(categoryRoles);
+
+      // Create/Update message and pin it
+      if (!categoryMessage) {
+        categoryMessage = await categoryChannel.send(messageContent);
+        await categoryMessage.pin();
+      } else {
+        await categoryMessage.edit(messageContent);
+      }
+
+      // Add reactions
+      for (const role of categoryRoles) {
+        await categoryMessage.react(role.emoji!);
+      }
+
+      const onAdd: ReactionHandler = (reaction, user) => {
+        if (user.bot) return;
+        const role = roleEmojiMap.get(reaction.emoji.name ?? '');
+        if (!role) return;
+        const member = getGuild(guild.guildId)!.members.cache.get(user.id);
+        member?.roles.add(role.id);
+      };
+
+      const onRemove: ReactionHandler = (reaction, user) => {
+        if (user.bot) return;
+        const role = roleEmojiMap.get(reaction.emoji.name ?? '');
+        if (!role) return;
+        const member = getGuild(guild.guildId)!.members.cache.get(user.id);
+        member?.roles.remove(role.id);
+      };
+
+      // Make sure all members that have reacted have the proper roles
+      for (const { id: roleId, emoji } of categoryRoles) {
+        const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
+        const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
+
+        await Promise.all(
+          (await reaction?.users.fetch())!.map(async (user) => {
+            if (user.bot) return;
+            let member = getGuild(guild.guildId)?.members.cache.get(user.id);
+            if (!member) {
+              member = await getGuild(guild.guildId)?.members.fetch(user.id);
+            }
+
+            if (!member?.roles.cache.has(roleId)) {
+              logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
+              await member?.roles.add(roleId);
+            }
+          }),
+        );
+      }
+
+      // Listen for reactions
+      logger.Debug('Bot', `Listening for "${category}" role reactions.`);
+      this.listenMessageReactions(categoryMessage, onAdd, onRemove);
+    }
+
+    logger.Debug('Bot', `Finished ${guild.guildId} role setup.`);
+  }
 
   async listenRuleReactions(guildId: string) {
     const guildContext = this.guilds.get(guildId);
@@ -221,11 +345,35 @@ class Bot {
     const guild = getGuild(guildId)!;
     guild.client.on('messageReactionAdd', (reaction, user) => {
       if (!(reaction.emoji.name === '✅' && !user.bot)) return;
-      guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
     });
-    guild.client.on('messageReactionRemove', (reaction, user) => {
-      if (!(reaction.emoji.name === '✅' && !user.bot)) return;
+
+    const onAdd: ReactionHandler = (reaction, user) => {
+      if (user.bot || reaction.emoji.name !== '✅') return;
+      guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
+    };
+
+    const onRemove: ReactionHandler = (reaction, user) => {
+      if (user.bot || reaction.emoji.name !== '✅') return;
       guild.members.cache.get(user.id)?.roles.remove(guildContext.memberRole!.id);
+    };
+
+    this.listenMessageReactions(guildContext.rulesMessage, onAdd, onRemove);
+  }
+
+  listenMessageReactions(
+    message: Discord.Message,
+    onAdd: ReactionHandler,
+    onRemove: ReactionHandler,
+  ) {
+    const guild = message.guild;
+    guild?.client.on('messageReactionAdd', (reaction, user) => {
+      if (!(reaction.message.id === message.id && !user.bot)) return;
+      onAdd(reaction, user);
+    });
+
+    guild?.client.on('messageReactionRemove', (reaction, user) => {
+      if (!(reaction.message.id === message.id && !user.bot)) return;
+      onRemove(reaction, user);
     });
   }
 
@@ -264,12 +412,12 @@ class Bot {
     );
 
     const guildChannels = guild.channels.cache.reduce((collection, c, key) => {
-      const channel = c as GuildChannel;
+      const channel = c as Discord.GuildChannel;
       const { name, type, parent, flags, manageable } = channel;
       const channelData = {
         name,
         description: '',
-        type: type.toString(), // improve this
+        type: type.toString(), // move to actual type strings
         subChannels: {},
         allowedRoles: [
           ...guild.roles.cache
@@ -293,7 +441,7 @@ class Bot {
         plugin: null,
       };
 
-      if (type === ChannelType.GuildCategory || parent === null) {
+      if (type === Discord.ChannelType.GuildCategory || parent === null) {
         collection[key] = channelData;
       } else {
         // Subchannel, add it to the parent
@@ -302,7 +450,6 @@ class Bot {
         );
         const parentChannel = parentIndex ? collection[parentIndex] : null;
         if (!parentChannel) {
-          console.error('Parent channel not found!!');
           return collection;
         }
         parentChannel.subChannels[key] = channelData;
@@ -323,13 +470,13 @@ class Bot {
     };
   }
 
-  async createRulesMessage(rulesChannel: TextChannel, message: string) {
+  async createRulesMessage(rulesChannel: Discord.TextChannel, message: string) {
     const rulesMessage = await rulesChannel.send({ content: message });
     await rulesMessage.pin('Read these');
     return rulesMessage;
   }
 
-  async updateRulesMessage(rulesMessage: Message, message: string) {
+  async updateRulesMessage(rulesMessage: Discord.Message, message: string) {
     rulesMessage.edit({ content: message });
     return rulesMessage;
   }

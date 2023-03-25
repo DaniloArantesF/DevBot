@@ -8,7 +8,6 @@ import type { ClientEvents } from 'discord.js';
 import type { TCache } from '@/utils/types';
 import type Queue from 'bee-queue';
 
-
 /*     DiscordClient Types     */
 export interface DiscordConnection {
   connection: VoiceConnection;
@@ -30,7 +29,7 @@ export interface Controller<T, E, C = {}> {
   } & C;
   queue: Queue<T>;
   taskMap: Map<string, E>;
-  addTask: (...args: any) => Promise<Queue.Job<T>>;
+  addTask: (...args: any) => Promise<Queue.Job<T> | null>;
   processTasks: (...args: any) => void;
   removeTask(id: string): Promise<void>;
 }

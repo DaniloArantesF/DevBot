@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getCommands } from '@/tasks/commands';
-import { TBotApi, TBotRouter } from 'shared/types';
+import { TBotApi, TBotRouter, TPocketbase } from 'shared/types';
 import { withAuth } from './decorators/auth';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
@@ -103,8 +103,13 @@ class BotRouter implements TBotRouter {
     const guildModel = dataProvider.guild;
     const newUserRoles = req.body.userRoles;
 
-    if (!Array.isArray(newUserRoles)) {
-      res.status(400).send('Missing or invalid userRoles array');
+    // Validate userRoles
+    if (!newUserRoles) {
+      res.status(400).send('Missing userRoles');
+      return;
+    }
+    if (!validateUserRoles(newUserRoles)) {
+      res.status(400).send('Invalid userRoles array');
       return;
     }
 
@@ -113,11 +118,44 @@ class BotRouter implements TBotRouter {
         guildId: req.params.guildId,
         userRoles: [...newUserRoles],
       });
+
+      // Update roles message
+      // await bot.updateRolesMessage(updatedRecord);
+
       res.send({ userRoles: updatedRecord.userRoles });
     } catch (error: any) {
       res.status(error.status).send({ message: error.message });
     }
   }
+}
+
+// TODO: add more helpful error messages
+function validateUserRoles(userRoles: any): userRoles is TPocketbase.UserRoleItem[] {
+  // Make sure its an array
+  if (!Array.isArray(userRoles)) {
+    return false;
+  }
+
+  function checkItem(item: any): item is TPocketbase.UserRoleItem {
+    return (
+      typeof item.name === 'string' &&
+      typeof item.description === 'string' &&
+      typeof item.emoji === 'string' &&
+      typeof item.position === 'number' &&
+      typeof item.category === 'string' &&
+      (!item.hasChannel || typeof item.hasChannel === 'boolean') &&
+      (!item.color || typeof item.color === 'string')
+    );
+  }
+
+  // Make sure all items are valid
+  for (const item of userRoles) {
+    if (!checkItem(item)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 const botRouter = new BotRouter();

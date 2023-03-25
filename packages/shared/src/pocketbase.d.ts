@@ -44,6 +44,10 @@ declare namespace TPocketbase {
     emoji: string;
     position: number;
     category: string;
+    color?: string;
+    hasChannel?: boolean;
+    //
+    icon?: string;
   };
 
   type ChallengeData = {

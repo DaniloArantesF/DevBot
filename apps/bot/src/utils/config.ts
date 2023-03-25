@@ -1,5 +1,5 @@
 /** Default bot configuration **/
-import { GatewayIntentBits } from 'discord.js';
+import { GatewayIntentBits, PermissionsString } from 'discord.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -43,3 +43,28 @@ export const INTENTS = [
 
 // Bot configuration
 export const ENVIRONMENT = process.env.NODE_ENV ?? 'dev';
+
+export const BASE_MEMBER_PERMISSIONS: PermissionsString[] = [
+  'CreateInstantInvite',
+  'AddReactions',
+  'Stream',
+  'ViewChannel',
+  'SendMessages',
+  'SendTTSMessages',
+  'EmbedLinks',
+  'AttachFiles',
+  'ReadMessageHistory',
+  'MentionEveryone',
+  'UseExternalEmojis',
+  'Connect',
+  'Speak',
+  'UseVAD',
+  'ChangeNickname',
+  'UseApplicationCommands',
+  'RequestToSpeak',
+  'CreatePublicThreads',
+  'CreatePrivateThreads',
+  'UseExternalStickers',
+  'SendMessagesInThreads',
+  'UseEmbeddedActivities',
+];

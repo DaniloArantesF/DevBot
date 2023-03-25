@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import openAiController from './openai';
 import dataProvider, { PocketBase } from '@/DataProvider';
 import { TOpenAi } from 'shared/types';
-// import FastText from 'fasttext';
+import FastText from 'fasttext';
 // import path from 'path';
 
 class OpenAiPluginApi {
