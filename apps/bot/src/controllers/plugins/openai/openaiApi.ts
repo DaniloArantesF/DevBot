@@ -7,8 +7,8 @@ import FastText from 'fasttext';
 
 class OpenAiPluginApi {
   pocketbase?: PocketBase;
-  // model = path.resolve(__dirname, 'lid.176.bin');
-  // // classifier = new FastText.Classifier(this.model);
+
+  // //
 
   constructor(router: Router) {
     this.init();

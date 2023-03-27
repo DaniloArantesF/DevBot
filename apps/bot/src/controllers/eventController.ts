@@ -4,6 +4,27 @@ import { Controller, DiscordEvent, EventTask, QueueTaskData } from '@/utils/type
 import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
+type EventCallback<T> = (args: T) => void;
+
+class EventBus {
+  private listeners: Record<string, Function[]> = {};
+
+  on<T>(event: string /* Discord.ClientEvents */, callback: EventCallback<T>) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  }
+
+  off(event: string, callback: EventCallback<any>) {
+    if (!this.listeners[event]) return;
+    this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
+  }
+
+  emit<T>(event: string, ...args: T[]) {
+    if (!this.listeners[event]) return;
+    this.listeners[event].forEach((cb) => cb(...args));
+  }
+}
+
 class EventController implements Controller<QueueTaskData, EventTask> {
   queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, EventTask>();
@@ -11,8 +32,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
     taskTimeout: 3000,
     taskRetries: 2,
   };
-
-  constructor() {}
+  eventBus = new EventBus();
 
   init() {
     this.queue = new Queue<QueueTaskData>('event-queue', queueSettings);
@@ -36,7 +56,12 @@ class EventController implements Controller<QueueTaskData, EventTask> {
       const event = this.taskMap.get(job.id);
       if (!event || !event.on) return;
 
+      // Execute main event handler
       const data = await event.on(...event.args);
+
+      // Emit event to the event bus
+      this.eventBus.emit(event.name, ...event.args);
+
       if (data) {
         job.data.result = stringifyCircular(data);
       }

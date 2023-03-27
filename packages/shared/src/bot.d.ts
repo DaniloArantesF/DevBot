@@ -63,6 +63,7 @@ export type GuildConfigUserRole = Omit<TBotApi.RoleData, 'id' | 'guildId'> & {
 };
 
 export type GuildConfigModerationRule = {
+  // type: string;
   enabled: boolean;
   allowed: string[];
   roleExceptions: string[];
@@ -109,6 +110,10 @@ export type GuildBotContext = {
   rolesCategory: Discord.CategoryChannel | null;
   roleChannels: Map<string, Discord.TextChannel>;
   userRoles: Map<string, Discord.Role>;
+  moderationConfig: {
+    language: GuildConfigModerationRule;
+    content: GuildConfigModerationRule;
+  };
 };
 
 export type ReactionHandler = (

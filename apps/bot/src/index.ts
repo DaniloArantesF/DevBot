@@ -17,12 +17,30 @@ import {
   ReactionHandler,
   TPocketbase,
 } from 'shared/types';
-import { createChannel, getRulesChannel } from './tasks/channels';
+import {
+  createChannel,
+  getGuildChannels,
+  getRulesChannel,
+  listenMessageReactions,
+} from './tasks/channels';
+import moderation from './controllers/features/moderation';
 
 class Bot {
   isReady: Promise<boolean>;
   userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
+  globalModerationConfig = {
+    language: {
+      enabled: true,
+      allowed: ['en'],
+      roleExceptions: [],
+    },
+    content: {
+      enabled: false,
+      allowed: [],
+      roleExceptions: [],
+    },
+  };
 
   constructor() {
     logger.Header([
@@ -70,6 +88,9 @@ class Bot {
     const guildRepository = dataProvider.guild;
     await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
 
+    // Setup moderation
+    await moderation.setup();
+
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
       if (guild.guildId !== '817654492782657566') continue;
@@ -82,11 +103,13 @@ class Bot {
         rolesCategory: null,
         roleChannels: new Map(),
         userRoles: new Map(),
+        moderationConfig: { ...this.globalModerationConfig },
       });
 
       try {
         await this.guildMemberRulesSetup(guild);
         await this.guildUserRolesSetup(guild);
+        await this.guildModerationSetup(guild);
       } catch (error) {
         console.error(error);
         logger.Error('Bot', (error as any).message);
@@ -345,7 +368,7 @@ class Bot {
         member?.roles.remove(role.id);
       };
 
-      this.listenMessageReactions(categoryMessage, onAdd, onRemove);
+      listenMessageReactions(categoryMessage, onAdd, onRemove);
     }
 
     logger.Debug('Bot', `Finished ${guild.guildId} role setup.`);
@@ -375,24 +398,18 @@ class Bot {
       guild.members.cache.get(user.id)?.roles.remove(roles);
     };
 
-    this.listenMessageReactions(guildContext.rulesMessage, onAdd, onRemove);
+    listenMessageReactions(guildContext.rulesMessage, onAdd, onRemove);
   }
 
-  listenMessageReactions(
-    message: Discord.Message,
-    onAdd: ReactionHandler,
-    onRemove: ReactionHandler,
-  ) {
-    const guild = message.guild;
-    guild?.client.on('messageReactionAdd', (reaction, user) => {
-      if (!(reaction.message.id === message.id && !user.bot)) return;
-      onAdd(reaction, user);
-    });
-
-    guild?.client.on('messageReactionRemove', (reaction, user) => {
-      if (!(reaction.message.id === message.id && !user.bot)) return;
-      onRemove(reaction, user);
-    });
+  async guildModerationSetup(guild: TPocketbase.Guild) {
+    const channels = getGuildChannels(guild.guildId)?.map((c) => c) ?? [];
+    const moderationConfig = this.guilds.get(guild.guildId)?.moderationConfig;
+    for (const channel of channels) {
+      if (channel.type !== Discord.ChannelType.GuildText) continue;
+      await moderation.addChannel(channel, {
+        ...moderationConfig,
+      });
+    }
   }
 
   async purgeUserRoles(guild: TPocketbase.Guild) {
