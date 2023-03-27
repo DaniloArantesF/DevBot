@@ -18,7 +18,6 @@ import {
   TPocketbase,
 } from 'shared/types';
 import { createChannel, getRulesChannel } from './tasks/channels';
-import { getRolesMessage } from './tasks/message';
 
 class Bot {
   isReady: Promise<boolean>;
@@ -81,6 +80,8 @@ class Bot {
         rulesMessage: null,
         memberRole: null,
         rolesCategory: null,
+        roleChannels: new Map(),
+        userRoles: new Map(),
       });
 
       try {
@@ -117,6 +118,7 @@ class Bot {
           {
             id: everyone.id,
             allow: rulesChannelPermissions,
+            deny: [Discord.PermissionsBitField.Flags.SendMessages],
           },
         ],
       });
@@ -202,10 +204,12 @@ class Bot {
       const matchIndex = newUserRoles.findIndex((r) => r.name === role.name);
       if (matchIndex === -1) {
         continue;
-      } else {
-        logger.Debug('Bot', `Found role ${role.name} in ${guild.guildId}.`);
       }
       // ${newUserRoles[matchIndex]}/
+
+      // Save role to context
+      this.guilds.get(guild.guildId)!.userRoles.set(role.id, role);
+
       roleNameMap.set(`${role.name}`, role);
       roleEmojiMap.set(`${newUserRoles[matchIndex].emoji}`, role);
       newUserRoles.splice(matchIndex, 1);
@@ -232,11 +236,12 @@ class Bot {
         color: Discord.Colors[randomColor as keyof typeof Discord.Colors],
         hoist: false,
         mentionable: true,
-        permissions: BASE_MEMBER_PERMISSIONS,
+        permissions: [],
         // unicodeEmoji: roleData.emoji,
       });
       roleNameMap.set(roleData.name, role!);
       roleEmojiMap.set(roleData.emoji, role!);
+      this.guilds.get(guild.guildId)!.userRoles.set(role!.id, role!);
     }
 
     // Make sure reaction roles category exists
@@ -258,38 +263,72 @@ class Bot {
     for (const category of categories) {
       const categoryRoles = guild.userRoles
         .filter((r) => r.category === category)
-        .map((r) => ({
-          id: roleNameMap.get(r.name)!.id,
-          emoji: r.emoji,
-        }));
+        .map((r) => ({ id: roleNameMap.get(r.name)!.id, ...r }));
       let categoryChannel = channels.find(
         (c) => c && c.name === category && c.type === Discord.ChannelType.GuildText,
       ) as Discord.TextChannel;
       if (!categoryChannel) {
+        const everyoneRole = getEveryoneRole(guild.guildId);
+
         logger.Debug('Bot', `Creating "${category}" role reaction channel.`);
         categoryChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
           name: category,
           type: Discord.ChannelType.GuildText,
           parent: rolesCategory!.id,
+          permissionOverwrites: [
+            {
+              id: everyoneRole!.id,
+              deny: [Discord.PermissionsBitField.Flags.SendMessages],
+            },
+          ],
         });
       }
 
       let categoryMessage = (await categoryChannel.messages.fetchPinned()).first();
-      const messageContent = getRolesMessage(categoryRoles);
 
       // Create/Update message and pin it
       if (!categoryMessage) {
-        categoryMessage = await categoryChannel.send(messageContent);
-        await categoryMessage.pin();
+        categoryMessage = await this.createRolesMessage(categoryChannel, categoryRoles);
       } else {
-        await categoryMessage.edit(messageContent);
+        await this.updateRolesMessage(categoryMessage, categoryRoles);
       }
 
       // Add reactions
-      for (const role of categoryRoles) {
-        await categoryMessage.react(role.emoji!);
+      await Promise.all(
+        categoryRoles.map(async (role) => {
+          await categoryMessage?.react(role.emoji!);
+        }),
+      );
+
+      // Make sure all members that have reacted have the proper roles
+      for (const { id: roleId, emoji } of categoryRoles) {
+        const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
+        const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
+
+        const memberRole = this.guilds.get(guild.guildId)!.memberRole;
+        await Promise.all(
+          (await reaction?.users.fetch())!.map(async (user) => {
+            if (user.bot) return;
+            let member = getGuild(guild.guildId)?.members.cache.get(user.id);
+            if (!member) {
+              member = await getGuild(guild.guildId)?.members.fetch(user.id);
+            }
+
+            // Skip users who don't have the member role
+            if (!member?.roles.cache.has(memberRole?.id ?? '')) return;
+
+            if (!member?.roles.cache.has(roleId)) {
+              logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
+              await member?.roles.add(roleId);
+            }
+          }),
+        );
       }
 
+      // Listen for reactions
+      logger.Debug('Bot', `Listening for "${category}" role reactions.`);
+
+      // TODO: go through reactions and re-add userRoles if they are missing
       const onAdd: ReactionHandler = (reaction, user) => {
         if (user.bot) return;
         const role = roleEmojiMap.get(reaction.emoji.name ?? '');
@@ -306,29 +345,6 @@ class Bot {
         member?.roles.remove(role.id);
       };
 
-      // Make sure all members that have reacted have the proper roles
-      for (const { id: roleId, emoji } of categoryRoles) {
-        const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
-        const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
-
-        await Promise.all(
-          (await reaction?.users.fetch())!.map(async (user) => {
-            if (user.bot) return;
-            let member = getGuild(guild.guildId)?.members.cache.get(user.id);
-            if (!member) {
-              member = await getGuild(guild.guildId)?.members.fetch(user.id);
-            }
-
-            if (!member?.roles.cache.has(roleId)) {
-              logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
-              await member?.roles.add(roleId);
-            }
-          }),
-        );
-      }
-
-      // Listen for reactions
-      logger.Debug('Bot', `Listening for "${category}" role reactions.`);
       this.listenMessageReactions(categoryMessage, onAdd, onRemove);
     }
 
@@ -352,9 +368,11 @@ class Bot {
       guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
     };
 
+    // Removes the member role and all other user roles from the user
     const onRemove: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
-      guild.members.cache.get(user.id)?.roles.remove(guildContext.memberRole!.id);
+      const roles = [guildContext.memberRole!, ...guildContext.userRoles.values()];
+      guild.members.cache.get(user.id)?.roles.remove(roles);
     };
 
     this.listenMessageReactions(guildContext.rulesMessage, onAdd, onRemove);
@@ -375,6 +393,27 @@ class Bot {
       if (!(reaction.message.id === message.id && !user.bot)) return;
       onRemove(reaction, user);
     });
+  }
+
+  async purgeUserRoles(guild: TPocketbase.Guild) {
+    const rolesManager = getGuild(guild.guildId)!.roles;
+    const roles = await rolesManager.fetch();
+    const roleNames = guild.userRoles.map((r) => r.name);
+    await Promise.all(
+      roles.map(async (role) => {
+        if (role.name === '@everyone') {
+          return;
+        }
+        if (roleNames.includes(role.name)) {
+          try {
+            logger.Debug('Bot', `Deleting role ${role.name}`);
+            await role.delete();
+          } catch (error) {
+            logger.Error('Bot', `Failed to delete role ${role.name}: ${error}`);
+          }
+        }
+      }),
+    );
   }
 
   // Gets the current channels
@@ -471,14 +510,57 @@ class Bot {
   }
 
   async createRulesMessage(rulesChannel: Discord.TextChannel, message: string) {
-    const rulesMessage = await rulesChannel.send({ content: message });
-    await rulesMessage.pin('Read these');
+    const rulesMessage = await rulesChannel.send({ embeds: [this.createRulesEmbed(message)] });
+    await rulesMessage.pin('Read these rules before chatting');
     return rulesMessage;
   }
 
   async updateRulesMessage(rulesMessage: Discord.Message, message: string) {
-    rulesMessage.edit({ content: message });
+    rulesMessage.edit({
+      embeds: [this.createRulesEmbed(message)],
+    });
     return rulesMessage;
+  }
+
+  async createRolesMessage(
+    rolesChannel: Discord.TextChannel,
+    userRoles: ({ id: string } & TPocketbase.UserRoleItem)[],
+  ) {
+    const rolesMessage = await rolesChannel.send({
+      embeds: [this.createRolesEmbed(userRoles)],
+    });
+    await rolesMessage.pin('React to these roles');
+    return rolesMessage;
+  }
+
+  async updateRolesMessage(
+    rolesMessage: Discord.Message,
+    userRoles: ({ id: string } & TPocketbase.UserRoleItem)[],
+  ) {
+    rolesMessage.edit({
+      embeds: [this.createRolesEmbed(userRoles)],
+    });
+    return rolesMessage;
+  }
+
+  createRolesEmbed(userRoles: ({ id: string } & TPocketbase.UserRoleItem)[]) {
+    const fields = userRoles.map((role) => ({
+      name: `${role.emoji} ${role.description}`,
+      value: Discord.roleMention(role.id),
+      inline: true,
+    }));
+    return new Discord.EmbedBuilder()
+      .setColor('#0099ff')
+      .setTitle(`React to get your roles!`)
+      .setDescription('You can toggle these roles by clicking the buttons below.')
+      .addFields(fields);
+  }
+
+  createRulesEmbed(message: string) {
+    return new Discord.EmbedBuilder()
+      .setColor('#ff0000')
+      .setTitle(`Read the rules before chatting!`)
+      .setDescription(`React to the ✅ to get access to the rest of the server.\n${message}`);
   }
 
   async shutdown() {

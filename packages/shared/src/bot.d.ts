@@ -101,11 +101,14 @@ export type GuildConfigExport = {
   plugins: string[]; // ??
 };
 
+// Entry per guild managed by the bot
 export type GuildBotContext = {
   rulesChannel: Discord.GuildChannel | null;
   rulesMessage: Discord.Message | null;
   memberRole: Discord.Role | null;
   rolesCategory: Discord.CategoryChannel | null;
+  roleChannels: Map<string, Discord.TextChannel>;
+  userRoles: Map<string, Discord.Role>;
 };
 
 export type ReactionHandler = (
@@ -113,4 +116,8 @@ export type ReactionHandler = (
   user: Discord.User | Discord.PartialUser,
 ) => void;
 
-export type { TBot };
+declare namespace TGuildContext {
+  // TODO
+}
+
+export type { TBot, TGuildContext };

@@ -21,6 +21,7 @@ class BotRouter implements TBotRouter {
     this.router.get('/config/:guildId/userRoles', this.getUserRoles.bind(this));
     this.router.put('/config/:guildId/userRoles', this.setUserRoles.bind(this));
     this.router.get('/config/:guildId/export', this.getGuildConfigExport.bind(this));
+    this.router.post('/:guildId/userRoles/purge', this.purgeUserRoles.bind(this));
   }
 
   @withApiLogging()
@@ -125,6 +126,20 @@ class BotRouter implements TBotRouter {
       res.send({ userRoles: updatedRecord.userRoles });
     } catch (error: any) {
       res.status(error.status).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async purgeUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.purgeUserRoles(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      res.status(error.status ?? 500).send({ message: error.message });
     }
   }
 }
