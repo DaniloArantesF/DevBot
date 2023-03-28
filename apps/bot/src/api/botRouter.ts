@@ -19,9 +19,12 @@ class BotRouter implements TBotRouter {
     // this.router.get('/config/:guildId', this.getConfig.bind(this));
     this.router.put('/config/:guildId', this.setConfig.bind(this));
     this.router.get('/config/:guildId/userRoles', this.getUserRoles.bind(this));
+    this.router.post('/config/:guildId/userRoles', this.addUserRole.bind(this));
+    // this.router.delete('/config/:guildId/userRoles', this.removeUserRole.bind(this)); TODO
     this.router.put('/config/:guildId/userRoles', this.setUserRoles.bind(this));
     this.router.get('/config/:guildId/export', this.getGuildConfigExport.bind(this));
     this.router.post('/:guildId/userRoles/purge', this.purgeUserRoles.bind(this));
+    this.router.post('/:guildId/userChannels/purge', this.purgeUserChannels.bind(this));
   }
 
   @withApiLogging()
@@ -102,7 +105,7 @@ class BotRouter implements TBotRouter {
   @withApiLogging()
   async setUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildModel = dataProvider.guild;
-    const newUserRoles = req.body.userRoles;
+    const newUserRoles = req.body.userRoles as TPocketbase.UserRoleItem[];
 
     // Validate userRoles
     if (!newUserRoles) {
@@ -120,10 +123,28 @@ class BotRouter implements TBotRouter {
         userRoles: [...newUserRoles],
       });
 
-      // Update roles message
-      // await bot.updateRolesMessage(updatedRecord);
-
       res.send({ userRoles: updatedRecord.userRoles });
+    } catch (error: any) {
+      res.status(error.status).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async addUserRole(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const newUserRole = req.body as TPocketbase.UserRoleItem;
+    const guildId = req.params.guildId as string;
+
+    const guildContext = bot.guilds.get(guildId);
+    if (!guildContext) {
+      res.status(404).send('Guild not found');
+      return;
+    }
+
+    try {
+      await bot.addUserRole(guildId, newUserRole);
+      res.status(200).send({ userRoles: guildContext.userRoles });
     } catch (error: any) {
       res.status(error.status).send({ message: error.message });
     }
@@ -137,6 +158,20 @@ class BotRouter implements TBotRouter {
     try {
       const guild = await dataProvider.guild.get(guildId);
       await bot.purgeUserRoles(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      res.status(error.status ?? 500).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async purgeUserChannels(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.purgeUserChannels(guild);
       res.sendStatus(200);
     } catch (error: any) {
       res.status(error.status ?? 500).send({ message: error.message });

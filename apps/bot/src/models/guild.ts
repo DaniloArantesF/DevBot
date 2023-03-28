@@ -25,8 +25,10 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
           guildId: guild.id,
           name: guild.name,
           userRoles: [],
+          userChannels: [],
           description: '',
           memberRoleId: '',
+          channels: [],
         });
         if (!record) continue;
         cacheMap.set(guild.id, record.id);
@@ -70,7 +72,6 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
   }
 
   async function update(guild: { guildId: string } & Partial<TPocketbase.GuildData>) {
-    // if (!cacheMap.has(guild.guildId)) throw new Error('Guild not found');
     const record = await pocketbase
       .collection('servers')
       .update<TPocketbase.Guild>(cacheMap.get(guild.guildId)!, guild);

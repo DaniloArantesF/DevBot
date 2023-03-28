@@ -1,4 +1,5 @@
 import { DiscordAuthResponse, TBotApi } from './api';
+import { GuildConfigChannel, TBot } from './bot';
 
 declare namespace TPocketbase {
   type Base = {
@@ -30,9 +31,9 @@ declare namespace TPocketbase {
     guildId: string;
     name: string;
     plugins?: string[];
-    rolesChannelId?: string;
-    rolesMessageId?: string;
     userRoles: UserRoleItem[];
+    userChannels: UserChannel[];
+    channels: GuildConfigChannel[];
     description?: string;
     memberRoleId?: string;
     rules?: string;
@@ -40,14 +41,19 @@ declare namespace TPocketbase {
 
   type UserRoleItem = {
     name: string;
+    entityId?: string;
     description: string;
     emoji: string;
     position: number;
     category: string;
     color?: string;
     hasChannel?: boolean;
-    //
     icon?: string;
+  };
+
+  type UserChannel = Omit<GuildConfigChannel, 'subChannels'> & {
+    entityId?: string;
+    parentId: string | null;
   };
 
   type ChallengeData = {

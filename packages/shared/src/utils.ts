@@ -24,3 +24,11 @@ export const getDiscordAvatar = (
   }
   return '';
 };
+
+export const getFormatedChannelName = (channelName: string) => {
+  // Replace special characters with an empty string
+  const noSpecialChars = channelName.replace(/[^\w\s-]/gi, '');
+
+  // Replace spaces with hyphens and return the result
+  return noSpecialChars.replace(/\s+/g, '-').toLowerCase();
+};

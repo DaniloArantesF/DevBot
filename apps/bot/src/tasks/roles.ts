@@ -56,48 +56,48 @@ export async function getRoleButtons(guildId: string, userRoles: string[]) {
 
 // Sets the roles message for a guild
 // If a message is already set, delete it
-export async function setRolesMessage(
-  guildId: string,
-  channelId: string,
-  userRoles: TPocketbase.UserRoleItem[],
-) {
-  if (!userRoles || !userRoles.length) return;
-  const guildRepository = dataProvider.guild;
-  const guildCacheItem = await guildRepository.get(guildId);
-  const channel = (await getGuildChannel(guildId, channelId)) as TextChannel;
+// export async function setRolesMessage(
+//   guildId: string,
+//   channelId: string,
+//   userRoles: TPocketbase.UserRoleItem[],
+// ) {
+//   if (!userRoles || !userRoles.length) return;
+//   const guildRepository = dataProvider.guild;
+//   const guildCacheItem = await guildRepository.get(guildId);
+//   const channel = (await getGuildChannel(guildId, channelId)) as TextChannel;
 
-  const rolesMessage: MessageCreateOptions = {
-    content: 'Toggle roles by clicking the buttons below.',
-    components: [],
-  };
+//   const rolesMessage: MessageCreateOptions = {
+//     content: 'Toggle roles by clicking the buttons below.',
+//     components: [],
+//   };
 
-  if (channel?.isTextBased()) {
-    // Remove old message
-    const oldChannel = (await getGuildChannel(
-      guildId,
-      guildCacheItem.rolesChannelId,
-    )) as TextChannel;
-    if (guildCacheItem.rolesMessageId) {
-      try {
-        const oldMessage = await oldChannel.messages.fetch(guildCacheItem.rolesMessageId);
-        await oldMessage.unpin();
-        await oldMessage.delete();
+//   if (channel?.isTextBased()) {
+//     // Remove old message
+//     const oldChannel = (await getGuildChannel(
+//       guildId,
+//       guildCacheItem.rolesChannelId,
+//     )) as TextChannel;
+//     if (guildCacheItem.rolesMessageId) {
+//       try {
+//         const oldMessage = await oldChannel.messages.fetch(guildCacheItem.rolesMessageId);
+//         await oldMessage.unpin();
+//         await oldMessage.delete();
 
-        await purgeChannel(guildId, channelId, 100);
-      } catch (error) {}
-    }
+//         await purgeChannel(guildId, channelId, 100);
+//       } catch (error) {}
+//     }
 
-    // Create and pin new message
-    const message = await channel.send(rolesMessage);
-    await message.pin();
-    guildCacheItem.rolesChannelId = channelId;
-    guildCacheItem.rolesMessageId = message.id;
+//     // Create and pin new message
+//     const message = await channel.send(rolesMessage);
+//     await message.pin();
+//     guildCacheItem.rolesChannelId = channelId;
+//     guildCacheItem.rolesMessageId = message.id;
 
-    await guildRepository.update(guildCacheItem);
-  } else {
-    throw new Error('Invalid channel');
-  }
-}
+//     await guildRepository.update(guildCacheItem);
+//   } else {
+//     throw new Error('Invalid channel');
+//   }
+// }
 
 export function getUserRoles(userId: string, guildId: string) {
   const guild = discordClient.guilds.cache.get(guildId);

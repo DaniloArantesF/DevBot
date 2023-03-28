@@ -78,7 +78,7 @@ export type GuildConfigChannel = {
     [key: string]: Omit<GuildConfigChannel, 'subChannels'>;
   };
   allowedRoles: string[];
-  moderation: {
+  moderation?: {
     language: GuildConfigModerationRule;
     content: GuildConfigModerationRule;
   };
@@ -109,6 +109,14 @@ export type GuildBotContext = {
   memberRole: Discord.Role | null;
   rolesCategory: Discord.CategoryChannel | null;
   roleChannels: Map<string, Discord.TextChannel>;
+
+  // Category name -> category
+  categoryChannels: Map<string, Discord.CategoryChannel>;
+  reactionChannels: Map<string, Discord.TextChannel>;
+
+  roleEmojiMap: Map<string, string>; // emoji -> roleId
+
+  // roleid -> role
   userRoles: Map<string, Discord.Role>;
   moderationConfig: {
     language: GuildConfigModerationRule;
