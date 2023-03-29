@@ -3,7 +3,7 @@ import { DISCORD_API_BASE_URL } from '@/utils/config';
 import fetch from 'node-fetch';
 import type { TBotApi } from '@/utils/types';
 import { getGuild } from '@/tasks/guild';
-import { getGuildRoles, setRolesMessage } from '@/tasks/roles';
+import { getGuildRoles } from '@/tasks/roles';
 import { stringifyCircular } from '@/utils';
 import { createChannel, deleteChannel, getGuildChannel, getGuildChannels } from '@/tasks/channels';
 import { APIConnection, ChannelType } from 'discord.js';
@@ -172,8 +172,9 @@ class DiscordRouter {
 
     try {
       const roles = (await dataProvider.guild.get(guildId)).userRoles;
-      const data = await setRolesMessage(guildId, channelId, roles);
-      res.send(stringifyCircular(data));
+      // const data = await setRolesMessage(guildId, channelId, roles);
+      // res.send(stringifyCircular(data));
+      res.send({}); // TODO
     } catch (error) {
       console.error('Error setting roles message', error);
       res.status(500).send(error);
