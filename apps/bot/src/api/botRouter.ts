@@ -6,6 +6,7 @@ import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 import dataProvider from '@/DataProvider';
 import bot from '..';
+import { logger } from 'shared/logger';
 
 class BotRouter implements TBotRouter {
   router = Router();
@@ -25,6 +26,11 @@ class BotRouter implements TBotRouter {
     this.router.get('/config/:guildId/export', this.getGuildConfigExport.bind(this));
     this.router.post('/:guildId/userRoles/purge', this.purgeUserRoles.bind(this));
     this.router.post('/:guildId/userChannels/purge', this.purgeUserChannels.bind(this));
+
+    // Setup endpoints
+    this.router.post('/:guildId/setup', this.setupGuild.bind(this));
+    this.router.post('/:guildId/setup/userRoles', this.setupUserRoles.bind(this));
+    this.router.post('/:guildId/setup/rules', this.setupRules.bind(this));
   }
 
   @withApiLogging()
@@ -44,9 +50,14 @@ class BotRouter implements TBotRouter {
   @withApiLogging()
   async setConfig(req: TBotApi.AuthenticatedRequest, res: Response) {
     const rolesChannelId = req.body.rolesChannelId;
-    const userRoles = req.body.userRoles;
-    const plugins = req.body.plugins;
+    type ConfigPayload = {
+      userRoles?: TPocketbase.UserRoleItem[];
+      plugins?: string[];
+      managed?: boolean;
+      rules?: string;
+    };
     const guildId = req.params.guildId;
+    const { userRoles, plugins, managed, rules } = req.body as ConfigPayload;
 
     // At least one of the fields must be set
     if (!rolesChannelId && !userRoles && !plugins) {
@@ -55,12 +66,17 @@ class BotRouter implements TBotRouter {
       });
       return;
     }
+    if (userRoles && !validateUserRoles(userRoles)) {
+      res.status(400).send('Invalid userRoles array');
+      return;
+    }
 
     const guildModel = dataProvider.guild;
     try {
       const updatedRecord = await guildModel.update({
         guildId: guildId as string,
-        ...(rolesChannelId && { rolesChannelId }),
+        ...(rules && { rules }),
+        ...(managed && { managed }),
         ...(userRoles && { userRoles }),
         ...(plugins && { plugins }),
       });
@@ -90,7 +106,6 @@ class BotRouter implements TBotRouter {
   @withApiLogging()
   async getUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildModel = dataProvider.guild;
-
     try {
       const guildRecord = await guildModel.get(req.params.guildId);
       const userRoles = guildRecord.userRoles;
@@ -142,13 +157,66 @@ class BotRouter implements TBotRouter {
       return;
     }
 
+    if (guildContext.roleEmojiMap.has(newUserRole.emoji)) {
+      res.status(400).send('Emoji already exists');
+      return;
+    }
+
     try {
       await bot.addUserRole(guildId, newUserRole);
       res.status(200).send({ userRoles: guildContext.userRoles });
     } catch (error: any) {
-      res.status(error.status).send({ message: error.message });
+      logger.Error('botRouter', error.message || 'Error adding user role.');
+      res.status(error?.status || 500).send({ message: error.message });
     }
   }
+
+  /* -------------- Setup ---------------- */
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async setupGuild(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.guildSetup(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      res.status(error.status ?? 500).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async setupUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.guildUserRolesSetup(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      console.log(error);
+      res.status(error.status ?? 500).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async setupRules(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.guildMemberRulesSetup(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      res.status(error.status ?? 500).send({ message: error.message });
+    }
+  }
+
+  /* ------------------------------------ */
 
   @withAuth(['admin'])
   @useApiQueue()
@@ -186,8 +254,12 @@ function validateUserRoles(userRoles: any): userRoles is TPocketbase.UserRoleIte
     return false;
   }
 
+  // Make sure all emojis are unique and valid
+  const emojiSet = new Set<string>();
   function checkItem(item: any): item is TPocketbase.UserRoleItem {
     return (
+      item.emoji.length === 2 && // only one emoji
+      emojiSet.has(item.emoji) === false && // unique emojis
       typeof item.name === 'string' &&
       typeof item.description === 'string' &&
       typeof item.emoji === 'string' &&
@@ -203,6 +275,7 @@ function validateUserRoles(userRoles: any): userRoles is TPocketbase.UserRoleIte
     if (!checkItem(item)) {
       return false;
     }
+    emojiSet.add(item.emoji);
   }
 
   return true;

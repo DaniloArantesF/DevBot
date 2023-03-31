@@ -562,6 +562,24 @@
         "required": false,
         "unique": false,
         "options": {}
+      },
+      {
+        "id": "f9zwbm0n",
+        "name": "managed",
+        "type": "bool",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "id": "1pzdszrw",
+        "name": "moderation",
+        "type": "json",
+        "system": false,
+        "required": false,
+        "unique": false,
+        "options": {}
       }
     ],
     "listRule": null,

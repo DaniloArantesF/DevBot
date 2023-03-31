@@ -1,22 +1,10 @@
-import { getGuildChannel, purgeChannel } from './channels';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  TextChannel,
-  MessageActionRowComponentBuilder,
-  MessageCreateOptions,
-  // RoleSelectMenuBuilder
-  CreateRoleOptions,
-} from 'discord.js';
+import Discord from 'discord.js';
 import { getGuild } from './guild';
-import dataProvider from '@/DataProvider';
 import discordClient from '@/DiscordClient';
-import { TPocketbase } from 'shared/types';
 
-export async function createRole(guildId: string, options: CreateRoleOptions) {
-  const guild = await getGuild(guildId);
-  return guild?.roles.create(options);
+export async function createRole(guildId: string, options: Discord.RoleCreateOptions) {
+  const guild = getGuild(guildId);
+  return await guild?.roles.create(options);
 }
 
 export function getRoleEmoji(roleId: string) {
@@ -35,7 +23,7 @@ export async function getRoleButtons(guildId: string, userRoles: string[]) {
       userRoles.includes(role.id),
   );
 
-  const roleMessage = new ActionRowBuilder<MessageActionRowComponentBuilder>();
+  const roleMessage = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>();
 
   if (!roles) {
     return roleMessage;
@@ -43,10 +31,10 @@ export async function getRoleButtons(guildId: string, userRoles: string[]) {
   roleMessage.addComponents(
     roles.map((role) => {
       const emoji = getRoleEmoji(role.id);
-      return new ButtonBuilder()
+      return new Discord.ButtonBuilder()
         .setCustomId(`enlist:${role.id}`)
         .setLabel(`${role.name}`)
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(Discord.ButtonStyle.Primary)
         .setEmoji(emoji);
     }),
   );

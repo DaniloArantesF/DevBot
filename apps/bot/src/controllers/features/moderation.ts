@@ -23,6 +23,7 @@ class Moderation {
   ruleKeys: ModerationKey[] = ['language', 'content'];
   model = path.resolve(__dirname, 'lid.176.bin');
   classifier: FastText.Classifier | null = null;
+  isReady = false;
 
   constructor() {}
 
@@ -41,15 +42,13 @@ class Moderation {
       });
     });
 
-    eventController.eventBus.on<Discord.Message>(Discord.Events.MessageCreate, (message) => {
-      console.log('event handler bussssssss');
-      console.log(message);
-    });
-
+    eventController.eventBus.on<Discord.Message>(Discord.Events.MessageCreate, (message) => {});
     discordClient.setMaxListeners(20);
+    this.isReady = true;
   }
 
   async addChannel(channel: Discord.TextChannel, rules?: { [key: string]: ModerationRule }) {
+    if (!this.isReady) return;
     logger.Debug('Moderation', `Listening channel "${channel.name}" (${channel.id})`);
 
     listenUserMessages(channel, async (message) => {

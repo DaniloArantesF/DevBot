@@ -23,6 +23,11 @@ declare namespace TBot {
     logLevel: 'debug' | 'minimal';
     cooldownMs: number;
     autoProcess: boolean;
+    autoSetup: boolean;
+    globalModerationConfig: {
+      language: GuildConfigModerationRule;
+      content: GuildConfigModerationRule;
+    };
   };
 
   type CommandHandler = SlashCommandHandler | ButtonCommandHandler | MessageCommandHandler;
@@ -108,10 +113,10 @@ export type GuildBotContext = {
   rulesMessage: Discord.Message | null;
   memberRole: Discord.Role | null;
   rolesCategory: Discord.CategoryChannel | null;
-  roleChannels: Map<string, Discord.TextChannel>;
+  roleUserChannels: Map<string, Discord.TextChannel>;
 
   // Category name -> category
-  categoryChannels: Map<string, Discord.CategoryChannel>;
+  userChannelCategory: Map<string, Discord.CategoryChannel>;
   reactionChannels: Map<string, Discord.TextChannel>;
 
   roleEmojiMap: Map<string, string>; // emoji -> roleId

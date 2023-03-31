@@ -8,7 +8,23 @@ export const BOT_CONFIG: TBot.Config = {
   logLevel: 'debug',
   // *Note* The discord api requires a reply within 3 seconds. If cooldown is greater than 3000, you need to defer reply and edit it later.
   cooldownMs: 2500,
-  autoProcess: true,
+
+  autoProcess: true, // Whether to automatically process tasks
+
+  autoSetup: false, // Whether to automatically perform setup tasks
+
+  globalModerationConfig: {
+    language: {
+      enabled: false,
+      allowed: ['en'],
+      roleExceptions: [],
+    },
+    content: {
+      enabled: false,
+      allowed: [],
+      roleExceptions: [],
+    },
+  },
 };
 
 export const ENV = process.env.NODE_ENV;

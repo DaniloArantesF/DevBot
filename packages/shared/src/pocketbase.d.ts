@@ -1,5 +1,5 @@
 import { DiscordAuthResponse, TBotApi } from './api';
-import { GuildConfigChannel, TBot } from './bot';
+import { GuildBotContext, GuildConfigChannel, GuildConfigModerationRule, TBot } from './bot';
 
 declare namespace TPocketbase {
   type Base = {
@@ -37,6 +37,11 @@ declare namespace TPocketbase {
     description?: string;
     memberRoleId?: string;
     rules?: string;
+    managed: boolean;
+    moderation: {
+      language: GuildConfigModerationRule;
+      content: GuildConfigModerationRule;
+    };
   };
 
   type UserRoleItem = {

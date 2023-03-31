@@ -1,5 +1,6 @@
 import dataProvider from '@/DataProvider';
 import discord from 'discord.js';
+import { BOT_CONFIG } from 'shared/config';
 import { TPocketbase } from 'shared/types';
 
 const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
@@ -29,6 +30,11 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
           description: '',
           memberRoleId: '',
           channels: [],
+          plugins: [],
+          managed: false,
+          moderation: {
+            ...BOT_CONFIG.globalModerationConfig,
+          },
         });
         if (!record) continue;
         cacheMap.set(guild.id, record.id);

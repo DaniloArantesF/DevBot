@@ -8,20 +8,32 @@ type EventCallback<T> = (args: T) => void;
 
 class EventBus {
   private listeners: Record<string, Function[]> = {};
+  private internalTaskListeners: Record<string, Function | null> = {};
 
-  on<T>(event: string /* Discord.ClientEvents */, callback: EventCallback<T>) {
-    if (!this.listeners[event]) this.listeners[event] = [];
-    this.listeners[event].push(callback);
+  on<T>(event: string, callback: EventCallback<T>, internalTask = false) {
+    if (internalTask) {
+      this.internalTaskListeners[event] = callback;
+    } else {
+      if (!this.listeners[event]) this.listeners[event] = [];
+      this.listeners[event].push(callback);
+    }
   }
 
   off(event: string, callback: EventCallback<any>) {
-    if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
+    if (this.internalTaskListeners[event] === callback) {
+      this.internalTaskListeners[event] = null;
+    } else {
+      if (!this.listeners[event]) return;
+      this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
+    }
   }
 
   emit<T>(event: string, ...args: T[]) {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach((cb) => cb(...args));
+    if (this.internalTaskListeners[event]) {
+      this.internalTaskListeners[event]?.(...args);
+    } else if (this.listeners[event]) {
+      this.listeners[event].forEach((cb) => cb(...args));
+    }
   }
 }
 

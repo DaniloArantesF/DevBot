@@ -25,23 +25,13 @@ import {
 } from './tasks/channels';
 import moderation from './controllers/features/moderation';
 import { getFormatedChannelName } from 'shared/utils';
+import eventController from './controllers/eventController';
 
 class Bot {
   isReady: Promise<boolean>;
   userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
-  globalModerationConfig = {
-    language: {
-      enabled: true,
-      allowed: ['en'],
-      roleExceptions: [],
-    },
-    content: {
-      enabled: false,
-      allowed: [],
-      roleExceptions: [],
-    },
-  };
+  config = BOT_CONFIG;
 
   constructor() {
     logger.Header([
@@ -55,6 +45,8 @@ class Bot {
 
   async setup() {
     await taskManager.setupTaskControllers();
+    // await taskManager.setupPlugins();
+
     return new Promise<boolean>((resolve, reject) => {
       // Setup
       discordClient.on('ready', async () => {
@@ -71,52 +63,56 @@ class Bot {
     });
   }
 
+  // Called when discord client is ready
+  // and database is connected
   async main() {
-    await this.guildSetup();
     api.start();
 
-    if (BOT_CONFIG.autoProcess) {
-      await taskManager.initProcessing();
-    }
-    // await taskManager.setupPlugins();
-  }
-
-  // Guild setup checks
-  // Create guilds in database if they don't exist
-  // Add/Update roles message
-  async guildSetup() {
-    const guildRepository = dataProvider.guild;
-    await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
-
     // Setup moderation module
-    // await moderation.setup();
+    await moderation.setup();
+
+    const guildRepository = dataProvider.guild;
+    // Create guilds in database if they don't exist
+    await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
 
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
-      if (guild.guildId !== '817654492782657566') continue;
-
       // Init guild context
       this.guilds.set(guild.guildId, {
         rulesChannel: null,
         rulesMessage: null,
         memberRole: null,
         rolesCategory: null,
-        roleChannels: new Map(),
+        roleUserChannels: new Map(),
         userRoles: new Map(),
-        moderationConfig: { ...this.globalModerationConfig },
-        categoryChannels: new Map(),
+        moderationConfig: { ...guild.moderation },
+        userChannelCategory: new Map(),
         reactionChannels: new Map(),
         roleEmojiMap: new Map(),
       });
 
-      try {
-        await this.guildMemberRulesSetup(guild);
-        await this.guildUserRolesSetup(guild);
-        // await this.guildModerationSetup(guild);
-      } catch (error) {
-        console.error(error);
-        logger.Error('Bot', (error as any).message);
+      if (!guild.managed) continue;
+      if (this.config.autoSetup) {
+        await this.guildSetup(guild);
       }
+    }
+
+    if (BOT_CONFIG.autoProcess) {
+      await taskManager.initProcessing();
+    }
+  }
+
+  // Guild setup checks
+  // Add/Update roles message
+  async guildSetup(guild: TPocketbase.Guild) {
+    logger.Debug('Bot', `Setting up guild ${guild.guildId} ...`);
+    try {
+      await this.guildMemberRulesSetup(guild);
+      // await this.guildUserRolesSetup(guild);
+      // await this.guildModerationSetup(guild);
+    } catch (error) {
+      console.error(error);
+      logger.Error('Bot', (error as any).message);
     }
   }
 
@@ -167,30 +163,45 @@ class Bot {
     } else {
       await this.updateRulesMessage(rulesMessage, guild.rules ?? '');
     }
+
     await rulesMessage.react('✅');
+
     this.guilds.get(guild.guildId)!.rulesMessage = rulesMessage;
     this.guilds.get(guild.guildId)!.rulesChannel = rulesChannel;
 
     // Basic member role (given when users react to rules)
     let memberRoleId = guild.memberRoleId;
-    if (!memberRoleId || !getGuild(guild.guildId)?.roles.cache.has(memberRoleId)) {
-      logger.Debug('Bot', `Creating ${guild.guildId} member role.`);
-      const memberRole = await createRole(guild.guildId, {
-        name: 'Member',
-        color: 'Green',
-        hoist: false,
-        mentionable: false,
-        permissions: BASE_MEMBER_PERMISSIONS,
-      });
-      this.guilds.get(guild.guildId)!.memberRole = memberRole ?? null;
+    let memberRole = memberRoleId ? getGuild(guild.guildId)?.roles.cache.get(memberRoleId) : null;
+    if (!memberRoleId || !memberRole) {
+      // Check that exists a role that matches the name
+      let memberRole = getGuild(guild.guildId)?.roles.cache.find(
+        (r) => r.name.toLowerCase() === 'Member'.toLowerCase(),
+      );
+      if (!memberRole) {
+        logger.Debug('Bot', `Creating ${guild.guildId} member role.`);
+        memberRole = await createRole(guild.guildId, {
+          name: 'Member',
+          color: 'Green',
+          hoist: false,
+          mentionable: false,
+          permissions: BASE_MEMBER_PERMISSIONS,
+        });
+      } else {
+        // Reset permissions
+        await memberRole.setPermissions(BASE_MEMBER_PERMISSIONS);
+      }
 
       // Save the member role id
       guild.memberRoleId = memberRole!.id;
       memberRoleId = memberRole!.id;
+
+      this.guilds.get(guild.guildId)!.memberRole = memberRole || null;
       guild = await dataProvider.guild.update(guild); // maybe update cache? no await?
     }
-    this.guilds.get(guild.guildId)!.memberRole =
-      getGuild(guild.guildId)?.roles.cache.get(memberRoleId!) ?? null;
+
+    if (!this.guilds.get(guild.guildId)!.memberRole) {
+      this.guilds.get(guild.guildId)!.memberRole = memberRole || null;
+    }
 
     // Make sure all users that have reacted have the member role
     const reaction = (await rulesMessage!.fetch(true)).reactions.cache.find(
@@ -241,7 +252,7 @@ class Bot {
       // Save role to context
       this.guilds.get(guild.guildId)!.userRoles.set(role.id, role);
 
-      roleNameMap.set(`${role.name}`, role);
+      roleNameMap.set(`${role.name.toLowerCase()}`, role);
       this.guilds
         .get(guild.guildId)!
         .roleEmojiMap.set(`${newUserRoles[matchIndex].emoji}`, role.id);
@@ -258,18 +269,20 @@ class Bot {
     // Create new roles
     if (newUserRoles.length > 0) logger.Debug('Bot', `Creating ${newUserRoles.length} roles.`);
     for (const roleData of newUserRoles) {
-      const role = await this.createUserDiscordRole(guild.guildId, roleData.name);
+      const role = await this.createUserDiscordRole(guild.guildId, roleData.name.toLowerCase());
       if (!role) {
         logger.Error('Bot', `Failed to create role ${roleData.name} for ${guild.guildId}.`);
         continue;
       }
 
-      roleNameMap.set(roleData.name, role);
+      roleNameMap.set(roleData.name.toLowerCase(), role);
       this.guilds.get(guild.guildId)!.roleEmojiMap.set(roleData.emoji, role!.id);
       this.guilds.get(guild.guildId)!.userRoles.set(role!.id, role!);
 
       // Update user roles in object to be saved to db
-      const index = guild.userRoles.findIndex((r) => r.name === roleData.name);
+      const index = guild.userRoles.findIndex(
+        (r) => r.name.toLowerCase() === roleData.name.toLowerCase(),
+      );
       guild.userRoles[index].entityId = role!.id;
     }
 
@@ -295,41 +308,46 @@ class Bot {
     const everyoneRole = getEveryoneRole(guild.guildId);
 
     // For each user role category, create a reaction channel and send a message
-    const categories = new Set(guild.userRoles.map((r) => r.category));
+    const categories = new Set(guild.userRoles.map((r) => r.category.toLowerCase()));
     for (const category of categories) {
       const categoryRoles = guild.userRoles
-        .filter((r) => r.category === category)
-        .map((r) => ({ id: roleNameMap.get(r.name)!.id, ...r }));
+        .filter((r) => r.category.toLowerCase() === category.toLowerCase())
+        .map((r) => ({ id: roleNameMap.get(r.name.toLowerCase())!.id, ...r }));
 
       // Create user role category channel if it doesn't exist
-      let categoryChannel = channels.find(
+      let categoryReactionChannel = channels.find(
         (c) =>
           c &&
           c.name.toLowerCase() === category.toLowerCase() &&
           c.type === Discord.ChannelType.GuildText,
       ) as Discord.TextChannel;
-      if (!categoryChannel) {
+      if (!categoryReactionChannel) {
         logger.Debug('Bot', `Creating "${category}" role reaction channel.`);
-        categoryChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
-          name: category.toLowerCase(),
-          type: Discord.ChannelType.GuildText,
-          parent: rolesCategory!.id,
-          permissionOverwrites: [
-            {
-              id: everyoneRole!.id,
-              deny: [Discord.PermissionsBitField.Flags.SendMessages],
-            },
-          ],
-        });
+        categoryReactionChannel = await createChannel<Discord.ChannelType.GuildText>(
+          guild.guildId,
+          {
+            name: category.toLowerCase(),
+            type: Discord.ChannelType.GuildText,
+            parent: rolesCategory!.id,
+            permissionOverwrites: [
+              {
+                id: everyoneRole!.id,
+                deny: [Discord.PermissionsBitField.Flags.SendMessages],
+              },
+            ],
+          },
+        );
       }
 
       // Save user reaction channel to context
-      this.guilds.get(guild.guildId)!.reactionChannels.set(category, categoryChannel);
+      this.guilds
+        .get(guild.guildId)!
+        .reactionChannels.set(category.toLowerCase(), categoryReactionChannel);
 
-      let categoryMessage = (await categoryChannel.messages.fetchPinned()).first();
+      let categoryMessage = (await categoryReactionChannel.messages.fetchPinned()).first();
       // Create/Update message and pin it
       if (!categoryMessage) {
-        categoryMessage = await this.createRolesMessage(categoryChannel, categoryRoles);
+        categoryMessage = await this.createRolesMessage(categoryReactionChannel, categoryRoles);
       } else {
         await this.updateRolesMessage(categoryMessage, categoryRoles);
       }
@@ -388,6 +406,7 @@ class Bot {
         member?.roles.remove(role);
       };
 
+      // TODO: prevent creation of multiple listeners
       listenMessageReactions(categoryMessage, onAdd, onRemove);
     }
 
@@ -411,35 +430,94 @@ class Bot {
   // If channel is specified, make sure it exists
   // Otherwise try to find the channel by name
   // Finally create the channel if it doesn't exist
+  // TODO: call this from guildRoleSetup instead of doing it manually there
   async addUserRole(guildId: string, roleData: TPocketbase.UserRoleItem) {
     const guildContext = this.guilds.get(guildId);
     const roleManager = getGuild(guildId)!.roles;
     const everyoneRole = getEveryoneRole(guildId);
+    let guild = await dataProvider.guild.get(guildId);
+    if (!guild) {
+      logger.Error('Bot', `Guild ${guildId} does not exist`);
+      return;
+    }
     let role;
 
+    // Check if there is a stored entityId
     if (!roleData.entityId) {
-      role = roleManager.cache.find((r) => r.name.toLowerCase() === roleData.name.toUpperCase());
-      if (!role) {
-        role = await this.createUserDiscordRole(guildId, roleData.name);
-      }
-      roleData.entityId = role!.id;
+      // Try to match it with an existing role
+      role = roleManager.cache.find((r) => r.name.toLowerCase() === roleData.name.toLowerCase());
     } else {
+      // Get role from cache
       role = roleManager.cache.get(roleData.entityId);
       if (!role) {
         logger.Warning('Bot', `Role ${roleData.entityId} does not exist. Creating new one.`);
-        role = await this.createUserDiscordRole(guildId, roleData.name);
       }
     }
 
-    if (!role) logger.Error('Bot', 'Failed to create role');
+    if (!role) {
+      // Create new role
+      role = await this.createUserDiscordRole(guildId, roleData.name);
+      if (!role) {
+        logger.Error('Bot', 'Failed to create role');
+        return;
+      }
+    }
+    roleData.entityId = role?.id;
 
-    // Make sure channel exists
-    const channels = getGuildChannels(guildId);
-    let roleChannel = channels?.find(
-      (c) =>
-        c.name.toLowerCase() === roleData.name.toLowerCase() &&
-        c.type === Discord.ChannelType.GuildText,
+    // Update database if necessary
+    let index = guild.userRoles.findIndex(
+      (r) => r.name.toLowerCase() === roleData.name.toLowerCase(),
     );
+    if (index === -1) {
+      guild.userRoles.push(roleData);
+    } else {
+      guild.userRoles[index] = roleData;
+    }
+
+    // Add role to reaction channel
+    const reactionCategory = guildContext?.rolesCategory;
+    if (!reactionCategory) {
+      throw new Error('Role reaction category does not exist. Please run the setup routine.');
+    }
+
+    let categoryReactionChannel = this.guilds
+      .get(guildId)
+      ?.reactionChannels.get(roleData.category.toLowerCase());
+    if (!categoryReactionChannel) {
+      logger.Debug('Bot', `Creating "${roleData.category}" role reaction channel.`);
+      categoryReactionChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
+        name: roleData.category.toLowerCase(),
+        type: Discord.ChannelType.GuildText,
+        parent: reactionCategory!.id,
+        permissionOverwrites: [
+          {
+            id: everyoneRole!.id,
+            deny: [Discord.PermissionsBitField.Flags.SendMessages],
+          },
+        ],
+      });
+      this.guilds
+        .get(guildId)
+        ?.reactionChannels.set(roleData.category.toLowerCase(), categoryReactionChannel);
+    }
+
+    let categoryMessage = (await categoryReactionChannel.messages.fetchPinned()).first();
+    const categoryRoles = guild.userRoles
+      .filter((r) => r.category.toLowerCase() === roleData.category.toLowerCase())
+      .map((r) => ({ id: r.entityId!, ...r }));
+
+    console.log(categoryRoles);
+
+    // Create/Update message and pin it
+    if (!categoryMessage) {
+      categoryMessage = await this.createRolesMessage(categoryReactionChannel, categoryRoles);
+    } else {
+      await this.updateRolesMessage(categoryMessage, categoryRoles);
+    }
+
+    // Add missing reaction
+    await categoryMessage.react(roleData.emoji);
+    this.guilds.get(guild.guildId)?.roleEmojiMap.set(roleData.emoji, roleData.entityId!);
 
     const memberPermissionOverwrites: Discord.OverwriteResolvable[] = [
       {
@@ -460,81 +538,60 @@ class Bot {
       },
     ];
 
-    // Make sure category exists
-    if (!guildContext?.categoryChannels.get(roleData.category)) {
+    // Make sure user channel category exists before creating channel
+    const categoryChannelName = `${roleData.category.toLowerCase()}-chat`;
+    if (!guildContext?.userChannelCategory.get(roleData.category.toLowerCase())) {
       const category = await createChannel<Discord.ChannelType.GuildCategory>(guildId, {
-        name: roleData.category,
+        name: categoryChannelName,
         type: Discord.ChannelType.GuildCategory,
         permissionOverwrites: memberPermissionOverwrites,
       });
-      guildContext?.categoryChannels.set(roleData.category, category);
+      guildContext?.userChannelCategory.set(roleData.category.toLowerCase(), category);
     }
 
-    if (!roleChannel) {
-      roleChannel = await createChannel<Discord.ChannelType.GuildText>(guildId, {
-        name: roleData.name,
+    // Get channel, create if it doesn't exist
+    const channels = getGuildChannels(guildId);
+    let roleUserChannel = channels?.find(
+      (c) =>
+        c.name.toLowerCase() === roleData.name.toLowerCase() &&
+        c.type === Discord.ChannelType.GuildText,
+    );
+    if (!roleUserChannel) {
+      roleUserChannel = await createChannel<Discord.ChannelType.GuildText>(guildId, {
+        name: roleData.name.toLowerCase(),
         type: Discord.ChannelType.GuildText,
-        parent: guildContext?.categoryChannels.get(roleData.category),
+        parent: guildContext?.userChannelCategory.get(roleData.category.toLowerCase()),
         permissionOverwrites: memberPermissionOverwrites,
       })!;
-      // Update guild context
-      // remove old channel if it exists ?
     }
 
-    guildContext?.roleChannels.set(roleChannel.id, roleChannel as Discord.TextChannel);
+    guildContext?.roleUserChannels.set(roleUserChannel.id, roleUserChannel as Discord.TextChannel);
 
-    // Update database if necessary
-    let guild = await dataProvider.guild.get(guildId);
-    if (!guild) {
-      logger.Error('Bot', `Guild ${guildId} does not exist`);
-      return;
-    }
-
-    let index = guild.userRoles.findIndex((r) => r.name === roleData.name.toLowerCase());
-    if (index === -1) {
-      guild.userRoles.push(roleData);
-    } else {
-      guild.userRoles[index] = roleData;
-    }
-
-    index = guild.userChannels.findIndex((c) => c.name === roleData.name.toLowerCase());
+    index = guild.userChannels.findIndex(
+      (c) => c.name.toLowerCase() === roleData.name.toLowerCase(),
+    );
     if (index === -1) {
       guild.userChannels.push({
         entityId: roleData.entityId,
-        name: roleChannel.name,
-        type: roleChannel.type.toString(),
+        name: roleUserChannel.name,
+        type: roleUserChannel.type.toString(),
         description: '',
         allowedRoles: roleData.entityId ? [roleData.entityId] : [],
         flags: [],
         plugin: null,
-        parentId: guildContext?.categoryChannels.get(roleData.category)?.id ?? null,
+        parentId:
+          guildContext?.userChannelCategory.get(roleData.category.toLowerCase())?.id ?? null,
       });
       logger.Debug('Bot', `Updating database with new role ${roleData.name}`);
-      guild = await dataProvider.guild.update(guild);
     }
 
-    // Update message
-    const categoryChannel = this.guilds.get(guild.guildId)!.reactionChannels.get(roleData.category);
+    guild = await dataProvider.guild.update(guild);
+  }
 
-    if (!categoryChannel) {
-      logger.Error('Bot', `Category channel ${roleData.category} does not exist`);
-      return;
+  async reactToUserRoles(message: Discord.Message, roles: TPocketbase.UserRoleItem[]) {
+    for (const role of roles) {
+      await message.react(role.emoji);
     }
-
-    let categoryMessage = (await categoryChannel.messages.fetchPinned()).first();
-    const categoryRoles = guild.userRoles
-      .filter((r) => r.category === roleData.category)
-      .map((r) => ({ id: r.entityId!, ...r }));
-
-    // Create/Update message and pin it
-    if (!categoryMessage) {
-      categoryMessage = await this.createRolesMessage(categoryChannel, categoryRoles);
-    } else {
-      await this.updateRolesMessage(categoryMessage, categoryRoles);
-    }
-
-    await categoryMessage.react(roleData.emoji);
-    this.guilds.get(guild.guildId)?.roleEmojiMap.set(roleData.emoji, roleData.entityId!);
   }
 
   async removeUserRole(guildId: string, roleData: TPocketbase.UserRoleItem) {}
@@ -547,10 +604,6 @@ class Bot {
     }
 
     const guild = getGuild(guildId)!;
-    guild.client.on('messageReactionAdd', (reaction, user) => {
-      if (!(reaction.emoji.name === '✅' && !user.bot)) return;
-    });
-
     const onAdd: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
       guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
@@ -614,10 +667,10 @@ class Bot {
     );
 
     // Delete category channels
-    const categories = [...new Set(guild.userRoles.map((r) => r.category)).values()];
+    const categories = [...new Set(guild.userRoles.map((r) => r.category.toLowerCase())).values()];
     await Promise.all(
       categories.map(async (category) => {
-        const categoryChannelName = `${category}-chat`;
+        const categoryChannelName = `${category.toLowerCase()}-chat`;
         const categoryChannel = channels?.find(
           (c) => c.name === categoryChannelName && c.type === Discord.ChannelType.GuildCategory,
         );
@@ -634,7 +687,7 @@ class Bot {
 
   async createRoleChatChannels(guild: TPocketbase.Guild) {
     logger.Debug('Bot', `Validating role channels for ${guild.guildId} ...`);
-    const guildCategories = new Set(guild.userRoles.map((r) => r.category));
+    const guildCategories = new Set(guild.userRoles.map((r) => r.category.toLowerCase()));
     const guildContext = this.guilds.get(guild.guildId)!;
     const userChannels: TPocketbase.UserChannel[] = [];
     const everyoneRole = getEveryoneRole(guild.guildId);
@@ -642,9 +695,11 @@ class Bot {
     let categoryPositon = 1;
     for (const category of guildCategories) {
       // Create category if it doesn't exist
-      const categoryChannelName = `${category}-chat`;
+      const categoryChannelName = `${category.toLowerCase()}-chat`;
       let categoryChannel = getGuildChannels(guild.guildId)?.find(
-        (c) => c.name === categoryChannelName && c.type === Discord.ChannelType.GuildCategory,
+        (c) =>
+          c.name.toLowerCase() === categoryChannelName.toLowerCase() &&
+          c.type === Discord.ChannelType.GuildCategory,
       ) as Discord.CategoryChannel;
       if (!categoryChannel) {
         categoryChannel = await createChannel<Discord.ChannelType.GuildCategory>(guild.guildId, {
@@ -658,24 +713,24 @@ class Bot {
         logger.Error('Bot', `Failed to create category channel for "${category}" category`);
         return;
       }
-      guildContext.categoryChannels.set(category, categoryChannel);
+      guildContext.userChannelCategory.set(category.toLowerCase(), categoryChannel);
     }
 
     for (const role of guild.userRoles) {
       let userRoleChannel = getGuildChannels(guild.guildId)?.find(
         (c) =>
-          c.name === getFormatedChannelName(role.name) &&
+          c.name.toLowerCase() === getFormatedChannelName(role.name).toLowerCase() &&
           c.type === Discord.ChannelType.GuildText &&
-          c.parentId === guildContext.categoryChannels.get(role.category)?.id,
+          c.parentId === guildContext.userChannelCategory.get(role.category.toLowerCase())?.id,
       ) as Discord.TextChannel;
 
       const roleId = role.entityId;
       if (!userRoleChannel && roleId) {
         logger.Debug('Bot', `Creating channel for role ${role.name} in ${role.category}`);
         userRoleChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
-          name: role.name,
+          name: role.name.toLowerCase(),
           type: Discord.ChannelType.GuildText,
-          parent: guildContext.categoryChannels.get(role.category),
+          parent: guildContext.userChannelCategory.get(role.category.toLowerCase()),
           permissionOverwrites: [
             {
               id: everyoneRole.id,
@@ -698,7 +753,7 @@ class Bot {
       }
 
       // Save channel to context
-      guildContext.roleChannels.set(userRoleChannel.id, userRoleChannel);
+      guildContext.roleUserChannels.set(userRoleChannel.id, userRoleChannel);
       userChannels.push({
         entityId: userRoleChannel.id,
         name: userRoleChannel.name,

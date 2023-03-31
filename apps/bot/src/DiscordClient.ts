@@ -14,6 +14,11 @@ class DiscordClient extends Client {
   constructor() {
     super({
       intents,
+      rest: {
+        globalRequestsPerSecond: 49,
+        // rejectOnRateLimit: () => true,
+        retries: 0,
+      },
     });
     this.registerEvents();
     this.registerCommands();
