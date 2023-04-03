@@ -4,24 +4,30 @@ import { Controller, DiscordEvent, EventTask, QueueTaskData } from '@/utils/type
 import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
-type EventCallback<T> = (args: T) => void;
-
+type EventCallback<T> = (...args: any[]) => void;
 class EventBus {
   private listeners: Record<string, Function[]> = {};
-  private internalTaskListeners: Record<string, Function | null> = {};
+  private internalTaskListeners: Record<string, Record<string, Function | null>> = {};
 
-  on<T>(event: string, callback: EventCallback<T>, internalTask = false) {
-    if (internalTask) {
-      this.internalTaskListeners[event] = callback;
+  // Defines an internal task
+  task(event: string, key: string, callback: EventCallback<any[]>) {
+    // logger.Debug('EventBus', `Added internal event hook:\n\t${event}:${key}`);
+    this.on(event, callback, true, key);
+  }
+
+  on<T>(event: string, callback: EventCallback<T>, internalTask = false, internalKey = '') {
+    if (internalTask && internalKey) {
+      if (!this.internalTaskListeners[event]) this.internalTaskListeners[event] = {};
+      this.internalTaskListeners[event][internalKey] = callback;
     } else {
       if (!this.listeners[event]) this.listeners[event] = [];
       this.listeners[event].push(callback);
     }
   }
 
-  off(event: string, callback: EventCallback<any>) {
-    if (this.internalTaskListeners[event] === callback) {
-      this.internalTaskListeners[event] = null;
+  off(event: string, callback: EventCallback<any>, internal = false, key = '') {
+    if (internal && this.internalTaskListeners[event] && key) {
+      this.internalTaskListeners[event][key] = null;
     } else {
       if (!this.listeners[event]) return;
       this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
@@ -30,8 +36,11 @@ class EventBus {
 
   emit<T>(event: string, ...args: T[]) {
     if (this.internalTaskListeners[event]) {
-      this.internalTaskListeners[event]?.(...args);
-    } else if (this.listeners[event]) {
+      for (const callback of Object.values(this.internalTaskListeners[event])) {
+        callback?.(...args);
+      }
+    }
+    if (this.listeners[event]) {
       this.listeners[event].forEach((cb) => cb(...args));
     }
   }

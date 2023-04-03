@@ -1,5 +1,5 @@
 import discordClient from '@/DiscordClient';
-import { listenUserMessages } from '@/tasks/channels';
+import { listenUserMessages } from '@/tasks/message';
 import Discord from 'discord.js';
 import { logger } from 'shared/logger';
 import { GuildConfigModerationRule } from 'shared/types';

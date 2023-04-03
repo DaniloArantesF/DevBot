@@ -7,6 +7,7 @@ import { withApiLogging } from './decorators/log';
 import dataProvider from '@/DataProvider';
 import bot from '..';
 import { logger } from 'shared/logger';
+import { isSingleEmoji } from 'shared/utils';
 
 class BotRouter implements TBotRouter {
   router = Router();
@@ -258,7 +259,7 @@ function validateUserRoles(userRoles: any): userRoles is TPocketbase.UserRoleIte
   const emojiSet = new Set<string>();
   function checkItem(item: any): item is TPocketbase.UserRoleItem {
     return (
-      item.emoji.length === 2 && // only one emoji
+      isSingleEmoji(item.emoji) && // only one emoji
       emojiSet.has(item.emoji) === false && // unique emojis
       typeof item.name === 'string' &&
       typeof item.description === 'string' &&

@@ -10,6 +10,7 @@ import { TBotApi } from 'shared/types';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 import { withAuth } from './decorators/auth';
+import { getGuild } from '@/tasks/guild';
 
 interface TAdminRouter {
   router: Router;
@@ -30,6 +31,7 @@ class AdminRouter implements TAdminRouter {
     this.router.post('/commands', this.registerCommands.bind(this));
     this.router.delete('/commands', this.deleteCommands.bind(this));
     this.router.post('/channel/purge', this.purgeChannel.bind(this)); // TODO: move to channelrouter
+    this.router.get('/:guildId/templates', this.getGuildTemplates.bind(this));
   }
 
   @withAuth(['admin'])
@@ -89,6 +91,17 @@ class AdminRouter implements TAdminRouter {
       console.error('Error setting roles message', error);
       res.status(500).send(error);
     }
+  }
+
+  @withAuth(['admin'])
+  @withApiLogging()
+  @useApiQueue()
+  async getGuildTemplates(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params?.guildId;
+    const guild = getGuild(guildId);
+    if (!guild) return res.status(404).send('Guild not found');
+    const templates = await guild?.fetchTemplates();
+    res.send(templates || {});
   }
 }
 

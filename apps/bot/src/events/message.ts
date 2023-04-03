@@ -14,3 +14,13 @@ export const messageCreate: DiscordEvent<Events.MessageCreate> = {
     }
   },
 };
+
+export const messageReactionAdd: DiscordEvent<Events.MessageReactionAdd> = {
+  name: Events.MessageReactionAdd,
+  async on(message, user) {},
+};
+
+export const messageReactionRemove: DiscordEvent<Events.MessageReactionRemove> = {
+  name: Events.MessageReactionRemove,
+  async on(message, user) {},
+};

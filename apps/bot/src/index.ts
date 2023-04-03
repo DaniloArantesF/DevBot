@@ -1,7 +1,7 @@
 import discordClient from '@/DiscordClient';
 import dataProvider from '@/DataProvider';
 import taskManager from '@/TaskManager';
-import { createRole, getEveryoneRole } from '@/tasks/roles';
+import { createRole, getEveryoneRole, getGuildRole } from '@/tasks/roles';
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
 import { BASE_MEMBER_PERMISSIONS, POCKETBASE_BASE_URL } from './utils/config';
@@ -17,15 +17,10 @@ import {
   ReactionHandler,
   TPocketbase,
 } from 'shared/types';
-import {
-  createChannel,
-  getGuildChannels,
-  getRulesChannel,
-  listenMessageReactions,
-} from './tasks/channels';
+import { createChannel, getGuildChannels, getRulesChannel } from './tasks/channels';
 import moderation from './controllers/features/moderation';
 import { getFormatedChannelName } from 'shared/utils';
-import eventController from './controllers/eventController';
+import { listenMessageReactions } from './tasks/message';
 
 class Bot {
   isReady: Promise<boolean>;
@@ -108,7 +103,7 @@ class Bot {
     logger.Debug('Bot', `Setting up guild ${guild.guildId} ...`);
     try {
       await this.guildMemberRulesSetup(guild);
-      // await this.guildUserRolesSetup(guild);
+      await this.guildUserRolesSetup(guild);
       // await this.guildModerationSetup(guild);
     } catch (error) {
       console.error(error);
@@ -267,7 +262,13 @@ class Bot {
     }
 
     // Create new roles
-    if (newUserRoles.length > 0) logger.Debug('Bot', `Creating ${newUserRoles.length} roles.`);
+    if (newUserRoles.length > 0 && newUserRoles.length <= 80)
+      logger.Debug('Bot', `Creating ${newUserRoles.length} roles.`);
+    if (newUserRoles.length > 80) {
+      logger.Error('Bot', `Too many roles to create for ${guild.guildId}.`);
+      return;
+    }
+
     for (const roleData of newUserRoles) {
       const role = await this.createUserDiscordRole(guild.guildId, roleData.name.toLowerCase());
       if (!role) {
@@ -318,9 +319,11 @@ class Bot {
       let categoryReactionChannel = channels.find(
         (c) =>
           c &&
-          c.name.toLowerCase() === category.toLowerCase() &&
+          getFormatedChannelName(c.name.toLowerCase()) ===
+            getFormatedChannelName(category.toLowerCase()) &&
           c.type === Discord.ChannelType.GuildText,
       ) as Discord.TextChannel;
+
       if (!categoryReactionChannel) {
         logger.Debug('Bot', `Creating "${category}" role reaction channel.`);
         categoryReactionChannel = await createChannel<Discord.ChannelType.GuildText>(
@@ -364,7 +367,13 @@ class Bot {
       for (const { id: roleId, emoji } of categoryRoles) {
         const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
         const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
-        const memberRole = this.guilds.get(guild.guildId)!.memberRole;
+
+        // Fallback to stored member role and ignore if it doesn't exist
+        let memberRole = this.guilds.get(guild.guildId)!.memberRole;
+        if (!memberRole) {
+          memberRole = getGuildRole(guild.guildId, guild.memberRoleId) || null;
+        }
+
         await Promise.all(
           (await reaction?.users.fetch())!.map(async (user) => {
             if (user.bot) return;
@@ -373,7 +382,7 @@ class Bot {
               member = await getGuild(guild.guildId)?.members.fetch(user.id);
             }
             // Skip users who don't have the member role
-            if (!member?.roles.cache.has(memberRole?.id ?? '')) return;
+            if (memberRole && !member?.roles.cache.has(memberRole?.id ?? '')) return;
             if (!member?.roles.cache.has(roleId)) {
               logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
               await member?.roles.add(roleId);
@@ -406,7 +415,6 @@ class Bot {
         member?.roles.remove(role);
       };
 
-      // TODO: prevent creation of multiple listeners
       listenMessageReactions(categoryMessage, onAdd, onRemove);
     }
 
@@ -506,8 +514,6 @@ class Bot {
       .filter((r) => r.category.toLowerCase() === roleData.category.toLowerCase())
       .map((r) => ({ id: r.entityId!, ...r }));
 
-    console.log(categoryRoles);
-
     // Create/Update message and pin it
     if (!categoryMessage) {
       categoryMessage = await this.createRolesMessage(categoryReactionChannel, categoryRoles);
@@ -606,6 +612,7 @@ class Bot {
     const guild = getGuild(guildId)!;
     const onAdd: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
+      console.log('adding thing');
       guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
     };
 
@@ -613,6 +620,7 @@ class Bot {
     const onRemove: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
       const roles = [guildContext.memberRole!, ...guildContext.userRoles.values()];
+      console.log('removing thing');
       guild.members.cache.get(user.id)?.roles.remove(roles);
     };
 

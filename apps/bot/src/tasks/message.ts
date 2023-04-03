@@ -1,17 +1,18 @@
-import { MessagePayload, MessageCreateOptions, TextChannel, Role } from 'discord.js';
+import Discord from 'discord.js';
 import { getGuildChannel } from './channels';
-import { TPocketbase } from 'shared/types';
+import { ReactionHandler } from 'shared/types';
+import eventController from '@/controllers/eventController';
 
 export async function sendMessage(
   channelId: string,
-  message: string | MessagePayload | MessageCreateOptions,
+  message: string | Discord.MessagePayload | Discord.MessageCreateOptions,
 ) {
-  const channel = (await getGuildChannel(channelId)) as TextChannel;
+  const channel = (await getGuildChannel(channelId)) as Discord.TextChannel;
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.send(message);
 }
 
-export const getLatestChannelMessages = async (channel: TextChannel, limit = 10) => {
+export const getLatestChannelMessages = async (channel: Discord.TextChannel, limit = 10) => {
   const messages = [...channel.messages.cache.values()];
   messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
   return messages.slice(-limit);
@@ -27,3 +28,41 @@ export const getRolesMessage = (userRoles: { emoji: string; id: string }[]) => {
   }
   return message;
 };
+
+export function listenMessageReactions(
+  message: Discord.Message,
+  onAdd: ReactionHandler,
+  onRemove: ReactionHandler,
+) {
+  eventController.eventBus.task(
+    Discord.Events.MessageReactionAdd,
+    `${message.id}:listenReactions`,
+    (reaction: Discord.MessageReaction, user: Discord.User) => {
+      if (!(reaction.message.id === message.id && !user.bot)) return;
+      onAdd(reaction, user);
+    },
+  );
+
+  eventController.eventBus.task(
+    Discord.Events.MessageReactionRemove,
+    `${message.id}:listenReactions`,
+    (reaction: Discord.MessageReaction, user: Discord.User) => {
+      if (!(reaction.message.id === message.id && !user.bot)) return;
+      onRemove(reaction, user);
+    },
+  );
+}
+
+export function listenUserMessages(
+  channel: Discord.TextChannel,
+  onMessage: (message: Discord.Message) => void,
+) {
+  eventController.eventBus.task(
+    Discord.Events.MessageCreate,
+    'listenChannel',
+    (message: Discord.Message) => {
+      if (message.channelId !== channel.id || message.author.bot) return;
+      onMessage(message);
+    },
+  );
+}

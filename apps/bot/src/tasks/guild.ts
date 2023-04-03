@@ -1,4 +1,4 @@
-import { ChannelType } from 'discord.js';
+import Discord from 'discord.js';
 import { getGuildChannels } from './channels';
 import discordClient from '@/DiscordClient';
 
@@ -20,10 +20,18 @@ export async function getGuildNetwork(guildId: string) {
   const network: any = {};
 
   channels?.forEach((channel) => {
-    if (channel.type !== ChannelType.GuildVoice) return;
+    if (channel.type !== Discord.ChannelType.GuildVoice) return;
     const presence = channel.members;
     network[channel.name] = presence;
   });
 
   return network;
+}
+
+export async function setGuildNotifications(
+  guildId: string,
+  option: Discord.GuildDefaultMessageNotifications,
+) {
+  const guild = getGuild(guildId);
+  await guild?.setDefaultMessageNotifications(option);
 }
