@@ -19,7 +19,7 @@ function ChannelCreationDialog() {
     [],
   );
 
-  function submitChannel() {
+  async function submitChannel() {
     console.log({
       name: inputRef.current?.value,
       category,

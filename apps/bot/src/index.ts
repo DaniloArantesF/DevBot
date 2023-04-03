@@ -347,9 +347,11 @@ class Bot {
         .get(guild.guildId)!
         .reactionChannels.set(category.toLowerCase(), categoryReactionChannel);
 
+      let isNewMessage = false;
       let categoryMessage = (await categoryReactionChannel.messages.fetchPinned()).first();
       // Create/Update message and pin it
       if (!categoryMessage) {
+        isNewMessage = true;
         categoryMessage = await this.createRolesMessage(categoryReactionChannel, categoryRoles);
       } else {
         await this.updateRolesMessage(categoryMessage, categoryRoles);
@@ -362,33 +364,36 @@ class Bot {
         }),
       );
 
-      // For each role in the category, check that all members who reacted have the role
-      logger.Debug('Bot', `Verifying members have roles for "${category}"`);
-      for (const { id: roleId, emoji } of categoryRoles) {
-        const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
-        const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
+      // Dont bother checking roles if this is a new message
+      if (!isNewMessage) {
+        // For each role in the category, check that all members who reacted have the role
+        logger.Debug('Bot', `Verifying members have roles for "${category}"`);
+        for (const { id: roleId, emoji } of categoryRoles) {
+          const role = await getGuild(guild.guildId)!.roles.fetch(roleId);
+          const reaction = categoryMessage.reactions.cache.find((r) => r.emoji.name === emoji);
 
-        // Fallback to stored member role and ignore if it doesn't exist
-        let memberRole = this.guilds.get(guild.guildId)!.memberRole;
-        if (!memberRole) {
-          memberRole = getGuildRole(guild.guildId, guild.memberRoleId) || null;
+          // Fallback to stored member role and ignore if it doesn't exist
+          let memberRole = this.guilds.get(guild.guildId)!.memberRole;
+          if (!memberRole) {
+            memberRole = getGuildRole(guild.guildId, guild.memberRoleId) || null;
+          }
+
+          await Promise.all(
+            (await reaction?.users.fetch())!.map(async (user) => {
+              if (user.bot) return;
+              let member = getGuild(guild.guildId)?.members.cache.get(user.id);
+              if (!member) {
+                member = await getGuild(guild.guildId)?.members.fetch(user.id);
+              }
+              // Skip users who don't have the member role
+              if (memberRole && !member?.roles.cache.has(memberRole?.id ?? '')) return;
+              if (!member?.roles.cache.has(roleId)) {
+                logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
+                await member?.roles.add(roleId);
+              }
+            }),
+          );
         }
-
-        await Promise.all(
-          (await reaction?.users.fetch())!.map(async (user) => {
-            if (user.bot) return;
-            let member = getGuild(guild.guildId)?.members.cache.get(user.id);
-            if (!member) {
-              member = await getGuild(guild.guildId)?.members.fetch(user.id);
-            }
-            // Skip users who don't have the member role
-            if (memberRole && !member?.roles.cache.has(memberRole?.id ?? '')) return;
-            if (!member?.roles.cache.has(roleId)) {
-              logger.Debug('Bot', `Adding "${role?.name}" to ${user.id}.`);
-              await member?.roles.add(roleId);
-            }
-          }),
-        );
       }
 
       // Listen for reactions
@@ -612,7 +617,6 @@ class Bot {
     const guild = getGuild(guildId)!;
     const onAdd: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
-      console.log('adding thing');
       guild.members.cache.get(user.id)?.roles.add(guildContext.memberRole!.id);
     };
 
@@ -620,7 +624,6 @@ class Bot {
     const onRemove: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
       const roles = [guildContext.memberRole!, ...guildContext.userRoles.values()];
-      console.log('removing thing');
       guild.members.cache.get(user.id)?.roles.remove(roles);
     };
 

@@ -13,6 +13,7 @@
 
 .button {
   display: inline-flex;
+  justify-content: center;
   align-items: center;
   background: var(--indigo1);
   border: 1px solid var(--indigo10);

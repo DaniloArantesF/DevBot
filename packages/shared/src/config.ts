@@ -47,7 +47,7 @@ export const REDIS_HOSTNAME = process.env.REDIS_HOSTNAME || '127.0.0.1';
 export const REDIS_PORT = process.env.REDIS_PORT || 6379;
 export const REDIS_URL = `redis://${REDIS_HOSTNAME}:${REDIS_PORT}`;
 
-export const redirectURI = encodeURIComponent(`${PUBLIC_CLIENT_URL}/login`);
+export const redirectURI = encodeURIComponent(`${PUBLIC_CLIENT_URL}/`);
 
 // Discord configuration
 export const DISCORD_API_BASE_URL = 'https://discord.com/api';

@@ -33,7 +33,7 @@ function Sidebar() {
     deleteCookie('expiresAt');
     document.cookie = '';
     localStorage.clear();
-    router.replace('/login');
+    router.replace('/');
     router.refresh();
   }
 

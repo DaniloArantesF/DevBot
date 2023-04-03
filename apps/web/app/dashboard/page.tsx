@@ -4,6 +4,7 @@ import { useDashboardContext } from '@lib/context/dashboardContext';
 
 function Dashboard() {
   const { user } = useDashboardContext();
+
   return (
     <>
       <UserCard />

@@ -52,7 +52,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
   }, []);
 
   function redirectToLogin() {
-    router.replace('/login');
+    router.replace('/');
     router.refresh();
   }
 

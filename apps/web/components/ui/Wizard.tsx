@@ -44,7 +44,7 @@ function Wizard({ children, onSubmit }: WizardProps) {
   };
 
   return (
-    <Widget title={'Guild Config Wizard'} style={{ maxHeight: '350px', gridColumn: 'span 2' }}>
+    <Widget title={'Guild Config Wizard'} style={{ gridColumn: 'span 2' }}>
       <div className={classes.body}>
         <ScrollArea>{children[currentStep]}</ScrollArea>
       </div>

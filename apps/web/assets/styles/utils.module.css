@@ -13,3 +13,9 @@
     opacity: 1;
   }
 }
+
+.flex_column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

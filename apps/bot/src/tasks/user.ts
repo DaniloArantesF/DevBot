@@ -19,7 +19,7 @@ export async function getUserToken(code: string): Promise<TBotApi.AuthData> {
         client_secret: CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${PUBLIC_CLIENT_URL}/login`,
+        redirect_uri: `${PUBLIC_CLIENT_URL}/`,
         scope:
           'identify connections activities.read applications.commands.permissions.update guilds guilds.members.read applications.commands role_connections.write',
       }),

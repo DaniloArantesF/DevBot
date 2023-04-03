@@ -1,10 +1,10 @@
 import classes from '@styles/Button.module.css';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 export type ButtonProps = React.HTMLAttributes<HTMLButtonElement | HTMLAnchorElement> & {
   label?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => Promise<void> | void;
   href?: string;
   type?: 'button' | 'link';
   variant?: 'default' | 'slim';
@@ -23,6 +23,14 @@ const Button = React.forwardRef(({ children, ...props }: ButtonProps, ref) => {
     () => (children ? <>{children}</> : <span>{label}</span>),
     [children, label],
   );
+  const [isLoading, setLoading] = useState(false);
+
+  async function withLoading(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    if (isLoading || !onClick) return;
+    setLoading(true);
+    await onClick(e);
+    setLoading(false);
+  }
 
   return !href ? (
     <div className={clsx(classes.container, props.className)}>
@@ -33,10 +41,10 @@ const Button = React.forwardRef(({ children, ...props }: ButtonProps, ref) => {
           justify === 'left' && classes.justifiedLeft,
           justify === 'right' && classes.justifiedRight,
         )}
-        onClick={onClick || undefined}
+        onClick={withLoading || undefined}
         style={props.style}
       >
-        {buttonContent}
+        {isLoading ? 'Loading...' : buttonContent}
       </button>
     </div>
   ) : (
