@@ -27,6 +27,7 @@ class Bot {
   userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
   config = BOT_CONFIG;
+  motherGuild: Discord.Guild | null = null;
 
   constructor() {
     logger.Header([
@@ -61,7 +62,23 @@ class Bot {
   // Called when discord client is ready
   // and database is connected
   async main() {
-    api.start();
+    logger.Info('Bot', 'Starting setup ...');
+    logger.setLevel(this.config.logLevel);
+
+    this.motherGuild = getGuild(BOT_CONFIG.motherGuildId) || null;
+    this.guilds.set(this.motherGuild!.id, {
+      logChannel: null,
+      rulesChannel: null,
+      rulesMessage: null,
+      memberRole: null,
+      rolesCategory: null,
+      roleUserChannels: new Map(),
+      userRoles: new Map(),
+      moderationConfig: { ...BOT_CONFIG.globalModerationConfig },
+      userChannelCategory: new Map(),
+      reactionChannels: new Map(),
+      roleEmojiMap: new Map(),
+    });
 
     // Setup moderation module
     await moderation.setup();
@@ -70,10 +87,16 @@ class Bot {
     // Create guilds in database if they don't exist
     await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
 
+    // Configure motherguild
+    if (this.motherGuild) {
+      await this.setupBotLogChannel();
+    }
+
     const guilds = await guildRepository.getAll();
     for (const guild of guilds) {
       // Init guild context
       this.guilds.set(guild.guildId, {
+        logChannel: null,
         rulesChannel: null,
         rulesMessage: null,
         memberRole: null,
@@ -95,6 +118,9 @@ class Bot {
     if (BOT_CONFIG.autoProcess) {
       await taskManager.initProcessing();
     }
+
+    logger.Info('Bot', 'Finished setup.');
+    api.start();
   }
 
   // Guild setup checks
@@ -911,6 +937,18 @@ class Bot {
     return rolesMessage;
   }
 
+  // Idempotent function to setup the base channels
+  setupBaseChannels() {
+    // Welcome
+    // announcements
+    // server logs
+    // bot logs
+    // help
+  }
+
+  // Idempotent function to setup the guild channels from database
+  setupGuildChannels() {}
+
   createRolesEmbed(userRoles: ({ id: string } & TPocketbase.UserRoleItem)[]) {
     const fields = userRoles.map((role) => ({
       name: `${role.emoji} ${role.description}`,
@@ -930,6 +968,39 @@ class Bot {
       .setTitle(`Read the rules before chatting!`)
       .setDescription(`React to the ✅ to get access to the rest of the server.\n${message}`);
   }
+
+  /** Functions used in private bot guild */
+  async setupBotLogChannel() {
+    if (!this.motherGuild) return;
+    const botLogChannelName = 'bot-logs';
+    let botLogChannel = this.motherGuild.channels.cache.find(
+      (c) => c.name === botLogChannelName && c.type === Discord.ChannelType.GuildText,
+    ) as Discord.TextChannel;
+
+    if (!botLogChannel) {
+      logger.Info('Bot', 'Creating bot log channel.');
+      botLogChannel = await createChannel<Discord.ChannelType.GuildText>(this.motherGuild.id, {
+        name: botLogChannelName,
+        type: Discord.ChannelType.GuildText,
+        permissionOverwrites: [
+          {
+            id: this.motherGuild.roles.everyone.id,
+            deny: Discord.PermissionsBitField.Flags.ViewChannel,
+          },
+          {
+            id: this.motherGuild.roles.botRoleFor(this.motherGuild.members.me!.id)!.id,
+            allow: Discord.PermissionsBitField.Flags.ViewChannel,
+          },
+        ],
+      });
+      await botLogChannel.send('Created log channel');
+    } else {
+      await botLogChannel.send('Bot restarted');
+    }
+    this.guilds.get(this.motherGuild.id)!.logChannel = botLogChannel;
+  }
+
+  /* ------------------------------------ */
 
   async shutdown() {
     logger.Info('Bot', 'Shutting down ...');

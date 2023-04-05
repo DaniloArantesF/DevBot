@@ -2,16 +2,18 @@
 /*           Shared Config          */
 /* -------------------------------- */
 import type { TBot } from './bot';
+import { LogLevel } from './logger';
 
 export const BOT_CONFIG: TBot.Config = {
+  motherGuildId: '1093214494592872448', // TODO: move to env
   prefix: '!',
-  logLevel: 'debug',
+  logLevel: LogLevel.info,
   // *Note* The discord api requires a reply within 3 seconds. If cooldown is greater than 3000, you need to defer reply and edit it later.
   cooldownMs: 2500,
 
   autoProcess: true, // Whether to automatically process tasks
 
-  autoSetup: false, // Whether to automatically perform setup tasks
+  autoSetup: true, // Whether to automatically perform setup tasks
 
   globalModerationConfig: {
     language: {
@@ -52,3 +54,5 @@ export const redirectURI = encodeURIComponent(`${PUBLIC_CLIENT_URL}/`);
 // Discord configuration
 export const DISCORD_API_BASE_URL = 'https://discord.com/api';
 export const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=${redirectURI}&response_type=code&scope=identify%20connections%20guilds`;
+export const DISCORD_BOT_AUTHORIZE_LINK =
+  'https://discord.com/api/oauth2/authorize?client_id=712958072007688232&permissions=8&scope=bot';

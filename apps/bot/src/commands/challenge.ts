@@ -102,25 +102,37 @@ export const command: TBot.Command = {
     };
   },
   async execute(interaction) {
-    const reply = 'Successfully created a challenge!';
+    let reply = 'Successfully created a challenge!';
     const goal = interaction.options.get('goal')!.value as string;
     const duration = interaction.options.get('duration')!.value as number;
 
     const periodDays = interaction.options.get('period')?.value as number;
     const period = periodDays ? periodDays * 24 * 60 * 60 * 1000 : DEBUG_CHALLENGE_PERIOD;
 
-    const record = await habitTrackerController.createChallenge({
-      goal,
-      duration,
-      period,
-      startDate: new Date().toISOString(),
-      user: interaction.member!.user.id,
-      guildId: interaction.guildId!!,
-      participants: [interaction.member!.user.id],
-      currentPeriod: 0,
-    });
-    await replyInteraction(interaction, reply);
+    // TODO: check if if its not enabled by guild as well
+    if (!habitTrackerController.challengeModel) {
+      reply = 'Habit tracker plugin is not currently enabled.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
 
+    try {
+      const record = await habitTrackerController.createChallenge({
+        goal,
+        duration,
+        period,
+        startDate: new Date().toISOString(),
+        user: interaction.member!.user.id,
+        guildId: interaction.guildId!!,
+        participants: [interaction.member!.user.id],
+        currentPeriod: 0,
+      });
+    } catch (error: any) {
+      console.error(error);
+      reply = error.message || 'Failed to create challenge.';
+    }
+
+    await replyInteraction(interaction, reply);
     return {
       user: interaction.member!.user.id,
       guild: interaction.guildId!,
@@ -163,6 +175,11 @@ export const challangeJoin: TBot.Command = {
   },
   async execute(interaction) {
     let reply = 'You have joined a challenge!';
+    if (!habitTrackerController.challengeModel) {
+      reply = 'Habit tracker plugin is not currently enabled.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
 
     let channelId = interaction.channelId;
     if (interaction.options.get('channel')) {
@@ -228,6 +245,11 @@ export const challengeSubmit: TBot.Command = {
     };
   },
   async execute(interaction) {
+    if (!habitTrackerController.challengeModel) {
+      await replyInteraction(interaction, 'Habit tracker plugin is not currently enabled.');
+      return;
+    }
+
     let channelId = interaction.channelId;
     const userId = interaction.member!.user.id;
     const entry = interaction.options.get('entry')!.value as string;
@@ -316,9 +338,14 @@ export const challengeUpdate: TBot.Command = {
     };
   },
   async execute(interaction) {
+    let reply = 'Successfully updated the challenge.';
+    if (!habitTrackerController.challengeModel) {
+      reply = 'Habit tracker plugin is not currently enabled.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
     let channelId = interaction.options.get('challenge')?.value as string;
     if (!channelId) channelId = interaction.channelId;
-    let reply = 'Successfully updated the challenge.';
 
     let goal = interaction.options.get('goal')?.value as string;
     let duration = interaction.options.get('duration')?.value as number;
@@ -385,9 +412,14 @@ export const challengeLeave: TBot.Command = {
     };
   },
   async execute(interaction) {
+    let reply = 'Successfully removed you from the challenge :(';
+    if (!habitTrackerController.challengeModel) {
+      reply = 'Habit tracker plugin is not currently enabled.';
+      await replyInteraction(interaction, reply);
+      return;
+    }
     let channelId = interaction.options.get('challenge')?.value as string;
     if (!channelId) channelId = interaction.channelId;
-    let reply = 'Successfully removed you from the challenge :(';
 
     // Remove participant from challenge. If no participants left, delete challenge
     try {

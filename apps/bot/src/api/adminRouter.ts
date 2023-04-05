@@ -11,6 +11,7 @@ import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 import { withAuth } from './decorators/auth';
 import { getGuild } from '@/tasks/guild';
+import { LogLevel, logger } from 'shared/logger';
 
 interface TAdminRouter {
   router: Router;
@@ -32,6 +33,7 @@ class AdminRouter implements TAdminRouter {
     this.router.delete('/commands', this.deleteCommands.bind(this));
     this.router.post('/channel/purge', this.purgeChannel.bind(this)); // TODO: move to channelrouter
     this.router.get('/:guildId/templates', this.getGuildTemplates.bind(this));
+    this.router.post('/logLevel', this.setLogLevel.bind(this));
   }
 
   @withAuth(['admin'])
@@ -102,6 +104,20 @@ class AdminRouter implements TAdminRouter {
     if (!guild) return res.status(404).send('Guild not found');
     const templates = await guild?.fetchTemplates();
     res.send(templates || {});
+  }
+
+  @withAuth(['admin'])
+  @withApiLogging()
+  @useApiQueue()
+  async setLogLevel(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const levelKey = req.body?.level as string;
+    const level = LogLevel[levelKey as keyof typeof LogLevel];
+    if (!level) {
+      res.status(400).send('Missing or invalid level');
+      return;
+    }
+    logger.setLevel(level);
+    res.sendStatus(200);
   }
 }
 

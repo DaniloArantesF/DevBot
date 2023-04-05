@@ -1,4 +1,4 @@
-import { TBot } from './bot';
+import { BOT_CONFIG } from './config';
 
 const colors = {
   reset: '\x1b[0m',
@@ -11,9 +11,15 @@ const colors = {
   white: '\x1b[37m',
 };
 
+export enum LogLevel {
+  minimal = 0,
+  info = 1,
+  debug = 2,
+}
+
 class Logger {
-  logLevel: TBot.LogLevel;
-  constructor(level: TBot.LogLevel) {
+  logLevel: LogLevel;
+  constructor(level: LogLevel) {
     this.logLevel = level;
   }
 
@@ -39,7 +45,7 @@ class Logger {
   }
 
   Info(module: string, message: string) {
-    if (this.logLevel === 'minimal') return;
+    if (this.logLevel < LogLevel.info) return;
     console.log(`${colors.green}[INFO:${module}]${colors.reset} ${message}`);
   }
 
@@ -48,13 +54,18 @@ class Logger {
   }
 
   Debug(module: string, message: string) {
+    if (this.logLevel < LogLevel.debug) return;
     console.log(`${colors.magenta}[DEBUG:${module}]${colors.reset} ${message}`);
   }
 
   Error(module: string, message: string) {
     console.log(`${colors.red}[ERROR:${module}]${colors.reset} ${message}`);
   }
+
+  setLevel(level: LogLevel) {
+    this.logLevel = level;
+  }
 }
 
-const logger = new Logger('debug');
+const logger = new Logger(LogLevel.info);
 export { logger };

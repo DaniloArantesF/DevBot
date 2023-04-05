@@ -37,6 +37,7 @@ interface HabitTracker extends TPluginController<RoutineTaskData> {
   // Jobs map
   // On init scheduled jobs are read in from redis
   scheduledTasks: Map<string, Queue.Job<RoutineTaskData>[]>; // challengeId -> job
+  initialized: boolean;
 }
 
 interface RoutineTaskData {
@@ -47,6 +48,7 @@ interface RoutineTaskData {
 
 class HabitTracker {
   id = 'habitTracker';
+  initialized = false;
 
   constructor() {
     this.pocketbase = dataProvider.pocketbase;
@@ -166,6 +168,7 @@ class HabitTracker {
 
     // Process routine queue
     this.processRoutineChecks();
+    this.initialized = true;
   }
 
   // Searches for challenge category in the guild
@@ -235,6 +238,8 @@ class HabitTracker {
   }
 
   async createChallenge(data: TPocketbase.ChallengeCreateOptions) {
+    if (!this.challengeModel) throw new Error('Challenge model not initialized.');
+
     // Create challenge channel
     const parent = await this.getChallengesCategory(data.guildId);
     const channel = (await createChannel(data.guildId, {

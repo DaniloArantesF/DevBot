@@ -46,7 +46,7 @@ export class PocketBase extends PocketBaseSDK {
         await this.admins.authWithPassword(POCKETBASE_ADMIN_EMAIL, POCKETBASE_ADMIN_PASSWORD);
 
         // Import schema
-        logger.Debug('DataProvider', 'Creating schema tables ...');
+        logger.Info('DataProvider', 'Creating schema tables ...');
         await this.collections.import(dbSchema as Collection[]);
         await this.settings.update({
           appName: 'Benji-DB',

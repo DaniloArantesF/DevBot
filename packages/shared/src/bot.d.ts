@@ -14,13 +14,13 @@ import type Discord, {
 import { TDiscord } from './discord';
 import { TCache } from './cache';
 import { TBotApi } from './api';
+import { LogLevel } from './logger';
 
 declare namespace TBot {
-  type LogLevel = 'debug' | 'minimal';
-
   type Config = {
+    motherGuildId: string;
     prefix: string;
-    logLevel: 'debug' | 'minimal';
+    logLevel: LogLevel;
     cooldownMs: number;
     autoProcess: boolean;
     autoSetup: boolean;
@@ -127,6 +127,8 @@ export type GuildBotContext = {
     language: GuildConfigModerationRule;
     content: GuildConfigModerationRule;
   };
+
+  logChannel: Discord.TextChannel | null;
 };
 
 export type ReactionHandler = (
