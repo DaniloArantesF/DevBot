@@ -4,7 +4,7 @@ import { useEffect, useMemo } from 'react';
 import RadioCard, { RadioItem } from '@components/ui/RadioCard';
 import Wizard, { WizardStep } from '@components/ui/Wizard';
 import ChannelCreationDialog from '@components/features/ChannelCreationDialog';
-import MaintenancePanel from '@components/features/MaintenancePanel';
+import GuildMaintenancePanel from '@components/features/GuildMaintenancePanel';
 
 export default function Page({
   params,
@@ -28,7 +28,7 @@ export default function Page({
         <span></span>
       </div>
 
-      <MaintenancePanel />
+      <GuildMaintenancePanel />
 
       <Wizard onSubmit={() => console.log('Submit!')}>
         <WizardStep title="Configure bot channels">

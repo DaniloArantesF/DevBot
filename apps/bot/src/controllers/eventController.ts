@@ -62,7 +62,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   async addTask(event: DiscordEvent, args: any[] = []) {
     if (!this.queue) {
       logger.Error('EventController', 'Queue not initialized!');
-      console.error(event.name);
+      console.log(...args);
       return null;
     }
     const job = this.queue.createJob({ id: `${event.name}@${new Date().toISOString()}` });

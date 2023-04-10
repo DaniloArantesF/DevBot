@@ -10,7 +10,6 @@ import {
   TextChannel,
   ThreadChannel,
   PermissionsBitField,
-  GuildChannelTypes,
 } from 'discord.js';
 import ChallengeModel from '@/models/challenge';
 import Queue from 'bee-queue';

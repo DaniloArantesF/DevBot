@@ -41,15 +41,15 @@ class TaskManager {
 
   async setupTaskControllers() {
     logger.Info('TaskManager', 'Setting up controllers ...');
+    eventController.init();
     apiController.init();
     commandController.init();
-    eventController.init();
   }
 
   async setupPlugins() {
     logger.Info('TaskManager', 'Initializing plugins ...');
     await openAIPlugin.init();
-    habitTrackerPlugin.init();
+    await habitTrackerPlugin.init();
   }
 
   async shutdown() {

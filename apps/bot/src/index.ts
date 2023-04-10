@@ -14,6 +14,7 @@ import {
   GuildConfigChannel,
   GuildConfigExport,
   GuildConfigUserRole,
+  GuildSnapshot,
   ReactionHandler,
   TPocketbase,
 } from 'shared/types';
@@ -23,10 +24,10 @@ import { getFormatedChannelName } from 'shared/utils';
 import { listenMessageReactions } from './tasks/message';
 
 class Bot {
+  config = BOT_CONFIG;
   isReady: Promise<boolean>;
   userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
-  config = BOT_CONFIG;
   motherGuild: Discord.Guild | null = null;
 
   constructor() {
@@ -41,13 +42,13 @@ class Bot {
 
   async setup() {
     await taskManager.setupTaskControllers();
-    // await taskManager.setupPlugins();
+    await dataProvider.connect();
+    this.config.loadPlugins && (await taskManager.setupPlugins());
 
     return new Promise<boolean>((resolve, reject) => {
       // Setup
       discordClient.on('ready', async () => {
         try {
-          await dataProvider.connect();
           this.main();
           resolve(true);
         } catch (error) {
@@ -944,10 +945,55 @@ class Bot {
     // server logs
     // bot logs
     // help
+    // bug report / feature request
+    // Check that category exists, if not create it
+    // For each channel, check if it exists, if not create it
   }
 
   // Idempotent function to setup the guild channels from database
   setupGuildChannels() {}
+
+  // Idempotent function to setup a channel
+  // Searches for a matching channel and creates it if it doesn't exist
+  // Caller is responsible for ensuring that the parent exists
+  async setupChannel(
+    guild: Discord.Guild,
+    identifiers: {
+      name: string;
+      type: Discord.ChannelType.GuildText | Discord.ChannelType.GuildCategory;
+      entityId: string;
+    },
+    parentId?: string,
+  ) {}
+
+  async createGuildSnapshot(guildId: string): Promise<GuildSnapshot | null> {
+    const guildMembers = await getGuild(guildId)?.members.fetch();
+    if (!guildMembers) {
+      return null;
+    }
+    const guildConfig = await this.exportGuildConfig(guildId);
+    if (!guildConfig) {
+      return null;
+    }
+    const guild = await dataProvider.guild.get(guildId);
+    const guildSnapshot: GuildSnapshot = {
+      ...guildConfig,
+      members: [],
+      guild: guild.id,
+    };
+    guildSnapshot.members =
+      (await Promise.all(
+        guildMembers.map((member) => {
+          return {
+            id: member.id,
+            username: member.user.username,
+            discriminator: member.user.discriminator,
+            roles: member.roles.cache.map((role) => role.id),
+          };
+        }),
+      )) ?? [];
+    return guildSnapshot;
+  }
 
   createRolesEmbed(userRoles: ({ id: string } & TPocketbase.UserRoleItem)[]) {
     const fields = userRoles.map((role) => ({
@@ -967,6 +1013,19 @@ class Bot {
       .setColor('#ff0000')
       .setTitle(`Read the rules before chatting!`)
       .setDescription(`React to the ✅ to get access to the rest of the server.\n${message}`);
+  }
+
+  async setBotRole(guild: Discord.Guild) {
+    const botRole = guild.roles.botRoleFor(guild.members.me!.id);
+    if (!botRole) {
+      logger.Error('Bot', 'Could not find bot role.');
+      return;
+    }
+    console.log(botRole);
+    await botRole?.edit({
+      hoist: true,
+      color: Discord.Colors.DarkPurple,
+    });
   }
 
   /** Functions used in private bot guild */
@@ -1012,3 +1071,4 @@ class Bot {
 
 const bot = new Bot();
 export default bot;
+process.on('uncaughtException', console.error);

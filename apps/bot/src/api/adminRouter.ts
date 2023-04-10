@@ -12,6 +12,8 @@ import { withApiLogging } from './decorators/log';
 import { withAuth } from './decorators/auth';
 import { getGuild } from '@/tasks/guild';
 import { LogLevel, logger } from 'shared/logger';
+import bot from '..';
+import dataProvider from '@/DataProvider';
 
 interface TAdminRouter {
   router: Router;
@@ -33,6 +35,8 @@ class AdminRouter implements TAdminRouter {
     this.router.delete('/commands', this.deleteCommands.bind(this));
     this.router.post('/channel/purge', this.purgeChannel.bind(this)); // TODO: move to channelrouter
     this.router.get('/:guildId/templates', this.getGuildTemplates.bind(this));
+    this.router.post('/:guildId/roles/bot', this.setBotRole.bind(this));
+    this.router.post('/:guildId/snapshot', this.createGuildSnapshot.bind(this));
     this.router.post('/logLevel', this.setLogLevel.bind(this));
   }
 
@@ -118,6 +122,42 @@ class AdminRouter implements TAdminRouter {
     }
     logger.setLevel(level);
     res.sendStatus(200);
+  }
+
+  @withAuth(['admin'])
+  @withApiLogging()
+  @useApiQueue()
+  async setBotRole(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    const guild = getGuild(guildId);
+    if (!guild) return res.status(404).send('Guild not found');
+    await bot.setBotRole(guild);
+    res.sendStatus(200);
+  }
+
+  @withAuth(['admin'])
+  @withApiLogging()
+  @useApiQueue()
+  async createGuildSnapshot(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+
+    try {
+      const snapshot = await bot.createGuildSnapshot(guildId)!;
+      if (!snapshot) {
+        res.sendStatus(500);
+        logger.Error('AdminRouter', `Error creating guild snapshot for ${guildId}`);
+        return;
+      }
+
+      // Save to db
+
+      const snapshotRecord = await dataProvider.guild.createSnapshot(snapshot!);
+      res.send(snapshotRecord);
+    } catch (error: any) {
+      logger.Error('AdminRouter', 'Error creating guild snapshot');
+      console.error(error);
+      res.send(error.message || error);
+    }
   }
 }
 

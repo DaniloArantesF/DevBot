@@ -24,6 +24,7 @@ declare namespace TBot {
     cooldownMs: number;
     autoProcess: boolean;
     autoSetup: boolean;
+    loadPlugins: boolean;
     globalModerationConfig: {
       language: GuildConfigModerationRule;
       content: GuildConfigModerationRule;
@@ -139,5 +140,17 @@ export type ReactionHandler = (
 declare namespace TGuildContext {
   // TODO
 }
+
+type GuildMemberSnapshot = {
+  id: string;
+  username: string;
+  discriminator: string;
+  roles: string[];
+};
+
+export type GuildSnapshot = GuildConfigExport & {
+  guild: string;
+  members: GuildMemberSnapshot[];
+};
 
 export type { TBot, TGuildContext };

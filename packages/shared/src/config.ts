@@ -3,6 +3,7 @@
 /* -------------------------------- */
 import type { TBot } from './bot';
 import { LogLevel } from './logger';
+import Discord from 'discord.js';
 
 export const BOT_CONFIG: TBot.Config = {
   motherGuildId: '1093214494592872448', // TODO: move to env
@@ -12,8 +13,8 @@ export const BOT_CONFIG: TBot.Config = {
   cooldownMs: 2500,
 
   autoProcess: true, // Whether to automatically process tasks
-
   autoSetup: true, // Whether to automatically perform setup tasks
+  loadPlugins: false, // Whether to load plugins on init
 
   globalModerationConfig: {
     language: {
@@ -56,3 +57,32 @@ export const DISCORD_API_BASE_URL = 'https://discord.com/api';
 export const DISCORD_AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=712958072007688232&redirect_uri=${redirectURI}&response_type=code&scope=identify%20connections%20guilds`;
 export const DISCORD_BOT_AUTHORIZE_LINK =
   'https://discord.com/api/oauth2/authorize?client_id=712958072007688232&permissions=8&scope=bot';
+
+type ColorName = keyof typeof Discord.Colors;
+
+// List of colors with acceptable contrast ratios
+export const contrastColors = [
+  'Default',
+  'White',
+  'Aqua',
+  'Green',
+  'Blue',
+  'Yellow',
+  'Purple',
+  'LuminousVividPink',
+  'Fuchsia',
+  'Gold',
+  'Orange',
+  'Red',
+  'Grey',
+  'DarkAqua',
+  'DarkGreen',
+  'DarkPurple',
+  'DarkVividPink',
+  'DarkGold',
+  'DarkOrange',
+  'DarkRed',
+  'LightGrey',
+  'Blurple',
+  'Greyple',
+] as ColorName[];

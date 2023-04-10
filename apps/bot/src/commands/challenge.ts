@@ -30,7 +30,7 @@ async function promptSponsor(challenge: TPocketbase.Challenge, user: User, spons
     )}'s challenge. Do you accept? (yes/no)`,
   });
   const dmChannel = dm.channel as TextChannel;
-  const collector = dmChannel.createMessageCollector({ filter, time: 15000 });
+  const collector = dmChannel.createMessageCollector({ filter, time: 12 * 60 * 60 * 1000 });
 
   collector.on('collect', async (m: Message) => {
     if (m.content.toLowerCase() === 'yes') {

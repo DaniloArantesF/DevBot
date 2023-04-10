@@ -1,5 +1,11 @@
 import { DiscordAuthResponse, TBotApi } from './api';
-import { GuildBotContext, GuildConfigChannel, GuildConfigModerationRule, TBot } from './bot';
+import {
+  GuildBotContext,
+  GuildConfigChannel,
+  GuildConfigModerationRule,
+  GuildSnapshot as TGuildSnapshot,
+  TBot,
+} from './bot';
 
 declare namespace TPocketbase {
   type Base = {
@@ -61,6 +67,8 @@ declare namespace TPocketbase {
     parentId: string | null;
   };
 
+  type GuildSnapshotData = TGuildSnapshot;
+
   type ChallengeData = {
     allowedSubmissionTypes?: string[];
     channelId: string;
@@ -112,6 +120,7 @@ declare namespace TPocketbase {
   type ChallengeParticipant = ChallengeParticipantData & Base;
   type ChallengeSubmission = ChallengeSubmissionData & Base;
   type Plugin = Base & PluginData;
+  type GuildSnapshot = GuildSnapshotData & Base;
 }
 
 export { TPocketbase };

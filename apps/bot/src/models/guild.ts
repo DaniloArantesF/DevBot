@@ -54,6 +54,17 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
     return null;
   }
 
+  async function createSnapshot(data: TPocketbase.GuildSnapshotData) {
+    try {
+      const record = await pocketbase
+        .collection('guild_snapshots')
+        .create<TPocketbase.GuildSnapshot>(data);
+      return record;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
   async function get(guildId: string) {
     if (cacheMap.has(guildId)) {
       return await pocketbase
@@ -87,6 +98,7 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
   return {
     init,
     create,
+    createSnapshot,
     get,
     getByName,
     getAll,

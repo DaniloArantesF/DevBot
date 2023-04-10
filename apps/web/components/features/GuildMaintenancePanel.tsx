@@ -89,6 +89,10 @@ function MaintenancePanel() {
         label: 'Purge User Channels',
         handler: dispatchUserChannelPurge,
       },
+      {
+        label: 'Bot Channel Setup',
+        handler: () => {},
+      },
     ],
     [],
   );
