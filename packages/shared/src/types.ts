@@ -8,3 +8,6 @@ export * from './pocketbase';
 export * from './api';
 export * from './openai';
 export * from './client';
+
+// General
+export type Factory<T> = (args?: Partial<T>) => T;

@@ -8,6 +8,7 @@ import dataProvider from '@/DataProvider';
 import bot from '..';
 import { logger } from 'shared/logger';
 import { isSingleEmoji } from 'shared/utils';
+import { exportGuildConfig } from '@/tasks/guild';
 
 class BotRouter implements TBotRouter {
   router = Router();
@@ -31,6 +32,7 @@ class BotRouter implements TBotRouter {
     // Setup endpoints
     this.router.post('/:guildId/setup', this.setupGuild.bind(this));
     this.router.post('/:guildId/setup/userRoles', this.setupUserRoles.bind(this));
+    this.router.post('/:guildId/setup/userChannels', this.setupUserChannels.bind(this));
     this.router.post('/:guildId/setup/rules', this.setupRules.bind(this));
   }
 
@@ -94,7 +96,7 @@ class BotRouter implements TBotRouter {
   @useApiQueue()
   @withApiLogging()
   async getGuildConfigExport(req: TBotApi.AuthenticatedRequest, res: Response) {
-    const data = await bot.exportGuildConfig(req.params.guildId);
+    const data = await exportGuildConfig(req.params.guildId);
     if (data) {
       res.send({ ...data });
     } else {
@@ -164,7 +166,7 @@ class BotRouter implements TBotRouter {
     }
 
     try {
-      await bot.addUserRole(guildId, newUserRole);
+      await bot.userRoleManager.addUserRole(guildId, newUserRole);
       res.status(200).send({ userRoles: guildContext.userRoles });
     } catch (error: any) {
       logger.Error('botRouter', error.message || 'Error adding user role.');
@@ -181,7 +183,7 @@ class BotRouter implements TBotRouter {
     const guildId = req.params.guildId as string;
     try {
       const guild = await dataProvider.guild.get(guildId);
-      await bot.guildSetup(guild);
+      await bot.setupGuild(guild);
       res.sendStatus(200);
     } catch (error: any) {
       res.status(error.status ?? 500).send({ message: error.message });
@@ -195,7 +197,22 @@ class BotRouter implements TBotRouter {
     const guildId = req.params.guildId as string;
     try {
       const guild = await dataProvider.guild.get(guildId);
-      await bot.guildUserRolesSetup(guild);
+      await bot.userRoleManager.setupGuild(guild);
+      res.sendStatus(200);
+    } catch (error: any) {
+      console.log(error);
+      res.status(error.status ?? 500).send({ message: error.message });
+    }
+  }
+
+  @withAuth(['admin'])
+  @useApiQueue()
+  @withApiLogging()
+  async setupUserChannels(req: TBotApi.AuthenticatedRequest, res: Response) {
+    const guildId = req.params.guildId as string;
+    try {
+      const guild = await dataProvider.guild.get(guildId);
+      await bot.userChannelManager.setupGuild(guild);
       res.sendStatus(200);
     } catch (error: any) {
       console.log(error);
@@ -210,7 +227,7 @@ class BotRouter implements TBotRouter {
     const guildId = req.params.guildId as string;
     try {
       const guild = await dataProvider.guild.get(guildId);
-      await bot.guildMemberRulesSetup(guild);
+      await bot.rulesManager.setupGuild(guild);
       res.sendStatus(200);
     } catch (error: any) {
       res.status(error.status ?? 500).send({ message: error.message });
@@ -226,7 +243,7 @@ class BotRouter implements TBotRouter {
     const guildId = req.params.guildId as string;
     try {
       const guild = await dataProvider.guild.get(guildId);
-      await bot.purgeUserRoles(guild);
+      await bot.userRoleManager.purgeUserRoles(guild);
       res.sendStatus(200);
     } catch (error: any) {
       res.status(error.status ?? 500).send({ message: error.message });
@@ -240,7 +257,7 @@ class BotRouter implements TBotRouter {
     const guildId = req.params.guildId as string;
     try {
       const guild = await dataProvider.guild.get(guildId);
-      await bot.purgeUserChannels(guild);
+      await bot.userChannelManager.purgeUserChannels(guild);
       res.sendStatus(200);
     } catch (error: any) {
       res.status(error.status ?? 500).send({ message: error.message });

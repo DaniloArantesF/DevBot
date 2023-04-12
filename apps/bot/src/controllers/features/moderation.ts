@@ -2,10 +2,12 @@ import discordClient from '@/DiscordClient';
 import { listenUserMessages } from '@/tasks/message';
 import Discord from 'discord.js';
 import { logger } from 'shared/logger';
-import { GuildConfigModerationRule } from 'shared/types';
+import { GuildConfigModerationRule, TPocketbase } from 'shared/types';
 import FastText from 'fasttext';
 import path from 'path';
 import eventController from '../eventController';
+import { getGuildChannels } from '@/tasks/channels';
+import bot from '@/index';
 
 type ModerationRule = GuildConfigModerationRule;
 type ModerationKey = 'language' | 'content';
@@ -18,7 +20,7 @@ type GuildModerationContext = {
   rules: Map<string, ModerationRule[]>;
 };
 
-class Moderation {
+class ModerationManager {
   guilds = new Map<string, GuildModerationContext>();
   ruleKeys: ModerationKey[] = ['language', 'content'];
   model = path.resolve(__dirname, 'lid.176.bin');
@@ -45,6 +47,17 @@ class Moderation {
     eventController.eventBus.on<Discord.Message>(Discord.Events.MessageCreate, (message) => {});
     discordClient.setMaxListeners(20);
     this.isReady = true;
+  }
+
+  async setupGuild(guild: TPocketbase.Guild) {
+    const channels = getGuildChannels(guild.guildId)?.map((c) => c) ?? [];
+    const moderationConfig = bot.guilds.get(guild.guildId)?.moderationConfig;
+    for (const channel of channels) {
+      if (channel.type !== Discord.ChannelType.GuildText) continue;
+      await this.addChannel(channel, {
+        ...moderationConfig,
+      });
+    }
   }
 
   async addChannel(channel: Discord.TextChannel, rules?: { [key: string]: ModerationRule }) {
@@ -88,5 +101,4 @@ class Moderation {
   }
 }
 
-const moderation = new Moderation();
-export default moderation;
+export default ModerationManager;

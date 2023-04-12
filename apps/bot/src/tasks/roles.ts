@@ -1,6 +1,7 @@
 import Discord from 'discord.js';
 import { getGuild } from './guild';
 import discordClient from '@/DiscordClient';
+import { logger } from 'shared/logger';
 
 export async function createRole(guildId: string, options: Discord.RoleCreateOptions) {
   const guild = getGuild(guildId);
@@ -140,6 +141,18 @@ export async function hasRole(userId: string, guildId: string, roleId: string) {
 
 export function getEveryoneRole(guildId: string) {
   return getGuildRole(guildId, undefined, '@everyone')!;
+}
+
+export async function setBotRole(guild: Discord.Guild) {
+  const botRole = guild.roles.botRoleFor(guild.members.me!.id);
+  if (!botRole) {
+    logger.Error('Bot', 'Could not find bot role.');
+    return;
+  }
+  await botRole?.edit({
+    hoist: true,
+    color: Discord.Colors.DarkPurple,
+  });
 }
 
 const emojis = [

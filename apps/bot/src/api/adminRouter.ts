@@ -10,10 +10,10 @@ import { TBotApi } from 'shared/types';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 import { withAuth } from './decorators/auth';
-import { getGuild } from '@/tasks/guild';
+import { createGuildSnapshot, getGuild } from '@/tasks/guild';
 import { LogLevel, logger } from 'shared/logger';
-import bot from '..';
 import dataProvider from '@/DataProvider';
+import { setBotRole } from '@/tasks/roles';
 
 interface TAdminRouter {
   router: Router;
@@ -131,7 +131,7 @@ class AdminRouter implements TAdminRouter {
     const guildId = req.params.guildId as string;
     const guild = getGuild(guildId);
     if (!guild) return res.status(404).send('Guild not found');
-    await bot.setBotRole(guild);
+    await setBotRole(guild);
     res.sendStatus(200);
   }
 
@@ -142,7 +142,7 @@ class AdminRouter implements TAdminRouter {
     const guildId = req.params.guildId as string;
 
     try {
-      const snapshot = await bot.createGuildSnapshot(guildId)!;
+      const snapshot = await createGuildSnapshot(guildId)!;
       if (!snapshot) {
         res.sendStatus(500);
         logger.Error('AdminRouter', `Error creating guild snapshot for ${guildId}`);

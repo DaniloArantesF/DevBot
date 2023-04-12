@@ -7,7 +7,7 @@ export async function sendMessage(
   channelId: string,
   message: string | Discord.MessagePayload | Discord.MessageCreateOptions,
 ) {
-  const channel = (await getGuildChannel(channelId)) as Discord.TextChannel;
+  const channel = getGuildChannel(channelId) as Discord.TextChannel;
   if (!channel || !channel.isTextBased()) return new Error('Invalid channel!');
   return channel.send(message);
 }

@@ -46,7 +46,7 @@ class Api {
       '*',
       cors({
         origin: ['http://localhost:3000', 'https://darflix.dev'],
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         credentials: true,
       }),
     );

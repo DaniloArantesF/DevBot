@@ -1,7 +1,3 @@
-import type API from '@/api/index';
-import type DataProvider from '@/DataProvider';
-import type TaskManager from '@/TaskManager';
-import type DiscordClient from '@/DiscordClient';
 import type { VoiceConnection } from '@discordjs/voice';
 import type { Client } from 'redis-om';
 import type { ClientEvents } from 'discord.js';

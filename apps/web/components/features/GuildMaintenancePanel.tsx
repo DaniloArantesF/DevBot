@@ -38,6 +38,21 @@ export async function dispatchRolesSetup(guildId: string, token: string) {
   }
 }
 
+export async function dispatchUserChannelsSetup(guildId: string, token: string) {
+  try {
+    const data = await fetchJson<{}>(`${PUBLIC_API_URL}/bot/${guildId}/setup/userChannels`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
 export async function dispatchRolePurge(guildId: string, token: string) {
   try {
     const data = await fetchJson<{}>(`${PUBLIC_API_URL}/bot/${guildId}/userRoles/purge`, {
@@ -80,6 +95,10 @@ function MaintenancePanel() {
       {
         label: 'User Roles Setup',
         handler: dispatchRolesSetup,
+      },
+      {
+        label: 'User Channels Setup',
+        handler: dispatchUserChannelsSetup,
       },
       {
         label: 'Purge User Roles',

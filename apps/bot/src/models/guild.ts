@@ -47,6 +47,7 @@ const GuildRepository = (pocketbase: typeof dataProvider.pocketbase) => {
   async function create(guild: TPocketbase.GuildData) {
     try {
       const record = await pocketbase.collection('servers').create(guild);
+      cacheMap.set(guild.guildId, record.id);
       return record;
     } catch (error) {
       console.error(error);
