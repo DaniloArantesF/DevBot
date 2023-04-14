@@ -8,17 +8,17 @@ import Discord from 'discord.js';
 export const BOT_CONFIG: TBot.Config = {
   motherGuildId: '1093214494592872448', // TODO: move to env
   prefix: '!',
-  logLevel: LogLevel.info,
+  logLevel: LogLevel.debug,
   // *Note* The discord api requires a reply within 3 seconds. If cooldown is greater than 3000, you need to defer reply and edit it later.
   cooldownMs: 2500,
 
   autoProcess: true, // Whether to automatically process tasks
-  autoSetup: true, // Whether to automatically perform setup tasks
+  autoSetup: false, // Whether to automatically perform setup tasks
   loadPlugins: false, // Whether to load plugins on init
 
   globalModerationConfig: {
     language: {
-      enabled: false,
+      enabled: true,
       allowed: ['en'],
       roleExceptions: [],
     },

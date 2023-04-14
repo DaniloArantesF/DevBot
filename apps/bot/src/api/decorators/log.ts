@@ -1,24 +1,27 @@
-import { TBotApi } from 'shared/types';
-import { Request, Response, NextFunction } from 'express';
+import { TBotApi, TCache } from 'shared/types';
+import { Request, Response } from 'express';
 import { RequestLog } from '@/tasks/logs';
 
+// right now this needs to be the last decorator applied to a method
+// TODO: improve this
 export function withApiLogging() {
   return function (target: any, key: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     descriptor.value = async function (req: Request | TBotApi.AuthenticatedRequest, res: Response) {
       const originalSend = res.send.bind(res);
       let logged = false;
+      let requestLog: TCache.Request | undefined;
 
       res.send = function (body?: any) {
         if (!logged) {
-          const requestLog = RequestLog(req.method, req.originalUrl, res.statusCode, body);
-          // console.log(requestLog); // TODO
+          requestLog = RequestLog(req.method, req.originalUrl, res.statusCode, body);
           logged = true;
         }
         return originalSend(body);
       };
 
-      return await originalMethod.apply(this, [req, res]);
+      await originalMethod.apply(this, [req, res]);
+      return requestLog;
     };
     return descriptor;
   };

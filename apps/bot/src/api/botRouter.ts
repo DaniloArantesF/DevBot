@@ -177,7 +177,7 @@ class BotRouter implements TBotRouter {
   /* -------------- Setup ---------------- */
 
   @withAuth(['admin'])
-  @useApiQueue()
+  @useApiQueue(15000)
   @withApiLogging()
   async setupGuild(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId as string;
@@ -191,7 +191,7 @@ class BotRouter implements TBotRouter {
   }
 
   @withAuth(['admin'])
-  @useApiQueue()
+  @useApiQueue(30000)
   @withApiLogging()
   async setupUserRoles(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId as string;
@@ -206,7 +206,7 @@ class BotRouter implements TBotRouter {
   }
 
   @withAuth(['admin'])
-  @useApiQueue()
+  @useApiQueue(15000)
   @withApiLogging()
   async setupUserChannels(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId as string;

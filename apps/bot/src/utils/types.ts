@@ -25,7 +25,7 @@ export interface Controller<T, E, C = {}> {
   } & C;
   queue: Queue<T>;
   taskMap: Map<string, E>;
-  addTask: (...args: any) => Promise<Queue.Job<T> | null>;
+  addTask: (...args: any[]) => Promise<Queue.Job<T> | null>;
   processTasks: (...args: any) => void;
   removeTask(id: string): Promise<void>;
 }
@@ -35,17 +35,14 @@ export interface TPluginController<T> {
   init: () => void;
 }
 
-export interface QueueTaskData {
-  id: string;
-  result?: string;
-  timestamp?: number;
-}
+export type QueueTaskData = string;
 
 export type apiHandler = () => Promise<void | TCache.Request> | void;
 
 export interface ApiTask {
   id: string;
   execute: apiHandler;
+  timeout?: number; // custom timeout
 }
 export type EventTask = DiscordEvent & {
   args: any[];

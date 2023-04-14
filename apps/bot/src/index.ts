@@ -4,17 +4,17 @@ import taskManager from '@/TaskManager';
 
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
-import { POCKETBASE_BASE_URL } from './utils/config';
+import { POCKETBASE_BASE_URL } from '@/utils/config';
 import api from '@/api';
-import { getGuild } from './tasks/guild';
+import { getGuild } from '@/tasks/guild';
 import Discord from 'discord.js';
 import { GuildBotContext, TPocketbase } from 'shared/types';
-import { createChannel } from './tasks/channels';
-import { GuildContext } from './utils/factories';
-import { RulesManager } from './controllers/features/rules';
-import { UserRoleManager } from './controllers/features/userRoles';
-import { UserChannelManager } from './controllers/features/userChannels';
-import ModerationManager from './controllers/features/moderation';
+import { createChannel } from '@/tasks/channels';
+import { GuildContext } from '@/utils/factories';
+import { RulesManager } from '@/controllers/features/rules';
+import { UserRoleManager } from '@/controllers/features/userRoles';
+import { UserChannelManager } from '@/controllers/features/userChannels';
+import ModerationManager from '@/controllers/features/moderation';
 
 class Bot {
   config = BOT_CONFIG;
@@ -24,10 +24,10 @@ class Bot {
   motherGuild: Discord.Guild | null = null;
 
   /* Features */
-  rulesManager = new RulesManager();
-  userRoleManager = new UserRoleManager();
-  userChannelManager = new UserChannelManager();
-  moderationManager = new ModerationManager();
+  rulesManager!: RulesManager;
+  userRoleManager!: UserRoleManager;
+  userChannelManager!: UserChannelManager;
+  moderationManager!: ModerationManager;
 
   constructor() {
     logger.Header([
@@ -43,6 +43,11 @@ class Bot {
     await taskManager.setupTaskControllers();
     await dataProvider.connect();
     this.config.loadPlugins && (await taskManager.setupPlugins());
+
+    this.rulesManager = new RulesManager();
+    this.userRoleManager = new UserRoleManager();
+    this.userChannelManager = new UserChannelManager();
+    this.moderationManager = new ModerationManager();
 
     return new Promise<boolean>((resolve, reject) => {
       // Setup
@@ -110,7 +115,7 @@ class Bot {
       await this.rulesManager.setupGuild(guild);
       await this.userRoleManager.setupGuild(guild);
       await this.userChannelManager.setupGuild(guild);
-      // await this.moderationManager.setupGuild(guild);
+      await this.moderationManager.setupGuild(guild);
     } catch (error) {
       console.error(error);
       logger.Error('Bot', (error as any).message);

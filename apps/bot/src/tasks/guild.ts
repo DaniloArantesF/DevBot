@@ -10,7 +10,7 @@ import {
   TPocketbase,
 } from 'shared/types';
 import dataProvider from '@/DataProvider';
-import TextRegistry from '@/utils/messageManager';
+import TextRegistry from '@/TextRegistry';
 
 export function getGuild(guildId: string) {
   return discordClient.guilds.cache.get(guildId);

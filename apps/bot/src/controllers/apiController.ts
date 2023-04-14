@@ -19,9 +19,12 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
     this.queue = new Queue<QueueTaskData>('api-queue', queueSettings);
   }
 
-  async addTask({ id, execute }: ApiTask) {
-    const job = this.queue.createJob({ id });
-    await job.timeout(this.config.taskTimeout).retries(this.config.taskRetries).save();
+  async addTask({ id, execute, timeout }: ApiTask) {
+    const job = this.queue.createJob(id);
+    await job
+      .timeout(timeout || this.config.taskTimeout)
+      .retries(this.config.taskRetries)
+      .save();
     this.taskMap.set(job.id, execute);
     return job;
   }
@@ -31,10 +34,9 @@ class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
     this.queue.process(async (job) => {
       const handler = this.taskMap.get(job.id);
       if (!handler) return;
-
       const data = await handler();
       if (data) {
-        job.data.result = stringifyCircular(data);
+        job.data = stringifyCircular(data);
       }
 
       this.taskMap.delete(job.id);

@@ -138,7 +138,7 @@ export interface TRouter {
   router: Router;
 }
 
-type RequestHandler = (...args: any[]) => Promise<void> | void;
+type RequestHandler = (...args: any[]) => Promise<any> | any;
 
 // TODO: include typing for Request Request<{}, {}, SetConfigBody>
 export interface TBotRouter {

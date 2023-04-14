@@ -17,6 +17,15 @@ export class TextRegistry {
 
     4) Spam will not be tolerated.`,
     roles: `React to the Emojis to set/unset your roles`,
+
+    features: {
+      moderation: {
+        language: {
+          warning:
+            'Only english is allowed here. Please use the correct language or I will kick you into oblivion.',
+        },
+      },
+    },
   };
 
   static names = {

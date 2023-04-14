@@ -50,8 +50,8 @@ class EventController implements Controller<QueueTaskData, EventTask> {
   queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, EventTask>();
   config = {
-    taskTimeout: 3000,
-    taskRetries: 2,
+    taskTimeout: 5000,
+    taskRetries: 1,
   };
   eventBus = new EventBus();
 
@@ -59,15 +59,20 @@ class EventController implements Controller<QueueTaskData, EventTask> {
     this.queue = new Queue<QueueTaskData>('event-queue', queueSettings);
   }
 
-  async addTask(event: DiscordEvent, args: any[] = []) {
+  async addTask(event: DiscordEvent, args: any) {
     if (!this.queue) {
       logger.Error('EventController', 'Queue not initialized!');
       console.log(...args);
       return null;
     }
-    const job = this.queue.createJob({ id: `${event.name}@${new Date().toISOString()}` });
+    const job = this.queue.createJob<string>(`${event.name}@${Date.now()}`);
     await job.timeout(this.config.taskTimeout).retries(this.config.taskRetries).save();
     this.taskMap.set(job.id, { ...event, args });
+
+    job.on('failed', () => {
+      logger.Error('EventController', `Failed to process task ${job.id}`);
+    });
+
     return job;
   }
 
@@ -84,7 +89,7 @@ class EventController implements Controller<QueueTaskData, EventTask> {
       this.eventBus.emit(event.name, ...event.args);
 
       if (data) {
-        job.data.result = stringifyCircular(data);
+        job.data = stringifyCircular(data);
       }
 
       this.taskMap.delete(job.id);

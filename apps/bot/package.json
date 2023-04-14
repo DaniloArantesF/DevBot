@@ -34,6 +34,7 @@
     "node-fetch": "^3.3.0",
     "openai": "^3.2.1",
     "pocketbase": "^0.12.1",
+    "redis": "^4.6.5",
     "redis-om": "^0.3.6",
     "shared": "*",
     "twitter-api-sdk": "^1.2.1",

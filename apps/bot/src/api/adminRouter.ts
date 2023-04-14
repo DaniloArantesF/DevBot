@@ -41,8 +41,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async registerCommands(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.body?.guildId as string;
     try {
@@ -60,8 +60,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async deleteCommands(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.body?.guildId;
     try {
@@ -79,8 +79,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async purgeChannel(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.body?.guildId;
     const channelId = req.body?.channelId;
@@ -100,8 +100,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async getGuildTemplates(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params?.guildId;
     const guild = getGuild(guildId);
@@ -111,8 +111,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async setLogLevel(req: TBotApi.AuthenticatedRequest, res: Response) {
     const levelKey = req.body?.level as string;
     const level = LogLevel[levelKey as keyof typeof LogLevel];
@@ -125,8 +125,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async setBotRole(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId as string;
     const guild = getGuild(guildId);
@@ -136,8 +136,8 @@ class AdminRouter implements TAdminRouter {
   }
 
   @withAuth(['admin'])
-  @withApiLogging()
   @useApiQueue()
+  @withApiLogging()
   async createGuildSnapshot(req: TBotApi.AuthenticatedRequest, res: Response) {
     const guildId = req.params.guildId as string;
 

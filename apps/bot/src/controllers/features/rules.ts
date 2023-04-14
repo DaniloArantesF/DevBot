@@ -4,7 +4,7 @@ import { listenMessageReactions } from '@/tasks/message';
 import { logger } from 'shared/logger';
 import { ReactionHandler, TPocketbase } from 'shared/types';
 import Discord from 'discord.js';
-import TextRegistry from '@/utils/messageManager';
+import TextRegistry from '@/TextRegistry';
 import { createRole, getEveryoneRole } from '@/tasks/roles';
 import { createChannel, getRulesChannel } from '@/tasks/channels';
 import { BASE_MEMBER_PERMISSIONS } from '@/utils/config';

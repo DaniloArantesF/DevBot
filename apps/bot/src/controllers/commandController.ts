@@ -37,7 +37,7 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
   }
 
   async addTask(interaction: CommandInteraction) {
-    const job = this.queue.createJob({ id: interaction.id });
+    const job = this.queue.createJob(interaction.id);
 
     job.timeout(this.config.taskTimeout).retries(this.config.taskRetries);
 
@@ -48,7 +48,8 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
       const timeLeft = lastInteraction === -1 ? 0 : lastInteraction + COOLDOWN_MS - Date.now();
 
       if (timeLeft > 0) {
-        logger.Info('CommandController',
+        logger.Info(
+          'CommandController',
           `Delaying command from ${interaction.member!.user.username} for ${timeLeft}ms`,
         );
         job.delayUntil(Date.now() + timeLeft);
@@ -106,7 +107,7 @@ class CommandController implements Controller<QueueTaskData, CommandInteraction>
       }
 
       if (data) {
-        job.data.result = stringifyCircular(data);
+        job.data = stringifyCircular(data);
       }
 
       this.taskMap.delete(job.id);
