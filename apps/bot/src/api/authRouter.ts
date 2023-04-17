@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { PUBLIC_CLIENT_URL } from '@/utils/config';
 import { logger } from 'shared/logger';
-import AuthController from '@/controllers/authController';
+import AuthController from '@/controllers/authManager';
 import { useApiQueue } from './decorators/queue';
 import { withApiLogging } from './decorators/log';
 

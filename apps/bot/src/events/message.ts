@@ -2,6 +2,9 @@ import { Events } from 'discord.js';
 import { DiscordEvent } from '@/utils/types';
 import { BOT_CONFIG } from 'shared/config';
 import commandController from '@/controllers/commandController';
+import { EventLog } from '@/tasks/logs';
+import { stringifyCircular, withEventLogging } from '@/utils';
+import { withApiLogging } from '@/api/decorators/log';
 
 const PREFIX = BOT_CONFIG.prefix;
 
@@ -17,10 +20,10 @@ export const messageCreate: DiscordEvent<Events.MessageCreate> = {
 
 export const messageReactionAdd: DiscordEvent<Events.MessageReactionAdd> = {
   name: Events.MessageReactionAdd,
-  async on(message, user) {},
+  on: withEventLogging('messageReactionAdd', async (message, user) => {}),
 };
 
 export const messageReactionRemove: DiscordEvent<Events.MessageReactionRemove> = {
   name: Events.MessageReactionRemove,
-  async on(message, user) {},
+  on: withEventLogging('messageReactionAdd', async (message, user) => {}),
 };

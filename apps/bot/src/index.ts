@@ -1,7 +1,6 @@
 import discordClient from '@/DiscordClient';
 import dataProvider from '@/DataProvider';
 import taskManager from '@/TaskManager';
-
 import { API_HOSTNAME, API_PORT, BOT_CONFIG, CLIENT_URL, REDIS_URL } from 'shared/config';
 import { logger } from 'shared/logger';
 import { POCKETBASE_BASE_URL } from '@/utils/config';
@@ -18,10 +17,10 @@ import ModerationManager from '@/controllers/features/moderation';
 
 class Bot {
   config = BOT_CONFIG;
-  isReady: Promise<boolean>;
-  userCooldown = new Map<string, number>();
   guilds: Map<string, GuildBotContext> = new Map();
+  isReady: Promise<boolean>;
   motherGuild: Discord.Guild | null = null;
+  userCooldown = new Map<string, number>();
 
   /* Features */
   rulesManager!: RulesManager;

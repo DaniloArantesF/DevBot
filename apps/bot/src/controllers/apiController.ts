@@ -1,11 +1,10 @@
-import discordClient from '@/DiscordClient';
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
-import { ApiTask, Controller, QueueTaskData } from '@/utils/types';
+import { ApiTask, IController, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
-class ApiController implements Controller<QueueTaskData, ApiTask['execute']> {
+class ApiController implements IController<QueueTaskData, ApiTask['execute']> {
   queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, ApiTask['execute']>();
   config = {

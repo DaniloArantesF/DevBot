@@ -1,10 +1,11 @@
 import { Events } from 'discord.js';
 import { DiscordEvent } from '@/utils/types';
-import { EventLog } from '@/tasks/logs';
+import { withEventLogging } from '@/utils';
+import { logger } from 'shared/logger';
 
 export const invalidated: DiscordEvent<Events.Invalidated> = {
   name: Events.Invalidated,
-  async on() {
-    return EventLog('invalidated');
-  },
+  on: withEventLogging('invalidated', async () => {
+    logger.Error('Event', 'The client has been invalidated');
+  }),
 };

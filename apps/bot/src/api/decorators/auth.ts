@@ -1,4 +1,4 @@
-import AuthController from '@/controllers/authController';
+import AuthController from '@/controllers/authManager';
 import { Response } from 'express';
 import { TBotApi } from 'shared/types';
 

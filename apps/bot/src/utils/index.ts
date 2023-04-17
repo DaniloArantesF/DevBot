@@ -1,3 +1,5 @@
+import { EventLog } from '@/tasks/logs';
+
 export const getCircularReplacer = () => {
   const seen = new WeakSet();
   return (key: string, value: any) => {
@@ -12,3 +14,10 @@ export const getCircularReplacer = () => {
 };
 
 export const stringifyCircular = (obj: any) => JSON.stringify(obj, getCircularReplacer());
+
+export function withEventLogging(eventName: string, fn: (...args: any[]) => Promise<any>) {
+  return async function (...args: any[]) {
+    const result = await fn(...args);
+    return EventLog(eventName, stringifyCircular(args) + '\n' + stringifyCircular(result));
+  };
+}

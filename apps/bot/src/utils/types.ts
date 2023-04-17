@@ -18,7 +18,12 @@ export interface DiscordEvent<K extends keyof ClientEvents = any> {
 }
 
 /*     TaskManager Types     */
-export interface Controller<T, E, C = {}> {
+/**
+ * @template T - Task data type
+ * @template E - Event data type
+ * @template C - Controller config type
+ */
+export interface IController<T, E, C = {}> {
   config: {
     taskTimeout: number;
     taskRetries: number;
@@ -33,6 +38,7 @@ export interface Controller<T, E, C = {}> {
 export interface TPluginController<T> {
   queue: Queue<T>;
   init: () => void;
+  id: string;
 }
 
 export type QueueTaskData = string;

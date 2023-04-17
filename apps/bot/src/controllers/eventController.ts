@@ -1,6 +1,6 @@
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
-import { Controller, DiscordEvent, EventTask, QueueTaskData } from '@/utils/types';
+import { IController, DiscordEvent, EventTask, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
 import { logger } from 'shared/logger';
 
@@ -46,7 +46,7 @@ class EventBus {
   }
 }
 
-class EventController implements Controller<QueueTaskData, EventTask> {
+class EventController implements IController<QueueTaskData, EventTask> {
   queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, EventTask>();
   config = {
@@ -87,7 +87,6 @@ class EventController implements Controller<QueueTaskData, EventTask> {
 
       // Emit event to the event bus
       this.eventBus.emit(event.name, ...event.args);
-
       if (data) {
         job.data = stringifyCircular(data);
       }

@@ -1,10 +1,11 @@
-import { Events, Interaction } from 'discord.js';
+import { Events } from 'discord.js';
 import { DiscordEvent } from '@utils/types';
 import commandController from '@/controllers/commandController';
+import { withEventLogging } from '@/utils';
 
 export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
   name: Events.InteractionCreate,
-  async on(interaction) {
+  on: withEventLogging('interactionCreate', async (interaction) => {
     // TODO: Check if user exists in pocketbase if not create it
 
     if (interaction.isRepliable()) {
@@ -20,5 +21,5 @@ export const interactionCreate: DiscordEvent<Events.InteractionCreate> = {
       // Push interactions to task queue
       commandController.addTask(interaction);
     }
-  },
+  }),
 };

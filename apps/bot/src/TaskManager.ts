@@ -1,5 +1,5 @@
 import Queue from 'bee-queue';
-import type { Controller } from '@/utils/types';
+import type { IController, QueueTaskData, TPluginController } from '@/utils/types';
 import { REDIS_HOSTNAME, REDIS_PORT } from '@/utils/config';
 import apiController from '@/controllers/apiController';
 import commandController from '@/controllers/commandController';
@@ -23,8 +23,8 @@ export const queueSettings: Queue.QueueSettings = {
 
 class TaskManager {
   // TODO: add typing to this
-  controllers: Controller<any, any>[];
-  plugins: any[];
+  controllers: IController<QueueTaskData, any>[];
+  plugins: TPluginController<any>[];
 
   constructor() {
     logger.Info('TaskManager', 'Initializing ...');

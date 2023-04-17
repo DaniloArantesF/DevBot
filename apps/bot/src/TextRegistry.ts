@@ -23,6 +23,7 @@ export class TextRegistry {
         language: {
           warning:
             'Only english is allowed here. Please use the correct language or I will kick you into oblivion.',
+          timeout: 'You have been muted for 5 minutes for using the wrong language.',
         },
       },
     },

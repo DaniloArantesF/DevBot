@@ -1,12 +1,11 @@
 import { Events } from 'discord.js';
 import { DiscordEvent } from '@/utils/types';
-import { stringifyCircular } from '@/utils';
-import { EventLog } from '@/tasks/logs';
+import { stringifyCircular, withEventLogging } from '@/utils';
+import { logger } from 'shared/logger';
 
 export const error: DiscordEvent<Events.Error> = {
   name: Events.Error,
-  async on(error) {
-    console.log(error);
-    return EventLog('error', stringifyCircular({ error }));
-  },
+  on: withEventLogging('error', async (error) =>
+    logger.Error('Event', stringifyCircular({ error })),
+  ),
 };

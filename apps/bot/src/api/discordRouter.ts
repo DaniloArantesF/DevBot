@@ -1,10 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { DISCORD_API_BASE_URL } from '@/utils/config';
 import fetch from 'node-fetch';
 import type { TBotApi } from '@/utils/types';
 import { getGuild } from '@/tasks/guild';
 import { getGuildRoles } from '@/tasks/roles';
-import { stringifyCircular } from '@/utils';
 import { createChannel, deleteChannel, getGuildChannel, getGuildChannels } from '@/tasks/channels';
 import { APIConnection, ChannelType } from 'discord.js';
 import { getUserGuilds } from '@/tasks/user';

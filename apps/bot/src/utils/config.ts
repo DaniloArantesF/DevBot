@@ -68,3 +68,5 @@ export const BASE_MEMBER_PERMISSIONS: PermissionsString[] = [
   'SendMessagesInThreads',
   'UseEmbeddedActivities',
 ];
+
+export const ADMINS = ['175802523934785536', '89518036100345856'];

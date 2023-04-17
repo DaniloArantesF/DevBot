@@ -1,6 +1,6 @@
 import { Events } from 'discord.js';
 import { DiscordEvent } from '@/utils/types';
-import { stringifyCircular } from '@/utils';
+import { stringifyCircular, withEventLogging } from '@/utils';
 import { EventLog } from '@/tasks/logs';
 import dataProvider from '@/DataProvider';
 import { BOT_CONFIG } from 'shared/config';
@@ -8,9 +8,9 @@ import { logger } from 'shared/logger';
 
 export const guildCreate: DiscordEvent<Events.GuildCreate> = {
   name: Events.GuildCreate,
-  async on(guild) {
+  on: withEventLogging('guildCreate', async (guild) => {
     logger.Info('Event: guildCreate', `Creating guild record for ${guild.name} (${guild.id}) ...`);
-    await dataProvider.guild.create({
+    return await dataProvider.guild.create({
       guildId: guild.id,
       name: guild.name,
       userRoles: [],
@@ -24,13 +24,19 @@ export const guildCreate: DiscordEvent<Events.GuildCreate> = {
         ...BOT_CONFIG.globalModerationConfig,
       },
     });
-    return EventLog('guildCreate', stringifyCircular({ guild }));
-  },
+  }),
 };
 
 export const guildUpdate: DiscordEvent<Events.GuildUpdate> = {
   name: Events.GuildUpdate,
-  async on(guild) {
-    return EventLog('guildUpdate', stringifyCircular({ guild }));
-  },
+  on: withEventLogging('guildUpdate', async (oldGuild, newGuild) => {
+    logger.Info(
+      'Event: guildUpdate',
+      `Updating guild record for ${newGuild.name} (${newGuild.id}) ...`,
+    );
+    return await dataProvider.guild.update({
+      guildId: newGuild.id,
+      name: newGuild.name,
+    });
+  }),
 };

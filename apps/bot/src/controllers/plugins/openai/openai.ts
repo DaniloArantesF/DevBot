@@ -16,8 +16,9 @@ import { OPENAI_API_KEY } from '@/utils/config';
 import OpenAiPluginApi from './openaiApi';
 import dataProvider from '@/DataProvider';
 import api from '@/api';
+import { TPluginController } from '@/utils/types';
 
-class OpenAI extends OpenAIApi {
+class OpenAI extends OpenAIApi implements TPluginController<TOpenAi.RequestTaskData> {
   queue!: Queue<TOpenAi.RequestTaskData>;
   id = 'openAi';
   api?: OpenAiPluginApi;

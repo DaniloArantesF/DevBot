@@ -1,6 +1,6 @@
 import { queueSettings } from '@/TaskManager';
 import { stringifyCircular } from '@/utils';
-import { TBot, Controller, QueueTaskData } from '@/utils/types';
+import { TBot, IController, QueueTaskData } from '@/utils/types';
 import Queue from 'bee-queue';
 import {
   ChatInputCommandInteraction,
@@ -22,7 +22,7 @@ export type CommandInteraction =
   | MessageComponentInteraction
   | ContextMenuCommandInteraction;
 
-class CommandController implements Controller<QueueTaskData, CommandInteraction> {
+class CommandController implements IController<QueueTaskData, CommandInteraction> {
   queue!: Queue<QueueTaskData>;
   taskMap = new Map<string, CommandInteraction>();
   config = {
