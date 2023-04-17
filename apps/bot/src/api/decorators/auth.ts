@@ -6,10 +6,10 @@ type Role = 'admin' | 'user';
 
 // Method descriptor
 export function withAuth(role: Role[]) {
-  return function (target: any, key: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value;
+  return function (target: any, key: string, descriptor?: PropertyDescriptor) {
+    const originalMethod = descriptor?.value;
 
-    descriptor.value = async function (
+    descriptor!.value = async function (
       req: TBotApi.AuthenticatedRequest,
       res: Response,
       ...args: any[]

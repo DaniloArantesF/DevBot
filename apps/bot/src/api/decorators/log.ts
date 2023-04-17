@@ -5,9 +5,12 @@ import { RequestLog } from '@/tasks/logs';
 // right now this needs to be the last decorator applied to a method
 // TODO: improve this
 export function withApiLogging() {
-  return function (target: any, key: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value;
-    descriptor.value = async function (req: Request | TBotApi.AuthenticatedRequest, res: Response) {
+  return function (target: any, key: string, descriptor?: PropertyDescriptor) {
+    const originalMethod = descriptor?.value;
+    descriptor!.value = async function (
+      req: Request | TBotApi.AuthenticatedRequest,
+      res: Response,
+    ) {
       const originalSend = res.send.bind(res);
       let logged = false;
       let requestLog: TCache.Request | undefined;

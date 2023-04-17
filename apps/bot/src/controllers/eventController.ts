@@ -11,7 +11,6 @@ class EventBus {
 
   // Defines an internal task
   task(event: string, key: string, callback: EventCallback<any[]>) {
-    // logger.Debug('EventBus', `Added internal event hook:\n\t${event}:${key}`);
     this.on(event, callback, true, key);
   }
 
