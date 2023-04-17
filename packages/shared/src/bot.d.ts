@@ -77,19 +77,23 @@ export type GuildConfigModerationRule = {
 
 export type GuildConfigChannel = {
   name: string;
+  channelId?: number;
+  entityId?: string; //
   description: string;
-  type: string; // improve this
-  subChannels: {
+  type: number;
+  subChannels?: {
     // only possible for category channels
     [key: string]: Omit<GuildConfigChannel, 'subChannels'>;
   };
-  allowedRoles: string[];
+  allowedRoles?: string[];
+  permissionOverwrites?: { id: number; type: number; allow: string; deny: string }[];
   moderation?: {
     language: GuildConfigModerationRule;
     content: GuildConfigModerationRule;
   };
-  flags: string[];
-  plugin: string | null;
+  flags?: string[];
+  plugin?: string | null;
+  parentId?: string | null;
 };
 
 export type ConfigCollection<V> = {

@@ -7,13 +7,14 @@ import { POCKETBASE_BASE_URL } from '@/utils/config';
 import api from '@/api';
 import { getGuild } from '@/tasks/guild';
 import Discord from 'discord.js';
-import { GuildBotContext, TPocketbase } from 'shared/types';
-import { createChannel } from '@/tasks/channels';
+import { GuildBotContext, GuildConfigChannel, TPocketbase } from 'shared/types';
+import { createChannel, getGuildChannel } from '@/tasks/channels';
 import { GuildContext } from '@/utils/factories';
 import { RulesManager } from '@/controllers/features/rules';
 import { UserRoleManager } from '@/controllers/features/userRoles';
 import { UserChannelManager } from '@/controllers/features/userChannels';
 import ModerationManager from '@/controllers/features/moderation';
+import { BASE_CHANNELS } from './utils/baseChannels';
 
 class Bot {
   config = BOT_CONFIG;
@@ -115,22 +116,40 @@ class Bot {
       await this.userRoleManager.setupGuild(guild);
       await this.userChannelManager.setupGuild(guild);
       await this.moderationManager.setupGuild(guild);
+
+      await this.setupBaseChannels(guild);
     } catch (error) {
       console.error(error);
       logger.Error('Bot', (error as any).message);
     }
   }
 
-  // Idempotent function to setup the base channels
-  setupBaseChannels() {
-    // Welcome
-    // announcements
-    // server logs
-    // bot logs
-    // help
-    // bug report / feature request
-    // Check that category exists, if not create it
-    // For each channel, check if it exists, if not create it
+  async setupBaseChannels(guildData: TPocketbase.GuildData) {
+    const guild = getGuild(guildData.guildId);
+    if (!guild) {
+      logger.Warning('Bot', `Guild ${guildData.guildId} not found.`);
+      return;
+    }
+
+    const channels: GuildConfigChannel[] = [];
+    let channel;
+    for (const { channelId, name, type } of BASE_CHANNELS) {
+      channel = await this.setupChannel(guild, { name, type }, { name, type, position: channelId });
+      channels.push({
+        name,
+        type,
+        description: '',
+        channelId,
+        entityId: channel.id,
+        parentId: channel.parentId,
+      });
+    }
+
+    // Update guild data
+    return await dataProvider.guild.update({
+      guildId: guildData.guildId,
+      channels: channels,
+    });
   }
 
   // Idempotent function to setup a channel
@@ -141,10 +160,36 @@ class Bot {
     identifiers: {
       name: string;
       type: Discord.ChannelType.GuildText | Discord.ChannelType.GuildCategory;
-      entityId: string;
+      entityId?: string;
     },
-    parentId?: string,
-  ) {}
+    options?: Discord.GuildChannelCreateOptions,
+  ) {
+    let channel: Discord.Channel | null = null;
+    // Try to match entity id first
+    if (identifiers.entityId) {
+      channel = getGuildChannel(guild.id, identifiers.entityId) || null;
+    }
+
+    // Try to match name and type
+    if (!channel) {
+      channel =
+        guild.channels.cache.find(
+          (c) => c.name === identifiers.name && c.type === identifiers.type,
+        ) || null;
+    }
+
+    // Create channel if it doesn't exist
+    if (!channel) {
+      logger.Debug('Bot', `Creating channel ${identifiers.name} ...`);
+      channel = await createChannel<Discord.ChannelType.GuildText>(guild.id, {
+        name: identifiers.name,
+        type: identifiers.type,
+        ...options,
+      });
+    }
+
+    return channel as Discord.TextChannel | Discord.CategoryChannel;
+  }
 
   /** Functions used in private bot guild */
   async setupBotLogChannel() {

@@ -82,7 +82,7 @@ export class UserChannelManager {
       userChannels.push({
         entityId: userRoleChannel.id,
         name: userRoleChannel.name,
-        type: userRoleChannel.type.toString(),
+        type: userRoleChannel.type,
         description: '',
         allowedRoles: role.entityId ? [role.entityId] : [],
         flags: [],

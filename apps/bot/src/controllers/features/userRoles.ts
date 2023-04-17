@@ -441,7 +441,7 @@ export class UserRoleManager {
       guild.userChannels.push({
         entityId: roleData.entityId,
         name: roleUserChannel.name,
-        type: roleUserChannel.type.toString(),
+        type: roleUserChannel.type,
         description: '',
         allowedRoles: roleData.entityId ? [roleData.entityId] : [],
         flags: [],

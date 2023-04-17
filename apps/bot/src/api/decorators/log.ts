@@ -2,8 +2,7 @@ import { TBotApi, TCache } from 'shared/types';
 import { Request, Response } from 'express';
 import { RequestLog } from '@/tasks/logs';
 
-// right now this needs to be the last decorator applied to a method
-// TODO: improve this
+// **Note**: right now this needs to be the last decorator applied to a method
 export function withApiLogging() {
   return function (target: any, key: string, descriptor?: PropertyDescriptor) {
     const originalMethod = descriptor?.value;

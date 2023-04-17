@@ -21,7 +21,7 @@ export function getGuildChannels(guildId: string) {
 }
 
 // Returns a channel by name or id
-export function getGuildChannel(guildId: string, channelId?: string, channelName?: string) {
+export function getGuildChannel(guildId: string, channelId: string | null, channelName?: string) {
   const guild = getGuild(guildId);
   if (channelName) return guild?.channels.cache.find((channel) => channel.name === channelName);
   return guild?.channels.cache.get(channelId!) ?? null;

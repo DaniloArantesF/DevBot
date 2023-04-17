@@ -40,6 +40,7 @@ export class RulesManager {
       rulesChannel = await createChannel<Discord.ChannelType.GuildText>(guild.guildId, {
         name: 'rules',
         type: Discord.ChannelType.GuildText,
+        position: 0,
         permissionOverwrites: [
           {
             id: everyone.id,

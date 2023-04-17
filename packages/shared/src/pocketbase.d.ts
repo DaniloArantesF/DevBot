@@ -39,6 +39,8 @@ declare namespace TPocketbase {
     plugins?: string[];
     userRoles: UserRoleItem[];
     userChannels: UserChannel[];
+
+    // list of channels that are managed by the bot
     channels: GuildConfigChannel[];
     description?: string;
     memberRoleId?: string;

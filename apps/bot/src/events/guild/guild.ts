@@ -30,13 +30,13 @@ export const guildCreate: DiscordEvent<Events.GuildCreate> = {
 export const guildUpdate: DiscordEvent<Events.GuildUpdate> = {
   name: Events.GuildUpdate,
   on: withEventLogging('guildUpdate', async (oldGuild, newGuild) => {
-    logger.Info(
-      'Event: guildUpdate',
-      `Updating guild record for ${newGuild.name} (${newGuild.id}) ...`,
-    );
-    return await dataProvider.guild.update({
-      guildId: newGuild.id,
-      name: newGuild.name,
-    });
+    // logger.Info(
+    //   'Event: guildUpdate',
+    //   `Updating guild record for ${newGuild.name} (${newGuild.id}) ...`,
+    // );
+    // return await dataProvider.guild.update({
+    //   guildId: newGuild.id,
+    //   name: newGuild.name,
+    // });
   }),
 };

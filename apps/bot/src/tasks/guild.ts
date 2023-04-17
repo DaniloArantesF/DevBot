@@ -86,7 +86,7 @@ export async function exportGuildConfig(guildId: string): Promise<GuildConfigExp
     const channelData = {
       name,
       description: '',
-      type: type.toString(), // TODO: move to actual type strings
+      type: type,
       subChannels: {},
       allowedRoles: [
         ...guild.roles.cache
@@ -121,7 +121,10 @@ export async function exportGuildConfig(guildId: string): Promise<GuildConfigExp
       if (!parentChannel) {
         return collection;
       }
-      parentChannel.subChannels[key] = channelData;
+      if (!parentChannel?.subChannels) {
+        parentChannel.subChannels = {};
+      }
+      parentChannel!.subChannels[key] = channelData;
     }
 
     return collection;

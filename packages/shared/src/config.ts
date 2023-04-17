@@ -13,7 +13,7 @@ export const BOT_CONFIG: TBot.Config = {
   cooldownMs: 2500,
 
   autoProcess: true, // Whether to automatically process tasks
-  autoSetup: false, // Whether to automatically perform setup tasks
+  autoSetup: true, // Whether to automatically perform setup tasks
   loadPlugins: false, // Whether to load plugins on init
 
   globalModerationConfig: {
