@@ -83,6 +83,10 @@ class Bot {
     // Create guilds in database if they don't exist
     await guildRepository.init(discordClient.guilds.cache.map((guild) => guild));
 
+    // Initialize user map
+    const userRepository = dataProvider.user;
+    await userRepository.init();
+
     // Configure motherguild
     if (this.motherGuild) {
       await this.setupBotLogChannel();

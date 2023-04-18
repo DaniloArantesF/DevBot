@@ -6,8 +6,27 @@ interface UserModel {
 }
 
 class UserModel {
+  admins = new Set();
+  users = new Set();
+
   constructor(pocketbase: PocketBase) {
     this.pocketbase = pocketbase;
+  }
+
+  async init() {
+    const data = await this.pocketbase
+      .collection('users')
+      .getFullList<TPocketbase.User>(1, { $autoCancel: false });
+    const admins = data.filter((user) => user.isAdmin);
+    const users = data.filter((user) => !user.isAdmin);
+
+    admins.forEach((admin) => {
+      this.admins.add(admin.discordId);
+    });
+
+    users.forEach((user) => {
+      this.users.add(user.discordId);
+    });
   }
 
   async create(user: TPocketbase.UserData) {

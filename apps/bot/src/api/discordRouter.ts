@@ -223,7 +223,7 @@ class DiscordRouter {
     });
   }
 
-  @withAuth(['user'])
+  @withAuth(['admin'])
   @useApiQueue()
   @withApiLogging()
   async createChannel(req: TBotApi.AuthenticatedRequest, res: Response) {
@@ -296,7 +296,7 @@ class DiscordRouter {
     }
   }
 
-  @withAuth(['user'])
+  @withAuth(['admin'])
   @useApiQueue()
   @withApiLogging()
   async deleteChannel(req: TBotApi.AuthenticatedRequest, res: Response) {

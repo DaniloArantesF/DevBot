@@ -1,3 +1,4 @@
+import dataProvider from '@/DataProvider';
 import AuthController from '@/controllers/authManager';
 import { Response } from 'express';
 import { TBotApi } from 'shared/types';
@@ -21,6 +22,7 @@ export function withAuth(role: Role[]) {
         });
       }
 
+      // Verify that the token is valid
       const authController = AuthController.getInstance();
       const token = authHeader.split(' ')[1];
       const payload = await authController.verifySessionToken(token);
@@ -28,6 +30,18 @@ export function withAuth(role: Role[]) {
         return res.status(401).send({
           message: 'Invalid token.',
         });
+      }
+
+      // Verify that the user has the correct role
+      // Right now it only checks for admin
+      if (role.includes('admin') && !role.includes('user')) {
+        const userDiscordId = payload.discordUser.id;
+        const isAdmin = dataProvider.user.admins.has(userDiscordId);
+        if (!isAdmin) {
+          return res.status(403).send({
+            message: 'You do not have permission to access this resource.',
+          });
+        }
       }
 
       req.userId = payload.userId;
