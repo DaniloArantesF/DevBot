@@ -5,6 +5,7 @@ import { addUserRole, getGuildRole, getUserRoles, removeUserRole } from '@/tasks
 import { replyInteraction } from '@/tasks/commands';
 
 export const command: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('enlist')
     .setDescription('Enlists a user into a role on this guild')

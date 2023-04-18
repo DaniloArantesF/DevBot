@@ -7,8 +7,6 @@ export const command: TBot.Command = {
   async messageHandler(interaction) {
     const reply = 'Hello!';
     await replyInteraction(interaction, reply);
-
-    // Return data to be logged
     return {
       user: interaction.member!.user.id,
       guild: interaction.guildId!,
@@ -21,8 +19,6 @@ export const command: TBot.Command = {
   async execute(interaction) {
     const reply = 'Hello!';
     await replyInteraction(interaction, reply);
-
-    // Return data to be logged
     return {
       user: interaction.member!.user.id,
       guild: interaction.guildId!,

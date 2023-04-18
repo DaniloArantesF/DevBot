@@ -1,7 +1,6 @@
 import { Events } from 'discord.js';
 import { DiscordEvent } from '@/utils/types';
-import { stringifyCircular, withEventLogging } from '@/utils';
-import { EventLog } from '@/tasks/logs';
+import { withEventLogging } from '@/utils';
 import dataProvider from '@/DataProvider';
 import { BOT_CONFIG } from 'shared/config';
 import { logger } from 'shared/logger';

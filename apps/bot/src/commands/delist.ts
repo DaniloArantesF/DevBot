@@ -5,6 +5,7 @@ import { getGuildRole, removeUserRole } from '@/tasks/roles';
 import { replyInteraction } from '@/tasks/commands';
 
 export const command: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('delist')
     .setDescription('Delists a user from a role on this guild')

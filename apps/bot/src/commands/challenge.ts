@@ -76,6 +76,7 @@ export async function notifySponsor(userId: string, sponsor: GuildMember) {
 }
 
 export const command: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('create-challenge')
     .setDescription('Create a challenge')
@@ -147,6 +148,7 @@ export const command: TBot.Command = {
 };
 
 export const challangeJoin: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('join-challenge')
     .setDescription('Join a challenge')
@@ -225,6 +227,7 @@ export const challangeJoin: TBot.Command = {
 // Submit a challenge entry
 // The command must be sent in the main channel of the challenge
 export const challengeSubmit: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('submit-challenge')
     .setDescription('Submit a challenge entry')
@@ -309,6 +312,7 @@ export const challengeSubmit: TBot.Command = {
 
 // Updates a challenge
 export const challengeUpdate: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('update-challenge')
     .setDescription('Update a challenge')
@@ -392,6 +396,7 @@ export const challengeUpdate: TBot.Command = {
 
 // Updates a challenge
 export const challengeLeave: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder()
     .setName('leave-challenge')
     .setDescription('Leave a challenge')

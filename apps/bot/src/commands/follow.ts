@@ -7,6 +7,7 @@ export const contextCommand = new ContextMenuCommandBuilder()
   .setType(ApplicationCommandType.User);
 
 export const command: TBot.Command = {
+  isHidden: true,
   data: new SlashCommandBuilder().setName('follow').setDescription('Follows a user'),
   async messageHandler(interaction) {
     const reply = 'TODO';

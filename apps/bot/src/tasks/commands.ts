@@ -24,7 +24,7 @@ export async function getCommands(all = false) {
 
     for (const commandName in exports) {
       const command = exports[commandName];
-      if (command.execute === undefined && !all) continue;
+      if ((command.execute === undefined && !all) || command?.isHidden) continue;
       commands.push(command);
     }
   }
@@ -34,8 +34,7 @@ export async function getCommands(all = false) {
 
 /**
  * Registers slash commands globally or for a specific guild
-  TODO: fix type issues here
-* @throws {DiscordAPIError}
+ * @throws {DiscordAPIError}
  */
 export async function setSlashCommands(commands: TBot.Command[], guildId?: string) {
   const rest = new REST({ version: '10' }).setToken(TOKEN);

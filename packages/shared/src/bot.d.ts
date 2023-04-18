@@ -47,6 +47,7 @@ declare namespace TBot {
     data: TDiscord.SlashCommandData;
     execute: SlashCommandHandler;
     permissions?: string[];
+    isHidden?: boolean;
     usage?: string;
     buttonHandler?: ButtonCommandHandler;
     messageHandler?: MessageCommandHandler;
