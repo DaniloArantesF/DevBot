@@ -143,11 +143,20 @@ export class RulesManager {
     // Removes the member role and all other user roles from the user
     const onRemove: ReactionHandler = (reaction, user) => {
       if (user.bot || reaction.emoji.name !== '✅') return;
-      const roles = [guildContext.memberRole!, ...guildContext.userRoles.values()];
-      guild.members.cache.get(user.id)?.roles.remove(roles);
+      this.removeUserRoles(reaction.message.guild!, user.id);
     };
 
     listenMessageReactions(guildContext.rulesMessage, onAdd, onRemove);
+  }
+
+  async removeUserRoles(guild: Discord.Guild, userId: string) {
+    const guildContext = bot.guilds.get(guild.id);
+    if (!guildContext?.memberRole) {
+      logger.Error('Bot', 'Invalid guild context');
+      return;
+    }
+    const roles = [guildContext.memberRole!, ...guildContext.userRoles.values()];
+    await guild.members.cache.get(userId)?.roles.remove(roles);
   }
 
   async createRulesMessage(rulesChannel: Discord.TextChannel, message: string) {

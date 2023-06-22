@@ -59,7 +59,7 @@ export function listenUserMessages(
 ) {
   eventController.eventBus.task(
     Discord.Events.MessageCreate,
-    'listenChannel',
+    `${channel.id}:listenUserMessages`,
     (message: Discord.Message) => {
       if (message.channelId !== channel.id || message.author.bot) return;
       onMessage(message);

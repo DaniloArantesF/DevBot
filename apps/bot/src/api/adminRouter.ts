@@ -150,7 +150,6 @@ class AdminRouter implements TAdminRouter {
       }
 
       // Save to db
-
       const snapshotRecord = await dataProvider.guild.createSnapshot(snapshot!);
       res.send(snapshotRecord);
     } catch (error: any) {

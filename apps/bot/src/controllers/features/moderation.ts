@@ -5,7 +5,6 @@ import { logger } from 'shared/logger';
 import { GuildConfigModerationRule, TPocketbase } from 'shared/types';
 import FastText from 'fasttext';
 import path from 'path';
-import eventController from '../eventController';
 import { getGuildChannels } from '@/tasks/channels';
 import bot from '@/index';
 import { Client, Entity, Repository, Schema } from 'redis-om';
@@ -64,10 +63,9 @@ class ModerationManager {
   model = path.resolve(__dirname, 'lid.176.bin');
   redisClient: Client;
   ruleKeys: ModerationKey[] = ['language', 'content'];
-  violationCacheMap = new Map<string, string>(); // userId:guildId:ruleId -> redisId
+  violationCountMap = new Map<string, number>(); // userId:guildId:ruleId -> redisId
 
   private violationsRepository: Repository<RuleViolationRecord>;
-  // private punishmentsRepository: Repository<RuleViolationRecord>;
 
   constructor() {
     this.redisClient = dataProvider.redis;
@@ -95,20 +93,26 @@ class ModerationManager {
       });
     });
 
-    // eventController.eventBus.on<Discord.Message>(Discord.Events.MessageCreate, (message) => {
-    //   console.log(message)
-    // });
     discordClient.setMaxListeners(20);
     this.isReady = true;
   }
 
   async initViolationsMap() {
     const violations = await this.violationsRepository.search().return.all();
-    // console.log(violations);
+    violations.forEach((violation) => {
+      const key = `${violation.userId}:${violation.guildId}`;
+      if (this.violationCountMap.has(key)) {
+        this.violationCountMap.set(key, this.violationCountMap.get(key)! + 1);
+      } else {
+        this.violationCountMap.set(key, 1);
+      }
+    });
   }
 
-  async getUserViolations(userId: string, guildId: string, ruleId: string) {
-    return await this.violationsRepository.search().where('userId').eq(userId).return.all();
+  async getUserViolations(userId: string, guildId: string, ruleId?: string) {
+    return (
+      await this.violationsRepository.search().where('userId').eq(userId).return.all()
+    ).filter((v) => v.guildId === guildId);
   }
 
   async getActiveUserViolations(userId: string, guildId: string, ruleId: string) {
@@ -152,7 +156,9 @@ class ModerationManager {
             const languageData = await this.classifier.predict(message.content, 5);
             const language = languageData[0].label.replace(/__label__/g, '');
             if (!rule.allowed.includes(language)) {
-              const violationHandler = await this.getLanguageViolationHandler(1);
+              const infractionCount =
+                this.violationCountMap.get(`${message.author.id}:${message.guild?.id}`) ?? 0;
+              const violationHandler = await this.getLanguageViolationHandler(infractionCount);
               await violationHandler(message);
             }
           } catch (error) {
@@ -172,11 +178,12 @@ class ModerationManager {
   }
 
   async getLanguageViolationHandler(infractionCount: number) {
-    if (infractionCount > 1) {
-      // Punish user
-      return this.punishUser.bind(this);
+    if (infractionCount < 1) {
+      return this.warnUser.bind(this);
+    } else if (infractionCount == 1) {
+      return this.timeoutUser.bind(this);
     }
-    return this.warnUser.bind(this);
+    return this.kickUser.bind(this);
   }
 
   // Adds user to infractors list and applies punishment if needed
@@ -187,7 +194,8 @@ class ModerationManager {
       message.guild!.id,
       'language',
     );
-    this.createViolation(message.author.id, {
+
+    await this.createViolation(message.author.id, {
       userId: message.author.id,
       channelId: message.channel.id,
       guildId: message.guild!.id,
@@ -197,6 +205,7 @@ class ModerationManager {
       warningCount: (lastViolation?.length ?? 0) + 1,
     });
     const reply = await message.reply(TextRegistry.messages.features.moderation.language.warning);
+    await bot.rulesManager.removeUserRoles(message.guild!, message.author.id);
     setTimeout(async () => (await message.delete()) && reply.delete(), 5000);
   }
 
@@ -208,14 +217,68 @@ class ModerationManager {
       ...violationData,
     });
     await this.violationsRepository.expire(record.entityId, ttlInSeconds);
+    this.violationCountMap.set(
+      `${violationData.userId}:${violationData.guildId}`,
+      violationData.warningCount,
+    );
     return record;
   }
 
-  async punishUser(message: Discord.Message) {}
+  async timeoutUser(message: Discord.Message) {
+    const guildMember = await message?.guild!.members.fetch(message.author.id);
+    try {
+      const lastViolation = await this.getActiveUserViolations(
+        message.author.id,
+        message.guild!.id,
+        'language',
+      );
+      await this.createViolation(message.author.id, {
+        userId: message.author.id,
+        channelId: message.channel.id,
+        guildId: message.guild!.id,
+        ruleId: 'language',
+        timestamp: Date.now(),
+        expiresAt: Date.now() + this.infractionWindowMs,
+        warningCount: (lastViolation?.length ?? 0) + 1,
+      });
 
-  async timeoutUser(guild: Discord.Guild, user: Discord.User) {}
+      await guildMember.timeout(5 * 60 * 1000, 'Please use the correct language in this server.');
+      await message.delete();
+      await bot.rulesManager.removeUserRoles(message.guild!, message.author.id);
+    } catch (error) {
+      logger.Error('Moderation', 'Failed to timeout user.');
+      console.log(error);
+    }
+  }
 
-  async kickUser(guild: Discord.Guild, user: Discord.User) {}
+  async kickUser(message: Discord.Message) {
+    const guildMember = await message?.guild!.members.fetch(message.author.id);
+    if (!guildMember || !guildMember.kickable) return;
+
+    try {
+      const lastViolation = await this.getActiveUserViolations(
+        message.author.id,
+        message.guild!.id,
+        'language',
+      );
+      await this.createViolation(message.author.id, {
+        userId: message.author.id,
+        channelId: message.channel.id,
+        guildId: message.guild!.id,
+        ruleId: 'language',
+        timestamp: Date.now(),
+        expiresAt: Date.now() + this.infractionWindowMs,
+        warningCount: (lastViolation?.length ?? 0) + 1,
+      });
+
+      await bot.rulesManager.removeUserRoles(message.guild!, message.author.id);
+      await guildMember.kick('You were warned');
+      await message.delete();
+    } catch (error) {
+      logger.Error('Moderation', 'Failed to kick user.');
+      console.log(error);
+    }
+  }
 }
 
 export default ModerationManager;
